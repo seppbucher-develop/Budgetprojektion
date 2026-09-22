@@ -1,5 +1,8 @@
+// Trotz des Namens ohne "CHF"-Präfix (nur Zahl mit Tausendertrennzeichen) —
+// die Währung ist app-weit immer CHF und wird nicht wiederholt angezeigt,
+// um Platz zu sparen (v. a. auf schmalen Bildschirmen).
 const currencyFormatter = new Intl.NumberFormat("de-CH", {
-  style: "currency", currency: "CHF", maximumFractionDigits: 0
+  maximumFractionDigits: 0
 });
 
 // Für Detailtabellen (z. B. Buchungen-Drilldown), in denen die Währung aus
