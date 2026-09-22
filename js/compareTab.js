@@ -79,7 +79,9 @@ function openBuchungenDialog(jahr, posten) {
 
   buchungenTbody.innerHTML = "";
   if (buchungen.length === 0) {
-    buchungenTbody.innerHTML = '<tr><td colspan="4" class="hint">Keine Buchungen gefunden.</td></tr>';
+    // grid-column: span statt colspan — unter CSS Grid (siehe #buchungen-table
+    // in style.css) wird das HTML-colspan-Attribut nicht berücksichtigt.
+    buchungenTbody.innerHTML = '<tr><td style="grid-column: span 4" class="hint">Keine Buchungen gefunden.</td></tr>';
   } else {
     buchungen.forEach(function (b) {
       const tr = document.createElement("tr");
@@ -96,7 +98,7 @@ function openBuchungenDialog(jahr, posten) {
   buchungenTotalRow.innerHTML =
     "<td></td>" +
     '<td class="num total">' + betragFormatter.format(summe) + "</td>" +
-    '<td colspan="2">Total (' + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>";
+    '<td style="grid-column: span 2">Total (' + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>";
 
   buchungenDialog.showModal();
 }
