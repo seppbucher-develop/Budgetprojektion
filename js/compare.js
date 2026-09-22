@@ -62,6 +62,16 @@ export function berechneAbweichungen(state) {
 }
 
 /**
+ * Liefert die einzelnen realen Buchungen, aus denen sich der "Real"-Wert
+ * einer Zelle der Abweichungstabelle zusammensetzt (für den Drilldown).
+ */
+export function buchungenFuerJahrPosten(state, jahr, posten) {
+  return state.realTransaktionen
+    .filter(function (t) { return !t.istEinnahme && t.kategoriengruppe === posten && isoYear(t.datum) === jahr; })
+    .sort(function (a, b) { return a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0; });
+}
+
+/**
  * Sinnvolle Einsparungsmöglichkeiten: Kategorien, die im Schnitt über
  * mehrere abgeschlossene Jahre das Budget übersteigen, sowie – als
  * Zusatzinfo – Kategorien mit deutlichen Budgetreserven.
