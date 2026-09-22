@@ -1,7 +1,13 @@
 import { getState } from "./store.js";
-import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js";
+import { berechneAbweichungen, berechneSparpotenzial, buchungenFuerJahrPosten } from "./compare.js";
 import { drawGroupedBarChart, currencyFormatter } from "./charts.js";
 import { renderImportInfo } from "./importUi.js";
+import { formatIsoDate } from "./dateUtils.js";
+
+const buchungenDialog = document.getElementById("dialog-buchungen");
+const buchungenTitle = document.getElementById("dialog-buchungen-title");
+const buchungenTbody = document.querySelector("#buchungen-table tbody");
+const buchungenTotalRow = document.getElementById("buchungen-table-total");
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -35,9 +41,12 @@ function renderJahrTabelleUndChart(abw) {
     tr.innerHTML =
       "<td>" + z.posten + "</td>" +
       '<td class="num">' + currencyFormatter.format(Math.abs(z.budget)) + "</td>" +
-      '<td class="num">' + currencyFormatter.format(Math.abs(z.real)) + "</td>" +
+      '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(Math.abs(z.real)) + "</button></td>" +
       '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + currencyFormatter.format(z.abweichung) + "</td>" +
       '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + pctText(z.abweichungPct) + "</td>";
+    tr.querySelector('[data-action="buchungen"]').addEventListener("click", function () {
+      openBuchungenDialog(jahr, z.posten);
+    });
     tbody.appendChild(tr);
   });
 
@@ -57,6 +66,42 @@ function renderJahrTabelleUndChart(abw) {
     { name: "Real", color: "#2563eb", values: zeilen.map(function (z) { return Math.abs(z.real); }) }
   ]);
 }
+
+function escapeHtml(s) {
+  const div = document.createElement("div");
+  div.textContent = s || "";
+  return div.innerHTML;
+}
+
+function openBuchungenDialog(jahr, posten) {
+  const buchungen = buchungenFuerJahrPosten(getState(), jahr, posten);
+  buchungenTitle.textContent = "Buchungen: " + posten + " " + jahr;
+
+  buchungenTbody.innerHTML = "";
+  if (buchungen.length === 0) {
+    buchungenTbody.innerHTML = '<tr><td colspan="5" class="hint">Keine Buchungen gefunden.</td></tr>';
+  } else {
+    buchungen.forEach(function (b) {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + formatIsoDate(b.datum) + "</td>" +
+        "<td>" + escapeHtml(b.name) + "</td>" +
+        "<td>" + escapeHtml(b.kategorie) + "</td>" +
+        "<td>" + escapeHtml(b.konto) + "</td>" +
+        '<td class="num">' + currencyFormatter.format(b.betragChf) + "</td>";
+      buchungenTbody.appendChild(tr);
+    });
+  }
+
+  const summe = buchungen.reduce(function (s, b) { return s + b.betragChf; }, 0);
+  buchungenTotalRow.innerHTML =
+    '<td colspan="4">Total (' + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>" +
+    '<td class="num total">' + currencyFormatter.format(summe) + "</td>";
+
+  buchungenDialog.showModal();
+}
+
+document.getElementById("dialog-buchungen-close").addEventListener("click", function () { buchungenDialog.close(); });
 
 function renderTrendChart(abw) {
   drawGroupedBarChart(

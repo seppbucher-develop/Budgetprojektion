@@ -487,6 +487,27 @@ dialog {
   width: 90vw;
 }
 
+dialog.dialog-wide {
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.clickable-value {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.clickable-value:hover {
+  color: var(--color-primary);
+}
+
 dialog::backdrop {
   background: rgba(15, 23, 42, 0.5);
 }

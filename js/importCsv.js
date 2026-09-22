@@ -61,6 +61,7 @@ export async function importCsvFile(file) {
   ["Typ", "Datum", "Betrag", "Währung", "Wechselkurs", "Kategoriengruppe", "Kategorie", "Konto"].forEach(function (name) {
     idx[name] = header.indexOf(name);
   });
+  const nameIdx = header.indexOf("Name"); // optional, für die Detailanzeige im Realvergleich
   const missing = Object.keys(idx).filter(function (name) { return idx[name] === -1; });
   if (missing.length) {
     throw new Error("Erwartete Spalten fehlen in der CSV-Datei: " + missing.join(", "));
@@ -82,6 +83,7 @@ export async function importCsvFile(file) {
       typ: typRoh,
       istEinnahme: TYP_EINNAHMEN.indexOf(typRoh.toLowerCase()) !== -1,
       datum: (row[idx.Datum] || "").slice(0, 10),
+      name: nameIdx !== -1 ? (row[nameIdx] || "").trim() : "",
       betragChf: betrag * wechselkurs,
       waehrung: row[idx.Währung] || "",
       kategoriengruppe: (row[idx.Kategoriengruppe] || "").trim(),
