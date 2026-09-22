@@ -369,6 +369,11 @@ body {
   font-weight: 700;
 }
 
+.data-table tfoot td {
+  border-bottom: none;
+  border-top: 2px solid var(--color-border);
+}
+
 .data-table .positive {
   color: var(--color-positive);
 }
