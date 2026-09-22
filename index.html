@@ -3,70 +3,236 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Budgetprojektion – Wie weit reicht das Vermögen</title>
+<title>Budgetprojektion</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="app">
   <header class="app-header">
     <h1>Budgetprojektion</h1>
-    <p class="subtitle">Wie weit reicht das Vermögen?</p>
+    <p class="subtitle">Budget, Vermögen und eine 30-Jahres-Projektion – alles lokal im Browser</p>
   </header>
 
-  <main class="layout">
-    <section class="panel form-panel">
-      <h2>Eingaben</h2>
-      <form id="calc-form">
-        <div class="field">
-          <label for="startVermoegen">Startvermögen (CHF)</label>
-          <input type="number" id="startVermoegen" name="startVermoegen" step="100" min="0" required value="100000">
-        </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="budget">Budget</button>
+    <button class="tab-btn" data-tab="vermoegen">Vermögen</button>
+    <button class="tab-btn" data-tab="projektion">Projektion</button>
+    <button class="tab-btn" data-tab="vergleich">Realvergleich</button>
+  </nav>
 
-        <div class="field">
-          <label for="monatlicheEinnahmen">Monatliche Einnahmen (CHF)</label>
-          <input type="number" id="monatlicheEinnahmen" name="monatlicheEinnahmen" step="10" min="0" required value="2000">
+  <!-- BUDGET -->
+  <section id="tab-budget" class="tab-panel active">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Kosten &amp; Erträge pro Jahr</h2>
+        <div class="panel-actions">
+          <button id="btn-import-xlsx" class="btn-secondary">Aus Excel importieren…</button>
+          <button id="btn-add-budget-row" class="btn-primary">+ Neuer Posten</button>
         </div>
+      </div>
+      <p class="hint" id="budget-empty-hint">Noch keine Budgetdaten vorhanden. Importiere die Budget_Pension.xlsx (Tabs „Budget“ und „Vermögen“) oder lege Posten manuell an.</p>
+      <table class="data-table" id="budget-table">
+        <thead><tr><th>Posten</th><th>Betrag (CHF/Jahr)</th><th>Gültig ab</th><th>Typ</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
 
-        <div class="field">
-          <label for="monatlicheAusgaben">Monatliche Ausgaben (CHF)</label>
-          <input type="number" id="monatlicheAusgaben" name="monatlicheAusgaben" step="10" min="0" required value="3500">
+  <!-- VERMÖGEN -->
+  <section id="tab-vermoegen" class="tab-panel">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Vermögen zum Stichtag</h2>
+        <div class="panel-actions">
+          <button id="btn-add-vermoegen-row" class="btn-primary">+ Neuer Stichtag</button>
         </div>
+      </div>
+      <p class="hint" id="vermoegen-empty-hint">Noch keine Vermögensdaten vorhanden. Importiere die Excel-Datei im Tab „Budget“ oder lege einen Stichtag manuell an.</p>
+      <div class="table-scroll">
+        <table class="data-table" id="vermoegen-table">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
+  <!-- PROJEKTION -->
+  <section id="tab-projektion" class="tab-panel">
+    <div class="panel">
+      <h2>Annahmen</h2>
+      <form id="form-projektion-einstellungen" class="inline-form">
         <div class="field">
-          <label for="rendite">Erwartete Rendite p.a. (%)</label>
-          <input type="number" id="rendite" name="rendite" step="0.1" value="3">
+          <label for="horizontJahre">Horizont (Jahre)</label>
+          <input type="number" id="horizontJahre" name="horizontJahre" min="1" max="80" step="1">
         </div>
-
         <div class="field">
-          <label for="inflation">Inflation p.a. (%)</label>
-          <input type="number" id="inflation" name="inflation" step="0.1" value="1.5">
+          <label for="renditePct">Rendite p.a. auf Vermögen (%)</label>
+          <input type="number" id="renditePct" name="renditePct" step="0.1">
         </div>
-
         <div class="field">
-          <label for="horizont">Zeithorizont (Jahre)</label>
-          <input type="number" id="horizont" name="horizont" step="1" min="1" max="100" value="50">
+          <label for="inflationPct">Inflation p.a. auf Kosten ab heute (%)</label>
+          <input type="number" id="inflationPct" name="inflationPct" step="0.1">
         </div>
-
-        <button type="submit" class="btn-primary">Berechnen</button>
+        <button type="submit" class="btn-primary">Übernehmen</button>
       </form>
-    </section>
+    </div>
 
-    <section class="panel result-panel">
-      <h2>Ergebnis</h2>
-      <div id="result-summary" class="result-summary">
-        <p class="hint">Gib deine Werte ein und klicke auf „Berechnen“.</p>
+    <p class="hint" id="projektion-empty-hint">Noch keine Projektion möglich – bitte zuerst Budgetposten anlegen oder importieren.</p>
+    <div id="projektion-inhalt">
+      <div class="panel">
+        <h2>Projektion – nächste Jahre</h2>
+        <div id="projektion-summary" class="result-details"></div>
+        <div class="chart-wrap"><canvas id="projektion-chart"></canvas></div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="chart" width="800" height="400"></canvas>
+      <div class="panel">
+        <table class="data-table" id="projektion-table">
+          <thead><tr><th>Jahr</th><th>Ertrag</th><th>Kosten (budgetiert)</th><th>Netto</th><th>Vermögen Ende</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
+
+  <!-- REALVERGLEICH -->
+  <section id="tab-vergleich" class="tab-panel">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Reale Kosten importieren</h2>
+        <div class="panel-actions">
+          <button id="btn-import-csv" class="btn-secondary">CSV importieren…</button>
+        </div>
+      </div>
+      <p class="hint" id="csv-import-info"></p>
+    </div>
+
+    <p class="hint" id="vergleich-empty-hint">Noch keine realen Kosten importiert. Importiere eine Transaktions-CSV aus bluecoins/reports.</p>
+    <div id="vergleich-inhalt">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>A) Abweichung reale Kosten zum Budget</h2>
+          <div class="field inline-select">
+            <label for="vergleich-jahr-select">Jahr</label>
+            <select id="vergleich-jahr-select"></select>
+          </div>
+        </div>
+        <p class="warning" id="vergleich-jahr-unvollstaendig" style="display:none">Dieses Jahr ist noch nicht abgeschlossen – die Werte sind unvollständig und nicht direkt mit vollen Jahren vergleichbar.</p>
+        <div class="chart-wrap"><canvas id="vergleich-jahr-chart"></canvas></div>
+        <table class="data-table" id="vergleich-table">
+          <thead><tr><th>Kategorie</th><th>Budget</th><th>Real</th><th>Abweichung</th><th>Abweichung %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+
+        <h3>Trend über alle Jahre</h3>
+        <p class="hint">* laufendes/zukünftiges Jahr, Daten unvollständig</p>
+        <div class="chart-wrap"><canvas id="vergleich-trend-chart"></canvas></div>
+      </div>
+
+      <div class="panel">
+        <h2>B) Sinnvolle Einsparungsmöglichkeiten</h2>
+        <h3>Häufig über Budget</h3>
+        <ul id="sparpotenzial-ueberschreitungen" class="insight-list"></ul>
+        <h3>Budgetreserven (deutlich unter Budget)</h3>
+        <ul id="sparpotenzial-reserven" class="insight-list"></ul>
+      </div>
+    </div>
+  </section>
 
   <footer class="app-footer">
-    <p>Alle Berechnungen erfolgen lokal in deinem Browser. Es werden keine Daten übertragen oder gespeichert außer in deinem eigenen localStorage.</p>
+    <p>Alle Daten und Berechnungen bleiben lokal in deinem Browser (localStorage). Es gibt kein Backend und keine Datenübertragung.</p>
   </footer>
 </div>
 
-<script src="js/app.js"></script>
+<!-- Dialog: Budgetposten anlegen/bearbeiten -->
+<dialog id="dialog-budget-row">
+  <form id="form-budget-row" method="dialog">
+    <h2 id="dialog-budget-row-title">Neuer Budgetposten</h2>
+    <div class="field">
+      <label for="budget-posten">Posten</label>
+      <input type="text" id="budget-posten" name="posten" list="budget-posten-liste" required>
+      <datalist id="budget-posten-liste"></datalist>
+    </div>
+    <div class="field">
+      <label for="budget-betrag">Betrag pro Jahr (CHF, Kosten negativ)</label>
+      <input type="number" id="budget-betrag" name="betrag" step="1" required>
+    </div>
+    <div class="field">
+      <label for="budget-ab">Gültig ab</label>
+      <input type="date" id="budget-ab" name="ab" required>
+    </div>
+    <div class="field">
+      <label for="budget-typ">Typ</label>
+      <select id="budget-typ" name="typ">
+        <option value="wiederkehrend">Wiederkehrend (gilt ab diesem Jahr bis zur nächsten Änderung)</option>
+        <option value="einmalig">Einmalig (nur im angegebenen Jahr)</option>
+      </select>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-budget-row-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Vermögens-Stichtag anlegen/bearbeiten -->
+<dialog id="dialog-vermoegen-row">
+  <form id="form-vermoegen-row" method="dialog">
+    <h2 id="dialog-vermoegen-row-title">Neuer Vermögens-Stichtag</h2>
+    <div class="field">
+      <label for="vermoegen-datum">Stichtag</label>
+      <input type="date" id="vermoegen-datum" name="datum" required>
+    </div>
+    <div id="vermoegen-konten-fields"></div>
+    <div class="field add-konto-row">
+      <label for="neues-konto-name">Neues Konto</label>
+      <div class="inline-add">
+        <input type="text" id="neues-konto-name" placeholder="z. B. Sparkonto">
+        <button type="button" id="btn-add-konto" class="btn-secondary">Hinzufügen</button>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-vermoegen-row-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Einmaliger Excel-Import -->
+<dialog id="dialog-import-xlsx">
+  <form id="form-import-xlsx">
+    <h2>Budget &amp; Vermögen aus Excel importieren</h2>
+    <p>Die Datei muss die Tabs „Budget“ (Spalten Posten/Budget/ab) und „Vermögen“ (Spalte Datum + Kontospalten) enthalten.</p>
+    <p class="warning" id="import-xlsx-warning" style="display:none">Achtung: Bestehende Budget- und Vermögensdaten werden dabei komplett ersetzt.</p>
+    <div class="field">
+      <label for="import-xlsx-datei">Excel-Datei (.xlsx)</label>
+      <input type="file" id="import-xlsx-datei" name="datei" accept=".xlsx" required>
+    </div>
+    <p class="error" id="import-xlsx-error"></p>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-import-xlsx-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Importieren</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Wiederholbarer CSV-Import realer Kosten -->
+<dialog id="dialog-import-csv">
+  <form id="form-import-csv">
+    <h2>Reale Kosten aus CSV importieren</h2>
+    <p>Export aus bluecoins/reports (Spalten Typ, Datum, Betrag, Währung, Wechselkurs, Kategoriengruppe, Kategorie, Konto, …).</p>
+    <p class="warning">Achtung: Alle bisher importierten realen Buchungen werden gelöscht und durch den Inhalt dieser Datei ersetzt.</p>
+    <div class="field">
+      <label for="import-csv-datei">CSV-Datei</label>
+      <input type="file" id="import-csv-datei" name="datei" accept=".csv" required>
+    </div>
+    <p class="error" id="import-csv-error"></p>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-import-csv-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Importieren</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
