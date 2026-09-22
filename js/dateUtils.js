@@ -27,6 +27,15 @@ export function daysBetweenIso(isoA, isoB) {
   return Math.abs(Math.round((a - b) / 86400000));
 }
 
+// Formatiert einen ISO-Zeitstempel (z. B. aus new Date().toISOString())
+// wie "22.09.2026, 17:32" für die Anzeige bei Backup/Restore.
+export function formatTimestamp(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d)) return null;
+  return d.toLocaleString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 export function formatIsoDate(iso) {
   if (!iso) return "";
   const d = isoToDate(iso);

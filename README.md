@@ -47,6 +47,51 @@ Im Tab „Realvergleich“ kann wiederholt eine Transaktions-CSV aus
 zuvor importierten Buchungen vollständig (kein Zusammenführen), damit die
 Daten immer dem aktuellen Export entsprechen.
 
+### Backup & Restore
+
+Im Tab „Sicherung“ lässt sich der gesamte App-Zustand (Budget, Vermögen,
+importierte Transaktionen, Einstellungen) als Datei sichern und wieder
+einspielen — z. B. vor grösseren Änderungen oder zum Übertragen auf ein
+anderes Gerät. Das Backup sichert generisch jeden `localStorage`-Schlüssel
+der App (Präfix `budgetprojektion.`), neue Daten werden also automatisch
+mitgesichert. Der Dateiname enthält App-Version und Datum
+(`budgetprojektion-backup-v0.1.0-2026-09-22.json.gz`, bei fehlender
+gzip-Unterstützung unkomprimiert als `.json`). Ein roter Punkt am Tab zeigt
+ungesicherte Änderungen seit dem letzten Backup an.
+
+Ein Restore ersetzt alle aktuellen Daten vollständig durch den Inhalt der
+Backup-Datei (nach Bestätigung).
+
+## Versionierung
+
+Die Version der App wird aus Git-Tags abgeleitet und in `version.json`
+festgehalten (es gibt keinen Build-Server, der das für die App selbst
+automatisch könnte). Sie erscheint im Footer sowie im Dateinamen jedes
+Backups (Tab „Sicherung“).
+
+**Patch-Version (v0.1.0 → v0.1.1 → v0.1.2 → …): automatisch.** Der
+GitHub-Actions-Workflow `.github/workflows/bump-version.yml` läuft nach
+jedem Push auf `master` (z. B. jedem PR-Merge), zählt die Patch-Stelle des
+letzten Tags eins hoch, committet die neue `version.json` und setzt den
+passenden Tag — ganz ohne manuellen Schritt.
+
+**Minor/Major-Version (z. B. v0.2.0 oder v1.0.0): manuell**, wenn ein
+größerer Sprung gewünscht ist. Der nächste automatische Patch-Bump zählt
+danach ab diesem neuen Tag weiter:
+
+```sh
+git tag v1.0.0
+./scripts/update-version.sh
+git add version.json
+git commit -m "Version v1.0.0"
+git push && git push --tags
+```
+
+Der Workflow braucht Schreibrechte für den `GITHUB_TOKEN` (Repo-Einstellung
+**Settings → Actions → General → Workflow permissions → "Read and write
+permissions"**) sowie einen `master`, der direkte Pushes von GitHub Actions
+zulässt (keine Branch-Protection-Regel, die das verhindert).
+
 ## Struktur
 
 - `index.html` – Tabs, Formulare, Dialoge
@@ -60,4 +105,9 @@ Daten immer dem aktuellen Export entsprechen.
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial
 - `js/charts.js` – Canvas-Diagramme (Linien-/Balkendiagramm)
+- `js/backup.js`, `js/backupTab.js` – Backup & Restore
+- `js/version.js` – lädt `version.json` und zeigt sie im Footer an
 - `js/app.js` – Tab-Navigation und Bootstrap
+- `version.json` – aktuelle Versionsnummer (siehe Abschnitt Versionierung)
+- `scripts/update-version.sh` – schreibt den aktuellen Git-Tag nach `version.json`
+- `.github/workflows/bump-version.yml` – zählt die Patch-Version bei jedem Push auf `master` automatisch hoch

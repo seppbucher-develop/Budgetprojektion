@@ -18,6 +18,7 @@
     <button class="tab-btn" data-tab="vermoegen">Vermögen</button>
     <button class="tab-btn" data-tab="projektion">Projektion</button>
     <button class="tab-btn" data-tab="vergleich">Realvergleich</button>
+    <button class="tab-btn" data-tab="sicherung">Sicherung<span class="dirty-dot" id="sicherung-dirty-dot"></span></button>
   </nav>
 
   <!-- BUDGET -->
@@ -138,8 +139,30 @@
     </div>
   </section>
 
+  <!-- SICHERUNG -->
+  <section id="tab-sicherung" class="tab-panel">
+    <div class="panel">
+      <h2>☁️ Backup &amp; Restore</h2>
+      <p class="hint">Sichert alle App-Daten (Budget, Vermögen, importierte Transaktionen, Einstellungen) als Datei — z. B. vor grösseren Änderungen oder zum Übertragen auf ein anderes Gerät.</p>
+      <div class="backup-actions">
+        <div class="backup-action">
+          <button id="btn-backup-export" class="btn-primary">☁️ Backup sichern</button>
+          <p class="hint" id="backup-last-export"></p>
+        </div>
+        <div class="backup-action">
+          <button id="btn-backup-import" class="btn-secondary">⬆ Backup importieren</button>
+          <p class="hint" id="backup-last-restore"></p>
+        </div>
+      </div>
+      <input type="file" id="backup-import-datei" accept=".json,.json.gz,application/json,application/gzip" style="display:none">
+      <p class="warning">Achtung: Ein Restore ersetzt alle aktuellen Daten vollständig durch den Inhalt der Backup-Datei.</p>
+      <p id="backup-msg"></p>
+    </div>
+  </section>
+
   <footer class="app-footer">
     <p>Alle Daten und Berechnungen bleiben lokal in deinem Browser (localStorage). Es gibt kein Backend und keine Datenübertragung.</p>
+    <div class="version-tag" id="version-tag"></div>
   </footer>
 </div>
 

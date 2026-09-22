@@ -89,6 +89,25 @@ body {
   border-bottom-color: var(--color-primary);
 }
 
+.tab-btn {
+  position: relative;
+}
+
+.dirty-dot {
+  position: absolute;
+  top: 4px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-negative);
+  display: none;
+}
+
+.dirty-dot.show {
+  display: inline-block;
+}
+
 .tab-panel {
   display: none;
   flex-direction: column;
@@ -243,6 +262,32 @@ body {
   color: var(--color-negative);
   font-size: 0.85rem;
   min-height: 1.2em;
+}
+
+.msg-ok {
+  color: var(--color-positive);
+  font-size: 0.85rem;
+  min-height: 1.2em;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.backup-action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.version-tag {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
 
 .table-scroll {

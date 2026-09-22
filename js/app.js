@@ -4,6 +4,8 @@ import { renderBudgetTab } from "./budgetTab.js";
 import { renderVermoegenTab } from "./vermoegenTab.js";
 import { renderProjectionTab } from "./projectionTab.js";
 import { renderCompareTab } from "./compareTab.js";
+import { renderBackupTab } from "./backupTab.js";
+import { ladeAppVersion } from "./version.js";
 
 const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
@@ -23,7 +25,9 @@ function renderAll() {
   renderVermoegenTab();
   renderProjectionTab();
   renderCompareTab();
+  renderBackupTab();
 }
 
 onStateChanged(renderAll);
 renderAll();
+ladeAppVersion();
