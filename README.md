@@ -30,6 +30,16 @@ Browsern zuverlässig).
 Alle Daten (Budget, Vermögen, importierte Transaktionen, Einstellungen)
 werden ausschliesslich im `localStorage` des Browsers gespeichert.
 
+### Als App aufs Handy
+
+Die App ist als PWA installierbar: auf Android/Chrome über „Zum
+Startbildschirm hinzufügen“ (nutzt `manifest.json`), auf iOS/Safari über
+„Zum Home-Bildschirm“ (nutzt `icons/apple-touch-icon.png` +
+`apple-mobile-web-app-*`-Meta-Tags in `index.html`). Erscheint dort mit dem
+Label „Budget“ und öffnet ohne Browser-Chrome (`display: standalone`). Das
+Icon (Note + Münzen) liegt als Vektorquelle unter `icons/icon.svg` bzw.
+`icons/icon-maskable.svg`; alle PNG-Grössen sind daraus gerendert.
+
 ### Budget & Vermögen importieren
 
 Im Tab „Budget“ kann einmalig eine `Budget_Pension.xlsx`-Datei importiert
@@ -121,3 +131,4 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `version.json` – aktuelle Versionsnummer (siehe Abschnitt Versionierung)
 - `scripts/update-version.sh` – schreibt den aktuellen Git-Tag nach `version.json`
 - `.github/workflows/bump-version.yml` – zählt die Patch-Version bei jedem Push auf `master` automatisch hoch
+- `manifest.json`, `icons/` – App-Icon & PWA-Installierbarkeit (siehe Abschnitt „Als App aufs Handy“)
