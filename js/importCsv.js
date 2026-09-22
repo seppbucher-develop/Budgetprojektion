@@ -84,7 +84,11 @@ export async function importCsvFile(file) {
       istEinnahme: TYP_EINNAHMEN.indexOf(typRoh.toLowerCase()) !== -1,
       datum: (row[idx.Datum] || "").slice(0, 10),
       name: nameIdx !== -1 ? (row[nameIdx] || "").trim() : "",
-      betragChf: betrag * wechselkurs,
+      // Bluecoins schreibt den Wechselkurs als "Fremdwährung je 1 CHF"
+      // (z. B. USD ~1.14, BRL ~6.69, HKD ~9.96 je CHF), nicht als
+      // CHF-Gegenwert je Fremdwährungseinheit — daher hier dividieren,
+      // nicht multiplizieren.
+      betragChf: betrag / wechselkurs,
       waehrung: row[idx.Währung] || "",
       kategoriengruppe: (row[idx.Kategoriengruppe] || "").trim(),
       kategorie: (row[idx.Kategorie] || "").trim(),
