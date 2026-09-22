@@ -85,18 +85,19 @@ function openBuchungenDialog(jahr, posten) {
       const tr = document.createElement("tr");
       tr.innerHTML =
         "<td>" + formatIsoDate(b.datum) + "</td>" +
+        '<td class="num">' + currencyFormatter.format(b.betragChf) + "</td>" +
         "<td>" + escapeHtml(b.name) + "</td>" +
         "<td>" + escapeHtml(b.kategorie) + "</td>" +
-        "<td>" + escapeHtml(b.konto) + "</td>" +
-        '<td class="num">' + currencyFormatter.format(b.betragChf) + "</td>";
+        "<td>" + escapeHtml(b.konto) + "</td>";
       buchungenTbody.appendChild(tr);
     });
   }
 
   const summe = buchungen.reduce(function (s, b) { return s + b.betragChf; }, 0);
   buchungenTotalRow.innerHTML =
-    '<td colspan="4">Total (' + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>" +
-    '<td class="num total">' + currencyFormatter.format(summe) + "</td>";
+    "<td>Total (" + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>" +
+    '<td class="num total">' + currencyFormatter.format(summe) + "</td>" +
+    '<td colspan="3"></td>';
 
   buchungenDialog.showModal();
 }
