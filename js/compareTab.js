@@ -9,6 +9,7 @@ const jahrSelect = document.getElementById("vergleich-jahr-select");
 const jahrChart = document.getElementById("vergleich-jahr-chart");
 const trendChart = document.getElementById("vergleich-trend-chart");
 const tbody = document.querySelector("#vergleich-table tbody");
+const totalRow = document.getElementById("vergleich-table-total");
 const ueberschreitungenEl = document.getElementById("sparpotenzial-ueberschreitungen");
 const reservenEl = document.getElementById("sparpotenzial-reserven");
 
@@ -39,6 +40,17 @@ function renderJahrTabelleUndChart(abw) {
       '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + pctText(z.abweichungPct) + "</td>";
     tbody.appendChild(tr);
   });
+
+  const budgetSumme = zeilen.reduce(function (s, z) { return s + Math.abs(z.budget); }, 0);
+  const realSumme = zeilen.reduce(function (s, z) { return s + Math.abs(z.real); }, 0);
+  const abweichungSumme = zeilen.reduce(function (s, z) { return s + z.abweichung; }, 0);
+  const abweichungSummePct = budgetSumme !== 0 ? (abweichungSumme / budgetSumme) * 100 : null;
+  totalRow.innerHTML =
+    "<td>Total</td>" +
+    '<td class="num total">' + currencyFormatter.format(budgetSumme) + "</td>" +
+    '<td class="num total">' + currencyFormatter.format(realSumme) + "</td>" +
+    '<td class="num total ' + (abweichungSumme > 0 ? "negative" : "positive") + '">' + currencyFormatter.format(abweichungSumme) + "</td>" +
+    '<td class="num total ' + (abweichungSumme > 0 ? "negative" : "positive") + '">' + pctText(abweichungSummePct) + "</td>";
 
   drawGroupedBarChart(jahrChart, zeilen.map(function (z) { return z.posten; }), [
     { name: "Budget", color: "#94a3b8", values: zeilen.map(function (z) { return Math.abs(z.budget); }) },
