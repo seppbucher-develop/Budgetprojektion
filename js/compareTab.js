@@ -1,0 +1,117 @@
+import { getState } from "./store.js";
+import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js";
+import { renderImportInfo } from "./importUi.js";
+
+const emptyHint = document.getElementById("vergleich-empty-hint");
+const inhalt = document.getElementById("vergleich-inhalt");
+const jahrSelect = document.getElementById("vergleich-jahr-select");
+const jahrChart = document.getElementById("vergleich-jahr-chart");
+const trendChart = document.getElementById("vergleich-trend-chart");
+const tbody = document.querySelector("#vergleich-table tbody");
+const ueberschreitungenEl = document.getElementById("sparpotenzial-ueberschreitungen");
+const reservenEl = document.getElementById("sparpotenzial-reserven");
+
+let ausgewaehltesJahr = null;
+
+function pctText(v) {
+  if (v == null) return "–";
+  return (v >= 0 ? "+" : "") + v.toFixed(0) + " %";
+}
+
+function renderJahrTabelleUndChart(abw) {
+  const jahr = ausgewaehltesJahr;
+  const zeilen = abw.zeilen.filter(function (z) { return z.jahr === jahr; }).sort(function (a, b) {
+    return Math.abs(b.abweichung) - Math.abs(a.abweichung);
+  });
+
+  document.getElementById("vergleich-jahr-unvollstaendig").style.display =
+    zeilen.length && zeilen[0].unvollstaendig ? "block" : "none";
+
+  tbody.innerHTML = "";
+  zeilen.forEach(function (z) {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      "<td>" + z.posten + "</td>" +
+      '<td class="num">' + currencyFormatter.format(Math.abs(z.budget)) + "</td>" +
+      '<td class="num">' + currencyFormatter.format(Math.abs(z.real)) + "</td>" +
+      '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + currencyFormatter.format(z.abweichung) + "</td>" +
+      '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + pctText(z.abweichungPct) + "</td>";
+    tbody.appendChild(tr);
+  });
+
+  drawGroupedBarChart(jahrChart, zeilen.map(function (z) { return z.posten; }), [
+    { name: "Budget", color: "#94a3b8", values: zeilen.map(function (z) { return Math.abs(z.budget); }) },
+    { name: "Real", color: "#2563eb", values: zeilen.map(function (z) { return Math.abs(z.real); }) }
+  ]);
+}
+
+function renderTrendChart(abw) {
+  drawGroupedBarChart(
+    trendChart,
+    abw.summenProJahr.map(function (s) { return String(s.jahr) + (s.unvollstaendig ? "*" : ""); }),
+    [{
+      name: "Abweichung gesamt (+ = über Budget)",
+      color: "#7c3aed",
+      values: abw.summenProJahr.map(function (s) { return s.abweichung; })
+    }]
+  );
+}
+
+function renderSparpotenzial(sp) {
+  function liste(el, items, art) {
+    el.innerHTML = "";
+    if (items.length === 0) {
+      el.innerHTML = '<li class="hint">Keine auffälligen Kategorien gefunden.</li>';
+      return;
+    }
+    items.forEach(function (item) {
+      const li = document.createElement("li");
+      const betrag = currencyFormatter.format(Math.abs(item.durchschnittAbweichung));
+      if (art === "ueberschreitung") {
+        li.innerHTML = "<strong>" + item.posten + "</strong>: im Schnitt " + betrag +
+          "/Jahr über Budget (" + item.anzahlJahre + " Jahr(e) betrachtet) – Reduktion auf Budgetniveau spart ca. " + betrag + "/Jahr.";
+      } else {
+        li.innerHTML = "<strong>" + item.posten + "</strong>: im Schnitt " + betrag +
+          "/Jahr unter Budget (" + item.anzahlJahre + " Jahr(e) betrachtet) – Budget könnte reduziert oder umverteilt werden.";
+      }
+      el.appendChild(li);
+    });
+  }
+  liste(ueberschreitungenEl, sp.ueberschreitungen, "ueberschreitung");
+  liste(reservenEl, sp.reserven, "reserve");
+}
+
+export function renderCompareTab() {
+  renderImportInfo();
+  const state = getState();
+  const hatDaten = state.realTransaktionen.length > 0;
+  emptyHint.style.display = hatDaten ? "none" : "block";
+  inhalt.style.display = hatDaten ? "block" : "none";
+  if (!hatDaten) return;
+
+  const abw = berechneAbweichungen(state);
+  if (ausgewaehltesJahr === null || abw.jahre.indexOf(ausgewaehltesJahr) === -1) {
+    const vollstaendigeJahre = abw.jahre.filter(function (j) { return j < new Date().getFullYear(); });
+    ausgewaehltesJahr = vollstaendigeJahre.length
+      ? vollstaendigeJahre[vollstaendigeJahre.length - 1]
+      : abw.jahre[abw.jahre.length - 1];
+  }
+
+  jahrSelect.innerHTML = abw.jahre.map(function (j) {
+    return '<option value="' + j + '"' + (j === ausgewaehltesJahr ? " selected" : "") + ">" + j + "</option>";
+  }).join("");
+
+  renderJahrTabelleUndChart(abw);
+  renderTrendChart(abw);
+  renderSparpotenzial(berechneSparpotenzial(state));
+}
+
+jahrSelect.addEventListener("change", function () {
+  ausgewaehltesJahr = parseInt(jahrSelect.value, 10);
+  renderJahrTabelleUndChart(berechneAbweichungen(getState()));
+});
+
+window.addEventListener("resize", function () {
+  if (document.getElementById("tab-vergleich").classList.contains("active")) renderCompareTab();
+});
