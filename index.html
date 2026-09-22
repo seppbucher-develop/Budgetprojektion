@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budgetprojektion – Wie weit reicht das Vermögen</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <h1>Budgetprojektion</h1>
+    <p class="subtitle">Wie weit reicht das Vermögen?</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel form-panel">
+      <h2>Eingaben</h2>
+      <form id="calc-form">
+        <div class="field">
+          <label for="startVermoegen">Startvermögen (CHF)</label>
+          <input type="number" id="startVermoegen" name="startVermoegen" step="100" min="0" required value="100000">
+        </div>
+
+        <div class="field">
+          <label for="monatlicheEinnahmen">Monatliche Einnahmen (CHF)</label>
+          <input type="number" id="monatlicheEinnahmen" name="monatlicheEinnahmen" step="10" min="0" required value="2000">
+        </div>
+
+        <div class="field">
+          <label for="monatlicheAusgaben">Monatliche Ausgaben (CHF)</label>
+          <input type="number" id="monatlicheAusgaben" name="monatlicheAusgaben" step="10" min="0" required value="3500">
+        </div>
+
+        <div class="field">
+          <label for="rendite">Erwartete Rendite p.a. (%)</label>
+          <input type="number" id="rendite" name="rendite" step="0.1" value="3">
+        </div>
+
+        <div class="field">
+          <label for="inflation">Inflation p.a. (%)</label>
+          <input type="number" id="inflation" name="inflation" step="0.1" value="1.5">
+        </div>
+
+        <div class="field">
+          <label for="horizont">Zeithorizont (Jahre)</label>
+          <input type="number" id="horizont" name="horizont" step="1" min="1" max="100" value="50">
+        </div>
+
+        <button type="submit" class="btn-primary">Berechnen</button>
+      </form>
+    </section>
+
+    <section class="panel result-panel">
+      <h2>Ergebnis</h2>
+      <div id="result-summary" class="result-summary">
+        <p class="hint">Gib deine Werte ein und klicke auf „Berechnen“.</p>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart" width="800" height="400"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Alle Berechnungen erfolgen lokal in deinem Browser. Es werden keine Daten übertragen oder gespeichert außer in deinem eigenen localStorage.</p>
+  </footer>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
