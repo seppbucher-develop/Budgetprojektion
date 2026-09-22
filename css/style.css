@@ -284,6 +284,58 @@ body {
   align-items: flex-start;
 }
 
+.folder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid var(--color-positive);
+  color: var(--color-positive);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.folder-badge .hint {
+  color: #d97706;
+  font-size: 0.78rem;
+}
+
+.folder-file-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.folder-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.folder-file-info {
+  min-width: 0;
+}
+
+.folder-file-name {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-file-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
 .version-tag {
   margin-top: 8px;
   font-size: 0.75rem;

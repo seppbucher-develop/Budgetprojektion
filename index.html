@@ -141,6 +141,25 @@
 
   <!-- SICHERUNG -->
   <section id="tab-sicherung" class="tab-panel">
+    <div class="panel" id="backup-folder-panel" style="display:none">
+      <h2>📁 Backup-Ordner (automatisch, dieser PC)</h2>
+      <p class="hint">Einmalig festlegen (z. B. dein lokaler Cloud-Sync-Ordner) — künftige Backups landen danach automatisch dort, ganz ohne Dialog. Gilt nur für diesen Browser auf diesem Gerät.</p>
+      <div id="backup-folder-none">
+        <button id="btn-choose-folder" class="btn-primary">📁 Ordner auswählen…</button>
+      </div>
+      <div id="backup-folder-chosen" style="display:none">
+        <div class="folder-badge">
+          <span id="backup-folder-name"></span>
+          <span id="backup-folder-permission-hint" class="hint"></span>
+        </div>
+        <div class="panel-actions">
+          <button id="btn-change-folder" class="btn-secondary">Ändern</button>
+          <button id="btn-clear-folder" class="btn-danger-text">Entfernen</button>
+        </div>
+        <div id="backup-folder-files" class="folder-file-list"></div>
+      </div>
+    </div>
+
     <div class="panel">
       <h2>☁️ Backup &amp; Restore</h2>
       <p class="hint">Sichert alle App-Daten (Budget, Vermögen, importierte Transaktionen, Einstellungen) als Datei — z. B. vor grösseren Änderungen oder zum Übertragen auf ein anderes Gerät.</p>

@@ -3,6 +3,94 @@
 // einzelne Felder hart zu verdrahten. Neue Daten, die künftig dazukommen,
 // werden dadurch automatisch mitgesichert.
 import { STORAGE_PREFIX, markBackupSaved, markBackupRestored, reloadStateFromStorage } from "./store.js";
+import { fsapiHandle } from "./fsapiHandle.js";
+
+const BACKUP_FILE_REGEX = /^budgetprojektion-backup-.*\.(json|json\.gz)$/i;
+
+// In-Memory-Cache des zuletzt geladenen/gewählten Ordner-Handles. Wird
+// einmalig beim Öffnen des Tabs aus der IndexedDB geladen (initFolder()) und
+// danach synchron gelesen — wichtig, damit requestDirWriteHandle() als
+// ERSTER await in exportBackup() läuft und damit noch innerhalb der
+// "Nutzer-Geste" des Klicks liegt (ein vorheriger await, z. B. ein eigener
+// IndexedDB-Zugriff an dieser Stelle, würde requestPermission() sonst vom
+// Browser stillschweigend ablehnen lassen).
+let cachedDirHandle = null;
+
+export function fsapiSupported() {
+  return typeof window !== "undefined" && !!window.showDirectoryPicker;
+}
+
+export function getCachedDirHandle() {
+  return cachedDirHandle;
+}
+
+/** Lädt einen zuvor gewählten Backup-Ordner (falls vorhanden) in den Cache. */
+export async function initFolder() {
+  if (!fsapiSupported()) return null;
+  try {
+    cachedDirHandle = await fsapiHandle.get("backupDir");
+  } catch (e) {
+    cachedDirHandle = null;
+  }
+  return cachedDirHandle;
+}
+
+export async function queryDirPermission(handle) {
+  if (!handle) return "prompt";
+  try {
+    return await handle.queryPermission({ mode: "readwrite" });
+  } catch (e) {
+    return "prompt";
+  }
+}
+
+/** Fragt (falls nötig) Schreibrechte an. Muss ohne vorherigen await aus einer Nutzer-Geste heraus aufgerufen werden. */
+async function requestDirWriteHandle(handle) {
+  if (!handle) return null;
+  try {
+    let perm = await handle.queryPermission({ mode: "readwrite" });
+    if (perm !== "granted") perm = await handle.requestPermission({ mode: "readwrite" });
+    return perm === "granted" ? handle : null;
+  } catch (e) {
+    console.error("Berechtigung für Backup-Ordner fehlgeschlagen:", e);
+    return null;
+  }
+}
+
+/** Öffnet den nativen Ordnerauswahl-Dialog (Chrome/Edge Desktop) und merkt sich die Wahl dauerhaft. */
+export async function chooseBackupDirectory() {
+  const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+  await fsapiHandle.set("backupDir", handle);
+  cachedDirHandle = handle;
+  return handle;
+}
+
+export async function clearBackupDirectory() {
+  await fsapiHandle.delete("backupDir");
+  cachedDirHandle = null;
+}
+
+/** Listet vorhandene Backup-Dateien direkt im gewählten Ordner (neueste zuerst). */
+export async function listFolderBackups(handle) {
+  if (!handle) return [];
+  const found = [];
+  try {
+    for await (const [name, entry] of handle.entries()) {
+      if (entry.kind !== "file") continue;
+      if (!BACKUP_FILE_REGEX.test(name)) continue;
+      try {
+        const file = await entry.getFile();
+        found.push({ name: name, lastModified: file.lastModified, size: file.size, handle: entry });
+      } catch (e) {
+        // einzelne nicht lesbare Datei überspringen
+      }
+    }
+  } catch (e) {
+    console.error("Ordner-Inhalt lesen fehlgeschlagen:", e);
+  }
+  found.sort(function (a, b) { return b.lastModified - a.lastModified; });
+  return found;
+}
 
 function formatBytes(n) {
   if (n < 1024) return n + " B";
@@ -21,11 +109,16 @@ function collectEntries() {
 
 /**
  * Sichert alle App-Daten als (nach Möglichkeit gzip-komprimierte) JSON-Datei.
- * Nutzt navigator.share() auf unterstützten Geräten (z. B. Mobile: direkt in
- * eine Cloud-App/den Dateien-Ordner teilen), sonst einen normalen Download.
- * @returns {Promise<{filename:string, count:number, bytes:number}>}
+ * Reihenfolge wie im Flugbuch: zuerst automatisch in den gewählten
+ * Backup-Ordner (falls vorhanden und Berechtigung erteilt/erteilbar), sonst
+ * navigator.share() (z. B. Mobile), sonst normaler Download.
+ * @returns {Promise<{filename:string, count:number, bytes:number, ordner?:string}>}
  */
 export async function exportBackup() {
+  // Berechtigung ganz am Anfang anfragen — noch bevor irgendein anderer
+  // await die Nutzer-Geste dieses Klicks verbraucht.
+  const writeHandle = cachedDirHandle ? await requestDirWriteHandle(cachedDirHandle) : null;
+
   const entries = collectEntries();
   const keys = Object.keys(entries);
   const payload = { exportedAt: new Date().toISOString(), entries };
@@ -47,6 +140,20 @@ export async function exportBackup() {
   if (!blob) {
     blob = new Blob([json], { type: "application/json" });
     filename = `budgetprojektion-backup-${versionTag}-${dateStamp}.json`;
+  }
+
+  if (writeHandle) {
+    try {
+      const fileHandle = await writeHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      markBackupSaved();
+      return { filename, count: keys.length, bytes: blob.size, ordner: writeHandle.name };
+    } catch (e) {
+      console.error("Direktes Schreiben in Backup-Ordner fehlgeschlagen, weiche auf Teilen/Download aus:", e);
+      // kein return — bewusst weiter auf den bestehenden Weg unten
+    }
   }
 
   if (navigator.share && navigator.canShare) {
@@ -114,3 +221,5 @@ export async function importBackupFile(file) {
   markBackupRestored();
   return { count };
 }
+
+export { formatBytes };

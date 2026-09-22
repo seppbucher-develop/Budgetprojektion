@@ -1,6 +1,10 @@
 import { getBackupMeta } from "./store.js";
 import { formatTimestamp } from "./dateUtils.js";
-import { exportBackup, importBackupFile } from "./backup.js";
+import {
+  exportBackup, importBackupFile, formatBytes,
+  fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
+  chooseBackupDirectory, clearBackupDirectory, listFolderBackups
+} from "./backup.js";
 
 const btnExport = document.getElementById("btn-backup-export");
 const btnImport = document.getElementById("btn-backup-import");
@@ -9,6 +13,16 @@ const msgEl = document.getElementById("backup-msg");
 const lastBackupEl = document.getElementById("backup-last-export");
 const lastRestoreEl = document.getElementById("backup-last-restore");
 const dirtyDot = document.getElementById("sicherung-dirty-dot");
+
+const folderPanel = document.getElementById("backup-folder-panel");
+const folderNoneEl = document.getElementById("backup-folder-none");
+const folderChosenEl = document.getElementById("backup-folder-chosen");
+const folderNameEl = document.getElementById("backup-folder-name");
+const folderPermissionHintEl = document.getElementById("backup-folder-permission-hint");
+const folderFilesEl = document.getElementById("backup-folder-files");
+const btnChooseFolder = document.getElementById("btn-choose-folder");
+const btnChangeFolder = document.getElementById("btn-change-folder");
+const btnClearFolder = document.getElementById("btn-clear-folder");
 
 function zeigeMeldung(typ, text) {
   msgEl.textContent = text;
@@ -20,27 +34,11 @@ function setBusy(busy) {
   btnImport.disabled = busy;
 }
 
-btnExport.addEventListener("click", async function () {
-  setBusy(true);
-  msgEl.textContent = "";
-  try {
-    const result = await exportBackup();
-    zeigeMeldung("ok", "✓ Backup gesichert: " + result.filename + " (" + result.count + " Einträge).");
-  } catch (e) {
-    if (e && e.name !== "AbortError") zeigeMeldung("error", "Fehler beim Sichern: " + (e.message || String(e)));
-  } finally {
-    setBusy(false);
-  }
-});
+function confirmRestore() {
+  return confirm("Ein Restore ersetzt alle aktuellen Budget-, Vermögens- und Transaktionsdaten durch den Inhalt dieser Datei. Fortfahren?");
+}
 
-btnImport.addEventListener("click", function () { fileInput.click(); });
-
-fileInput.addEventListener("change", async function () {
-  const file = fileInput.files[0];
-  fileInput.value = "";
-  if (!file) return;
-  if (!confirm("Ein Restore ersetzt alle aktuellen Budget-, Vermögens- und Transaktionsdaten durch den Inhalt dieser Datei. Fortfahren?")) return;
-
+async function restoreFromFile(file) {
   setBusy(true);
   msgEl.textContent = "";
   try {
@@ -51,7 +49,104 @@ fileInput.addEventListener("change", async function () {
   } finally {
     setBusy(false);
   }
+}
+
+btnExport.addEventListener("click", async function () {
+  setBusy(true);
+  msgEl.textContent = "";
+  try {
+    const result = await exportBackup();
+    zeigeMeldung("ok", (result.ordner ? "✓ Automatisch gespeichert in „" + result.ordner + "“: " : "✓ Backup gesichert: ") + result.filename + " (" + result.count + " Einträge).");
+    if (result.ordner) refreshFolderList();
+  } catch (e) {
+    if (e && e.name !== "AbortError") zeigeMeldung("error", "Fehler beim Sichern: " + (e.message || String(e)));
+  } finally {
+    setBusy(false);
+  }
 });
+
+btnImport.addEventListener("click", function () { fileInput.click(); });
+
+fileInput.addEventListener("change", function () {
+  const file = fileInput.files[0];
+  fileInput.value = "";
+  if (!file) return;
+  if (!confirmRestore()) return;
+  restoreFromFile(file);
+});
+
+async function refreshFolderList() {
+  const handle = getCachedDirHandle();
+  if (!handle) { folderFilesEl.innerHTML = ""; return; }
+  const perm = await queryDirPermission(handle);
+  if (perm !== "granted") { folderFilesEl.innerHTML = ""; return; }
+
+  folderFilesEl.innerHTML = '<div class="hint">Lade Ordnerinhalt…</div>';
+  const files = await listFolderBackups(handle);
+  if (files.length === 0) {
+    folderFilesEl.innerHTML = '<div class="hint">Noch keine Backup-Dateien hier gefunden.</div>';
+    return;
+  }
+  folderFilesEl.innerHTML = "";
+  files.forEach(function (f) {
+    const row = document.createElement("div");
+    row.className = "folder-file-row";
+    row.innerHTML =
+      '<div class="folder-file-info">' +
+        '<div class="folder-file-name">' + f.name + '</div>' +
+        '<div class="folder-file-meta">' + formatTimestamp(f.lastModified) + ' · ' + formatBytes(f.size) + '</div>' +
+      '</div>' +
+      '<button class="btn-secondary" data-action="restore">Wiederherstellen</button>';
+    row.querySelector('[data-action="restore"]').addEventListener("click", async function () {
+      if (!confirmRestore()) return;
+      const file = await f.handle.getFile();
+      restoreFromFile(file);
+    });
+    folderFilesEl.appendChild(row);
+  });
+}
+
+function renderFolderState() {
+  const handle = getCachedDirHandle();
+  if (handle) {
+    folderNoneEl.style.display = "none";
+    folderChosenEl.style.display = "block";
+    folderNameEl.textContent = "📂 " + handle.name;
+    queryDirPermission(handle).then(function (perm) {
+      folderPermissionHintEl.textContent = perm === "granted" ? "" : "(Berechtigung beim nächsten Backup erneut bestätigen)";
+      if (perm === "granted") refreshFolderList();
+      else folderFilesEl.innerHTML = "";
+    });
+  } else {
+    folderNoneEl.style.display = "block";
+    folderChosenEl.style.display = "none";
+    folderFilesEl.innerHTML = "";
+  }
+}
+
+async function setupFolderUi() {
+  if (!fsapiSupported()) { folderPanel.style.display = "none"; return; }
+  folderPanel.style.display = "block";
+  await initFolder();
+  renderFolderState();
+}
+
+btnChooseFolder.addEventListener("click", async function () {
+  try {
+    await chooseBackupDirectory();
+    zeigeMeldung("ok", "✓ Backup-Ordner festgelegt. Künftige Backups landen automatisch dort.");
+    renderFolderState();
+  } catch (e) {
+    if (e && e.name !== "AbortError") zeigeMeldung("error", "Ordnerauswahl fehlgeschlagen: " + (e.message || String(e)));
+  }
+});
+btnChangeFolder.addEventListener("click", function () { btnChooseFolder.click(); });
+btnClearFolder.addEventListener("click", async function () {
+  await clearBackupDirectory();
+  renderFolderState();
+});
+
+setupFolderUi();
 
 export function renderBackupTab() {
   const meta = getBackupMeta();

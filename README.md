@@ -62,6 +62,15 @@ ungesicherte Änderungen seit dem letzten Backup an.
 Ein Restore ersetzt alle aktuellen Daten vollständig durch den Inhalt der
 Backup-Datei (nach Bestätigung).
 
+**Backup-Ordner (automatisch, nur Chrome/Edge Desktop):** Über die File
+System Access API lässt sich einmalig ein lokaler Ordner festlegen (z. B.
+ein Cloud-Sync-Ordner) — künftige Backups landen danach automatisch dort,
+ganz ohne Dialog. Der Ordner wird (getrennt von den App-Daten) in einer
+eigenen IndexedDB-Datenbank gemerkt, gilt nur für diesen Browser auf diesem
+Gerät und zeigt vorhandene Backups im Ordner direkt zum Wiederherstellen an.
+Auf Browsern ohne diese API (Safari, Firefox, alle mobilen Browser) bleibt
+es beim Teilen-/Download-Weg oben.
+
 ## Versionierung
 
 Die Version der App wird aus Git-Tags abgeleitet und in `version.json`
@@ -106,6 +115,7 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial
 - `js/charts.js` – Canvas-Diagramme (Linien-/Balkendiagramm)
 - `js/backup.js`, `js/backupTab.js` – Backup & Restore
+- `js/fsapiHandle.js` – IndexedDB-Ablage für den gewählten Backup-Ordner (File System Access API)
 - `js/version.js` – lädt `version.json` und zeigt sie im Footer an
 - `js/app.js` – Tab-Navigation und Bootstrap
 - `version.json` – aktuelle Versionsnummer (siehe Abschnitt Versionierung)
