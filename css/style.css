@@ -478,6 +478,15 @@ body {
 }
 
 dialog {
+  /* Explizite Zentrierung statt Verlass auf das UA-Stylesheet
+     (dialog:modal { margin: auto }) — auf manchen mobilen Browsern/WebViews
+     unzuverlässig, dort landete der Dialog sonst am rechten Rand statt
+     zentriert. */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
   border: none;
   border-radius: var(--radius);
   padding: 24px;
@@ -499,6 +508,26 @@ dialog.dialog-wide {
     width: 96vw;
     padding: 16px;
   }
+}
+
+#buchungen-table {
+  /* table-layout:fixed statt auto: sonst behandelt der Browser die
+     Breiten von Datum/Betrag nur als Hinweis und bläht sie trotzdem auf,
+     um die Tabellenbreite zu füllen — sichtbar als grosse Lücke zwischen
+     Datum und rechtsbündigem Betrag. Fixed erzwingt die hier gesetzten
+     Breiten strikt; Name/Kategorie teilen sich automatisch den Rest. */
+  table-layout: fixed;
+}
+
+#buchungen-table th:nth-child(1),
+#buchungen-table td:nth-child(1) {
+  width: 105px;
+}
+
+#buchungen-table th:nth-child(2),
+#buchungen-table td:nth-child(2) {
+  /* Reicht für Beträge bis "-999'999.99" */
+  width: 115px;
 }
 
 #buchungen-table td:nth-child(3),

@@ -94,9 +94,9 @@ function openBuchungenDialog(jahr, posten) {
 
   const summe = buchungen.reduce(function (s, b) { return s + b.betragChf; }, 0);
   buchungenTotalRow.innerHTML =
-    "<td>Total (" + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>" +
+    "<td></td>" +
     '<td class="num total">' + betragFormatter.format(summe) + "</td>" +
-    '<td colspan="2"></td>';
+    '<td colspan="2">Total (' + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>";
 
   buchungenDialog.showModal();
 }
