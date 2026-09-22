@@ -46,7 +46,7 @@ export function renderProjectionTab() {
     const tr = document.createElement("tr");
     tr.innerHTML =
       "<td>" + j.jahr + "</td>" +
-      '<td class="num positive">' + currencyFormatter.format(j.ertrag) + (j.ertragIstReal ? ' <span class="badge">real</span>' : ' <span class="badge budget">Budget</span>') + "</td>" +
+      '<td class="num positive">' + currencyFormatter.format(j.ertrag) + (j.ertragIstReal ? ' <span class="badge">real</span>' : "") + "</td>" +
       '<td class="num negative">' + currencyFormatter.format(j.kosten) + "</td>" +
       '<td class="num ' + (j.netto >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.netto) + "</td>" +
       '<td class="num ' + (j.vermoegenEnde >= 0 ? "" : "negative") + '">' + currencyFormatter.format(j.vermoegenEnde) + "</td>";

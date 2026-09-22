@@ -423,10 +423,6 @@ body {
   vertical-align: middle;
 }
 
-.badge.budget {
-  background: var(--color-text-muted);
-}
-
 .insight-list {
   margin: 0 0 16px;
   padding-left: 18px;
@@ -497,17 +493,11 @@ dialog {
 }
 
 dialog.dialog-wide {
-  width: 95vw;
-  max-width: 720px;
+  width: 96vw;
+  max-width: 960px;
   max-height: 85vh;
   overflow-y: auto;
-}
-
-@media (max-width: 700px) {
-  dialog.dialog-wide {
-    width: 96vw;
-    padding: 16px;
-  }
+  padding: 16px;
 }
 
 #buchungen-table {
