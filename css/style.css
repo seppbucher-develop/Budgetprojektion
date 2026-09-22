@@ -207,6 +207,21 @@ body {
   flex: 1;
 }
 
+.amount-with-sign {
+  display: flex;
+  gap: 8px;
+}
+
+.amount-with-sign select {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.amount-with-sign input {
+  flex: 1;
+  min-width: 0;
+}
+
 .btn-primary,
 .btn-secondary {
   padding: 9px 16px;

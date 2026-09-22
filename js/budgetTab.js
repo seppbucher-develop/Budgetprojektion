@@ -52,7 +52,8 @@ function openDialog(row) {
   editId = row ? row.id : null;
   fillPostenDatalist();
   form.posten.value = row ? row.posten : "";
-  form.betrag.value = row ? row.betrag : "";
+  form.vorzeichen.value = row && row.betrag > 0 ? "ertrag" : "kosten";
+  form.betrag.value = row ? Math.abs(row.betrag) : "";
   form.ab.value = row ? row.ab : todayIso();
   form.typ.value = row ? row.typ : "wiederkehrend";
   document.getElementById("dialog-budget-row-title").textContent = row ? "Posten bearbeiten" : "Neuer Budgetposten";
@@ -71,9 +72,10 @@ document.getElementById("dialog-budget-row-cancel").addEventListener("click", fu
 
 form.addEventListener("submit", function (e) {
   e.preventDefault();
+  const betragsBetrag = Math.abs(parseFloat(form.betrag.value));
   const data = {
     posten: form.posten.value.trim(),
-    betrag: parseFloat(form.betrag.value),
+    betrag: form.vorzeichen.value === "kosten" ? -betragsBetrag : betragsBetrag,
     ab: form.ab.value,
     typ: form.typ.value
   };

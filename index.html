@@ -212,8 +212,14 @@
       <datalist id="budget-posten-liste"></datalist>
     </div>
     <div class="field">
-      <label for="budget-betrag">Betrag pro Jahr (CHF, Kosten negativ)</label>
-      <input type="number" id="budget-betrag" name="betrag" step="1" required>
+      <label for="budget-betrag">Betrag pro Jahr (CHF)</label>
+      <div class="amount-with-sign">
+        <select id="budget-vorzeichen" name="vorzeichen">
+          <option value="kosten">Kosten (–)</option>
+          <option value="ertrag">Ertrag (+)</option>
+        </select>
+        <input type="number" id="budget-betrag" name="betrag" step="1" min="0" inputmode="decimal" required>
+      </div>
     </div>
     <div class="field">
       <label for="budget-ab">Gültig ab</label>
