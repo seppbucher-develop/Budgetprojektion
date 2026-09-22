@@ -6,9 +6,15 @@ name: Version automatisch hochzählen
 # den neuen Tag. Größere Sprünge (Minor/Major, z.B. v1.1.0 oder v2.0.0)
 # weiterhin manuell taggen -- der nächste automatische Bump zählt dann ab
 # diesem Tag weiter. Siehe README.md.
+#
+# workflow_dispatch erlaubt zusätzlich das manuelle Auslösen über den
+# "Run workflow"-Button im Actions-Tab (oder die API/CLI) -- z.B. um nach
+# einer Berechtigungsänderung ohne weiteren Push zu testen, ob der Workflow
+# erfolgreich taggen und pushen kann.
 on:
   push:
     branches: [master]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
