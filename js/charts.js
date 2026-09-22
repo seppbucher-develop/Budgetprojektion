@@ -2,6 +2,12 @@ const currencyFormatter = new Intl.NumberFormat("de-CH", {
   style: "currency", currency: "CHF", maximumFractionDigits: 0
 });
 
+// Für Detailtabellen (z. B. Buchungen-Drilldown), in denen die Währung aus
+// dem Kontext klar ist und der Betrag mit Rappen angezeigt werden soll.
+const betragFormatter = new Intl.NumberFormat("de-CH", {
+  minimumFractionDigits: 2, maximumFractionDigits: 2
+});
+
 function isDarkMode() {
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
@@ -182,4 +188,4 @@ export function drawGroupedBarChart(canvas, categories, series) {
   });
 }
 
-export { currencyFormatter };
+export { currencyFormatter, betragFormatter };

@@ -1,6 +1,6 @@
 import { getState } from "./store.js";
 import { berechneAbweichungen, berechneSparpotenzial, buchungenFuerJahrPosten } from "./compare.js";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js";
+import { drawGroupedBarChart, currencyFormatter, betragFormatter } from "./charts.js";
 import { renderImportInfo } from "./importUi.js";
 import { formatIsoDate } from "./dateUtils.js";
 
@@ -79,16 +79,15 @@ function openBuchungenDialog(jahr, posten) {
 
   buchungenTbody.innerHTML = "";
   if (buchungen.length === 0) {
-    buchungenTbody.innerHTML = '<tr><td colspan="5" class="hint">Keine Buchungen gefunden.</td></tr>';
+    buchungenTbody.innerHTML = '<tr><td colspan="4" class="hint">Keine Buchungen gefunden.</td></tr>';
   } else {
     buchungen.forEach(function (b) {
       const tr = document.createElement("tr");
       tr.innerHTML =
         "<td>" + formatIsoDate(b.datum) + "</td>" +
-        '<td class="num">' + currencyFormatter.format(b.betragChf) + "</td>" +
+        '<td class="num">' + betragFormatter.format(b.betragChf) + "</td>" +
         "<td>" + escapeHtml(b.name) + "</td>" +
-        "<td>" + escapeHtml(b.kategorie) + "</td>" +
-        "<td>" + escapeHtml(b.konto) + "</td>";
+        "<td>" + escapeHtml(b.kategorie) + "</td>";
       buchungenTbody.appendChild(tr);
     });
   }
@@ -96,8 +95,8 @@ function openBuchungenDialog(jahr, posten) {
   const summe = buchungen.reduce(function (s, b) { return s + b.betragChf; }, 0);
   buchungenTotalRow.innerHTML =
     "<td>Total (" + buchungen.length + (buchungen.length === 1 ? " Buchung" : " Buchungen") + ")</td>" +
-    '<td class="num total">' + currencyFormatter.format(summe) + "</td>" +
-    '<td colspan="3"></td>';
+    '<td class="num total">' + betragFormatter.format(summe) + "</td>" +
+    '<td colspan="2"></td>';
 
   buchungenDialog.showModal();
 }

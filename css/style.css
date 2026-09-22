@@ -488,9 +488,23 @@ dialog {
 }
 
 dialog.dialog-wide {
+  width: 95vw;
   max-width: 720px;
   max-height: 85vh;
   overflow-y: auto;
+}
+
+@media (max-width: 700px) {
+  dialog.dialog-wide {
+    width: 96vw;
+    padding: 16px;
+  }
+}
+
+#buchungen-table td:nth-child(3),
+#buchungen-table td:nth-child(4) {
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .clickable-value {
