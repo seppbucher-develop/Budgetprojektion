@@ -469,6 +469,30 @@ body {
   border-bottom: 2px solid var(--color-border);
 }
 
+.istkosten-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) 90px 90px 90px;
+  column-gap: 8px;
+}
+
+.istkosten-row > div {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.istkosten-row > div:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.istkosten-totalrow > div {
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-border);
+}
+
 .typ-symbol {
   cursor: default;
 }
