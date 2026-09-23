@@ -1,5 +1,5 @@
 import { isoYear } from "./dateUtils.js";
-import { budgetwertFuerJahr } from "./projection.js";
+import { budgetwertFuerJahr, alleBudgetPostenNamen } from "./projection.js";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 
@@ -12,32 +12,45 @@ function istUnvollstaendig(jahr) {
 }
 
 /**
- * Vergleichstabelle "reale Kosten vs. Budget" pro Jahr und Kategorie
- * (Kategoriengruppe der Transaktionen = "Posten" im Budget).
+ * Typ eines Postens ("kosten" oder "ertrag"), ermittelt primär aus dem
+ * Vorzeichen des Budgetwerts, ersatzweise (Posten ohne Budget-Zeile) aus dem
+ * istEinnahme-Flag der realen Buchungen.
+ */
+function postenTyp(state, posten) {
+  const budgetRow = state.budgetPosten.find(function (r) { return r.posten === posten; });
+  if (budgetRow) return budgetRow.betrag < 0 ? "kosten" : "ertrag";
+  const txn = state.realTransaktionen.find(function (t) { return t.kategoriengruppe === posten; });
+  return txn && txn.istEinnahme ? "ertrag" : "kosten";
+}
+
+/**
+ * Vergleichstabelle "reale Buchungen vs. Budget" pro Jahr und Kategorie
+ * (Kategoriengruppe der Transaktionen = "Posten" im Budget). Umfasst sowohl
+ * Kosten- als auch Ertragsposten (z. B. Renten); Beträge behalten ihr
+ * natürliches Vorzeichen. abweichung = real - budget, d. h. positiv = besser
+ * fürs Vermögen als budgetiert (weniger ausgegeben bzw. mehr eingenommen).
  */
 export function berechneAbweichungen(state) {
-  const ausgaben = state.realTransaktionen.filter(function (t) { return !t.istEinnahme; });
-  const jahre = distinctSorted(ausgaben.map(function (t) { return isoYear(t.datum); }));
+  const jahre = distinctSorted(state.realTransaktionen.map(function (t) { return isoYear(t.datum); }));
 
-  const realKategorien = distinctSorted(ausgaben.map(function (t) { return t.kategoriengruppe; }).filter(Boolean));
-  const budgetKostenPosten = distinctSorted(
-    state.budgetPosten.filter(function (r) { return r.betrag < 0; }).map(function (r) { return r.posten; })
-  );
-  const postenListe = distinctSorted(realKategorien.concat(budgetKostenPosten));
+  const realKategorien = distinctSorted(state.realTransaktionen.map(function (t) { return t.kategoriengruppe; }).filter(Boolean));
+  const budgetPostenNamen = alleBudgetPostenNamen(state.budgetPosten);
+  const postenListe = distinctSorted(realKategorien.concat(budgetPostenNamen));
 
   const zeilen = [];
   jahre.forEach(function (jahr) {
     postenListe.forEach(function (posten) {
-      const real = ausgaben
+      const real = state.realTransaktionen
         .filter(function (t) { return t.kategoriengruppe === posten && isoYear(t.datum) === jahr; })
         .reduce(function (s, t) { return s + t.betragChf; }, 0);
       const budget = budgetwertFuerJahr(state.budgetPosten, posten, jahr);
       if (budget === 0 && real === 0) return;
-      const abweichung = Math.abs(real) - Math.abs(budget);
+      const abweichung = real - budget;
       const abweichungPct = budget !== 0 ? (abweichung / Math.abs(budget)) * 100 : null;
       zeilen.push({
         jahr: jahr,
         posten: posten,
+        typ: postenTyp(state, posten),
         budget: budget,
         real: real,
         abweichung: abweichung,
@@ -62,18 +75,18 @@ export function berechneAbweichungen(state) {
 }
 
 /**
- * Istkostenvergleich: reale Kosten pro Kategorie über drei Jahre
+ * Istkostenvergleich: reale Buchungen pro Kategorie über drei Jahre
  * nebeneinander (gewähltes Jahr sowie die zwei vorangehenden), ohne
- * Budget-Bezug oder Abweichung — reiner Trend der tatsächlichen Ausgaben.
+ * Budget-Bezug oder Abweichung — reiner Trend der tatsächlichen Buchungen
+ * (Kosten und Erträge, z. B. Renten, mit natürlichem Vorzeichen).
  */
 export function berechneIstkosten(state, bisJahr) {
   const jahre = [bisJahr - 2, bisJahr - 1, bisJahr];
-  const ausgaben = state.realTransaktionen.filter(function (t) { return !t.istEinnahme; });
-  const postenListe = distinctSorted(ausgaben.map(function (t) { return t.kategoriengruppe; }).filter(Boolean));
+  const postenListe = distinctSorted(state.realTransaktionen.map(function (t) { return t.kategoriengruppe; }).filter(Boolean));
 
   const zeilen = postenListe.map(function (posten) {
     const werte = jahre.map(function (jahr) {
-      return ausgaben
+      return state.realTransaktionen
         .filter(function (t) { return t.kategoriengruppe === posten && isoYear(t.datum) === jahr; })
         .reduce(function (s, t) { return s + t.betragChf; }, 0);
     });
@@ -93,18 +106,20 @@ export function berechneIstkosten(state, bisJahr) {
  */
 export function buchungenFuerJahrPosten(state, jahr, posten) {
   return state.realTransaktionen
-    .filter(function (t) { return !t.istEinnahme && t.kategoriengruppe === posten && isoYear(t.datum) === jahr; })
+    .filter(function (t) { return t.kategoriengruppe === posten && isoYear(t.datum) === jahr; })
     .sort(function (a, b) { return a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0; });
 }
 
 /**
- * Sinnvolle Einsparungsmöglichkeiten: Kategorien, die im Schnitt über
+ * Sinnvolle Einsparungsmöglichkeiten: Kosten-Kategorien, die im Schnitt über
  * mehrere abgeschlossene Jahre das Budget übersteigen, sowie – als
- * Zusatzinfo – Kategorien mit deutlichen Budgetreserven.
+ * Zusatzinfo – Kategorien mit deutlichen Budgetreserven. Nur Kostenposten
+ * (Ertragsposten wie Renten sind hier nicht relevant, da "Einsparung" nur
+ * bei Ausgaben Sinn ergibt).
  */
 export function berechneSparpotenzial(state) {
   const abweichungen = berechneAbweichungen(state);
-  const vollstaendigeZeilen = abweichungen.zeilen.filter(function (z) { return !z.unvollstaendig; });
+  const vollstaendigeZeilen = abweichungen.zeilen.filter(function (z) { return !z.unvollstaendig && z.typ === "kosten"; });
 
   const proPosten = {};
   vollstaendigeZeilen.forEach(function (z) {
@@ -117,13 +132,14 @@ export function berechneSparpotenzial(state) {
     return { posten: posten, durchschnittAbweichung: durchschnitt, anzahlJahre: werte.length };
   });
 
+  // abweichung = real - budget, d. h. negativ = mehr ausgegeben als budgetiert (schlecht).
   const ueberschreitungen = auswertung
-    .filter(function (a) { return a.durchschnittAbweichung > SCHWELLE_CHF; })
-    .sort(function (a, b) { return b.durchschnittAbweichung - a.durchschnittAbweichung; });
-
-  const reserven = auswertung
     .filter(function (a) { return a.durchschnittAbweichung < -SCHWELLE_CHF; })
     .sort(function (a, b) { return a.durchschnittAbweichung - b.durchschnittAbweichung; });
+
+  const reserven = auswertung
+    .filter(function (a) { return a.durchschnittAbweichung > SCHWELLE_CHF; })
+    .sort(function (a, b) { return b.durchschnittAbweichung - a.durchschnittAbweichung; });
 
   return {
     basisJahre: distinctSorted(vollstaendigeZeilen.map(function (z) { return z.jahr; })),

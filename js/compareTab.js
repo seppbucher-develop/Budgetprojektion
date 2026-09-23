@@ -35,26 +35,26 @@ function renderJahrTabelleUndChart(abw) {
     const tr = document.createElement("tr");
     tr.innerHTML =
       "<td>" + z.posten + "</td>" +
-      '<td class="num">' + currencyFormatter.format(Math.abs(z.budget)) + "</td>" +
-      '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(Math.abs(z.real)) + "</button></td>" +
-      '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + currencyFormatter.format(z.abweichung) + "</td>" +
-      '<td class="num ' + (z.abweichung > 0 ? "negative" : "positive") + '">' + pctText(z.abweichungPct) + "</td>";
+      '<td class="num">' + currencyFormatter.format(z.budget) + "</td>" +
+      '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(z.real) + "</button></td>" +
+      '<td class="num ' + (z.abweichung < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(z.abweichung) + "</td>" +
+      '<td class="num ' + (z.abweichung < 0 ? "negative" : "positive") + '">' + pctText(z.abweichungPct) + "</td>";
     tr.querySelector('[data-action="buchungen"]').addEventListener("click", function () {
       openBuchungenDialog(jahr, z.posten);
     });
     tbody.appendChild(tr);
   });
 
-  const budgetSumme = zeilen.reduce(function (s, z) { return s + Math.abs(z.budget); }, 0);
-  const realSumme = zeilen.reduce(function (s, z) { return s + Math.abs(z.real); }, 0);
+  const budgetSumme = zeilen.reduce(function (s, z) { return s + z.budget; }, 0);
+  const realSumme = zeilen.reduce(function (s, z) { return s + z.real; }, 0);
   const abweichungSumme = zeilen.reduce(function (s, z) { return s + z.abweichung; }, 0);
-  const abweichungSummePct = budgetSumme !== 0 ? (abweichungSumme / budgetSumme) * 100 : null;
+  const abweichungSummePct = budgetSumme !== 0 ? (abweichungSumme / Math.abs(budgetSumme)) * 100 : null;
   totalRow.innerHTML =
     "<td>Total</td>" +
     '<td class="num total">' + currencyFormatter.format(budgetSumme) + "</td>" +
     '<td class="num total">' + currencyFormatter.format(realSumme) + "</td>" +
-    '<td class="num total ' + (abweichungSumme > 0 ? "negative" : "positive") + '">' + currencyFormatter.format(abweichungSumme) + "</td>" +
-    '<td class="num total ' + (abweichungSumme > 0 ? "negative" : "positive") + '">' + pctText(abweichungSummePct) + "</td>";
+    '<td class="num total ' + (abweichungSumme < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(abweichungSumme) + "</td>" +
+    '<td class="num total ' + (abweichungSumme < 0 ? "negative" : "positive") + '">' + pctText(abweichungSummePct) + "</td>";
 
   drawGroupedBarChart(jahrChart, zeilen.map(function (z) { return z.posten; }), [
     { name: "Budget", color: "#94a3b8", values: zeilen.map(function (z) { return Math.abs(z.budget); }) },
@@ -67,7 +67,7 @@ function renderTrendChart(abw) {
     trendChart,
     abw.summenProJahr.map(function (s) { return String(s.jahr) + (s.unvollstaendig ? "*" : ""); }),
     [{
-      name: "Abweichung gesamt (+ = über Budget)",
+      name: "Abweichung gesamt (+ = besser als Budget)",
       color: "#7c3aed",
       values: abw.summenProJahr.map(function (s) { return s.abweichung; })
     }]
