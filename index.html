@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=4">
+<link rel="stylesheet" href="css/style.css?v=5">
 </head>
 <body>
 <div class="app">
@@ -51,11 +51,11 @@
         </div>
       </div>
       <p class="hint" id="budget-empty-hint">Noch keine Budgetdaten vorhanden. Importiere die Budget_Pension.xlsx (Tabs „Budget“ und „Vermögen“) oder lege Posten manuell an.</p>
-      <div class="table-scroll">
-        <table class="data-table" id="budget-table">
-          <thead><tr><th>Posten</th><th>Betrag (CHF/Jahr)</th><th>Gültig ab</th><th>Typ</th><th></th></tr></thead>
-          <tbody></tbody>
-        </table>
+      <div class="table-scroll" id="budget-table">
+        <div class="budget-row grid-headrow">
+          <div>Posten</div><div>Betrag<br><span class="th-sub">CHF/Jahr</span></div><div>Gültig ab</div><div>Typ</div><div></div>
+        </div>
+        <div id="budget-rows"></div>
       </div>
     </div>
   </section>
@@ -108,11 +108,11 @@
         <div class="chart-wrap"><canvas id="projektion-chart"></canvas></div>
       </div>
       <div class="panel">
-        <div class="table-scroll">
-          <table class="data-table" id="projektion-table">
-            <thead><tr><th>Jahr</th><th>Ertrag</th><th>Kosten (budgetiert)</th><th>Netto</th><th>Vermögen Ende</th></tr></thead>
-            <tbody></tbody>
-          </table>
+        <div class="table-scroll" id="projektion-table">
+          <div class="projektion-row grid-headrow">
+            <div>Jahr</div><div>Ertrag</div><div>Kosten<br><span class="th-sub">budgetiert</span></div><div>Netto</div><div>Vermögen<br><span class="th-sub">Ende</span></div>
+          </div>
+          <div id="projektion-rows"></div>
         </div>
       </div>
     </div>
@@ -144,7 +144,7 @@
         <div class="chart-wrap"><canvas id="vergleich-jahr-chart"></canvas></div>
         <div class="table-scroll">
           <table class="data-table" id="vergleich-table">
-            <thead><tr><th>Kategorie</th><th>Budget</th><th>Real</th><th>Abweichung</th><th>Abweichung %</th></tr></thead>
+            <thead><tr><th>Kategorie</th><th>Budget</th><th>Real</th><th>Abw</th><th>Abw %</th></tr></thead>
             <tbody></tbody>
             <tfoot><tr id="vergleich-table-total"></tr></tfoot>
           </table>
@@ -309,16 +309,18 @@
 
 <!-- Dialog: Drilldown der realen Buchungen hinter einem Real-Wert -->
 <dialog id="dialog-buchungen" class="dialog-wide">
-  <h2 id="dialog-buchungen-title">Buchungen</h2>
-  <div class="table-scroll">
-    <table class="data-table" id="buchungen-table">
-      <thead><tr><th>Datum</th><th>Betrag</th><th>Name</th><th>Kategorie</th></tr></thead>
-      <tbody></tbody>
-      <tfoot><tr id="buchungen-table-total"></tr></tfoot>
-    </table>
+  <div class="buchungen-head">
+    <h2 id="dialog-buchungen-title">Buchungen</h2>
+    <button type="button" id="dialog-buchungen-close" class="btn-close-icon" aria-label="Schliessen">✕</button>
   </div>
-  <div class="dialog-actions">
-    <button type="button" id="dialog-buchungen-close" class="btn-primary">Schliessen</button>
+  <div class="buchungen-cols">
+    <div class="buchungen-row buchungen-headrow">
+      <div>Datum</div><div>Betrag</div><div>Name</div><div>Kategorie</div>
+    </div>
+    <div class="buchungen-row buchungen-totalrow" id="buchungen-table-total"></div>
+  </div>
+  <div class="buchungen-scroll" id="buchungen-scroll">
+    <div id="buchungen-rows"></div>
   </div>
 </dialog>
 

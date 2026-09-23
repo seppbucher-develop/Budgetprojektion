@@ -2,7 +2,7 @@ import { getState, updateState, uid } from "./store.js";
 import { formatIsoDate, todayIso } from "./dateUtils.js";
 import { currencyFormatter } from "./charts.js";
 
-const tbody = document.querySelector("#budget-table tbody");
+const rowsContainer = document.getElementById("budget-rows");
 const emptyHint = document.getElementById("budget-empty-hint");
 const dialog = document.getElementById("dialog-budget-row");
 const form = document.getElementById("form-budget-row");
@@ -19,20 +19,27 @@ function sortedRows() {
 export function renderBudgetTab() {
   const rows = sortedRows();
   emptyHint.style.display = rows.length === 0 ? "block" : "none";
-  document.getElementById("budget-table").style.display = rows.length === 0 ? "none" : "table";
+  document.getElementById("budget-table").style.display = rows.length === 0 ? "none" : "block";
 
-  tbody.innerHTML = "";
+  rowsContainer.innerHTML = "";
   rows.forEach(function (row) {
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      "<td>" + escapeHtml(row.posten) + "</td>" +
-      '<td class="num ' + (row.betrag < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(row.betrag) + "</td>" +
-      "<td>" + formatIsoDate(row.ab) + "</td>" +
-      "<td>" + (row.typ === "einmalig" ? "Einmalig" : "Wiederkehrend") + "</td>" +
-      '<td class="row-actions"><button data-action="edit">Bearbeiten</button><button data-action="delete" class="btn-danger-text">Löschen</button></td>';
-    tr.querySelector('[data-action="edit"]').addEventListener("click", function () { openDialog(row); });
-    tr.querySelector('[data-action="delete"]').addEventListener("click", function () { deleteRow(row.id); });
-    tbody.appendChild(tr);
+    const rowEl = document.createElement("div");
+    rowEl.className = "budget-row";
+    const typSymbol = row.typ === "einmalig"
+      ? '<span class="typ-symbol" title="Einmalig (nur im angegebenen Jahr)">1×</span>'
+      : '<span class="typ-symbol" title="Wiederkehrend (gilt ab diesem Jahr bis zur nächsten Änderung)">↻</span>';
+    rowEl.innerHTML =
+      "<div>" + escapeHtml(row.posten) + "</div>" +
+      '<div class="' + (row.betrag < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(row.betrag) + "</div>" +
+      "<div>" + formatIsoDate(row.ab) + "</div>" +
+      "<div>" + typSymbol + "</div>" +
+      '<div class="row-actions row-actions-icons">' +
+        '<button data-action="edit" title="Bearbeiten" aria-label="Bearbeiten">✎</button>' +
+        '<button data-action="delete" class="btn-danger-text" title="Löschen" aria-label="Löschen">🗑</button>' +
+      "</div>";
+    rowEl.querySelector('[data-action="edit"]').addEventListener("click", function () { openDialog(row); });
+    rowEl.querySelector('[data-action="delete"]').addEventListener("click", function () { deleteRow(row.id); });
+    rowsContainer.appendChild(rowEl);
   });
 }
 

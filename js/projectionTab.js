@@ -3,7 +3,7 @@ import { berechneProjektion } from "./projection.js";
 import { drawLineChart, currencyFormatter } from "./charts.js";
 
 const form = document.getElementById("form-projektion-einstellungen");
-const tbody = document.querySelector("#projektion-table tbody");
+const rowsContainer = document.getElementById("projektion-rows");
 const summaryEl = document.getElementById("projektion-summary");
 const canvas = document.getElementById("projektion-chart");
 const emptyHint = document.getElementById("projektion-empty-hint");
@@ -41,16 +41,17 @@ export function renderProjectionTab() {
     statBlock("Vermögen Ende " + (proj.startJahr + proj.jahre.length - 1), currencyFormatter.format(endWert)) +
     statBlock("Reicht bis", aufgebraucht ? String(aufgebraucht.jahr) : "über gesamten Horizont hinaus");
 
-  tbody.innerHTML = "";
+  rowsContainer.innerHTML = "";
   proj.jahre.forEach(function (j) {
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      "<td>" + j.jahr + "</td>" +
-      '<td class="num positive">' + currencyFormatter.format(j.ertrag) + (j.ertragIstReal ? ' <span class="badge">real</span>' : "") + "</td>" +
-      '<td class="num negative">' + currencyFormatter.format(j.kosten) + "</td>" +
-      '<td class="num ' + (j.netto >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.netto) + "</td>" +
-      '<td class="num ' + (j.vermoegenEnde >= 0 ? "" : "negative") + '">' + currencyFormatter.format(j.vermoegenEnde) + "</td>";
-    tbody.appendChild(tr);
+    const rowEl = document.createElement("div");
+    rowEl.className = "projektion-row";
+    rowEl.innerHTML =
+      "<div>" + j.jahr + "</div>" +
+      '<div class="positive">' + currencyFormatter.format(j.ertrag) + (j.ertragIstReal ? ' <span class="badge">real</span>' : "") + "</div>" +
+      '<div class="negative">' + currencyFormatter.format(j.kosten) + "</div>" +
+      '<div class="' + (j.netto >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.netto) + "</div>" +
+      '<div class="' + (j.vermoegenEnde >= 0 ? "" : "negative") + '">' + currencyFormatter.format(j.vermoegenEnde) + "</div>";
+    rowsContainer.appendChild(rowEl);
   });
 
   drawLineChart(canvas, proj.jahre.map(function (j) { return { jahr: j.jahr, value: j.vermoegenEnde }; }));
