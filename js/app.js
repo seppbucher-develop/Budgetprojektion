@@ -1,12 +1,12 @@
-import { onStateChanged } from "./store.js";
-import "./importUi.js";
-import { renderBudgetTab } from "./budgetTab.js";
-import { renderVermoegenTab } from "./vermoegenTab.js";
-import { renderProjectionTab } from "./projectionTab.js";
-import { renderCompareTab } from "./compareTab.js";
-import { renderIstkostenTab } from "./istkostenTab.js";
-import { renderBackupTab } from "./backupTab.js";
-import { ladeAppVersion } from "./version.js";
+import { onStateChanged } from "./store.js?v=1";
+import "./importUi.js?v=1";
+import { renderBudgetTab } from "./budgetTab.js?v=1";
+import { renderVermoegenTab } from "./vermoegenTab.js?v=1";
+import { renderProjectionTab } from "./projectionTab.js?v=1";
+import { renderCompareTab } from "./compareTab.js?v=1";
+import { renderIstkostenTab } from "./istkostenTab.js?v=1";
+import { renderBackupTab } from "./backupTab.js?v=1";
+import { ladeAppVersion } from "./version.js?v=1";
 
 const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));

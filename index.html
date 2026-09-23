@@ -348,6 +348,10 @@
   </div>
 </dialog>
 
-<script type="module" src="js/app.js"></script>
+<!-- ?v= hochzählen, wenn sich EIN js/*.js ändert (hier UND in jedem
+     "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
+     als installierte "Zum Home-Bildschirm"-App werden Module sonst
+     hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
+<script type="module" src="js/app.js?v=1"></script>
 </body>
 </html>
