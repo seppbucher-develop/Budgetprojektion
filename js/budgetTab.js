@@ -1,6 +1,6 @@
-import { getState, updateState, uid } from "./store.js";
-import { formatIsoDate, todayIso } from "./dateUtils.js";
-import { currencyFormatter } from "./charts.js";
+import { getState, updateState, uid } from "./store.js?v=1";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=1";
+import { currencyFormatter } from "./charts.js?v=1";
 
 const rowsContainer = document.getElementById("budget-rows");
 const emptyHint = document.getElementById("budget-empty-hint");
