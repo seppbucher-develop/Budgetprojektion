@@ -1,27 +1,46 @@
 import { isoYear } from "./dateUtils.js";
 
 /**
+ * Anteil eines Jahres ab dem Startmonat (inkl.) bis Jahresende, monatsgenau
+ * (Tag im Monat wird nicht berücksichtigt). Für Dezember ergibt sich 1/12,
+ * für Juli 6/12, für Januar 12/12 (kein angebrochenes Jahr).
+ */
+function jahresanteilAb(abIso) {
+  const monat = parseInt(String(abIso).slice(5, 7), 10);
+  const monateVerbleibend = 12 - monat + 1;
+  return monateVerbleibend / 12;
+}
+
+/**
  * Ermittelt den für ein Jahr gültigen Budgetwert eines Postens.
  *
  * Modell: "wiederkehrend"-Zeilen bilden pro Posten eine Zeitachse ("gültig ab
  * diesem Jahr, bis zur nächsten Änderung") – es zählt die Zeile mit dem
  * jüngsten "ab"-Jahr <= Zieljahr. "einmalig"-Zeilen kommen zusätzlich nur in
- * ihrem eigenen Jahr obendrauf (z. B. eine Anschaffung).
+ * ihrem eigenen Jahr obendrauf (z. B. eine Anschaffung). Beginnt eine
+ * wiederkehrende Zeile nicht am 1.1., wird ihr Wert im ersten (angebrochenen)
+ * Jahr nur anteilsmässig berücksichtigt.
  */
 export function budgetwertFuerJahr(budgetPosten, posten, jahr) {
   const rows = budgetPosten.filter(function (r) { return r.posten === posten; });
 
   let basiswert = 0;
   let bestesJahr = -Infinity;
+  let bestesAb = null;
   rows.forEach(function (r) {
     if (r.typ === "wiederkehrend") {
       const abJahr = isoYear(r.ab);
       if (abJahr <= jahr && abJahr > bestesJahr) {
         bestesJahr = abJahr;
         basiswert = r.betrag;
+        bestesAb = r.ab;
       }
     }
   });
+
+  if (bestesJahr === jahr && bestesAb) {
+    basiswert *= jahresanteilAb(bestesAb);
+  }
 
   const einmaligSumme = rows
     .filter(function (r) { return r.typ === "einmalig" && isoYear(r.ab) === jahr; })
