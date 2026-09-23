@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 <div class="app">
@@ -51,10 +51,12 @@
         </div>
       </div>
       <p class="hint" id="budget-empty-hint">Noch keine Budgetdaten vorhanden. Importiere die Budget_Pension.xlsx (Tabs „Budget“ und „Vermögen“) oder lege Posten manuell an.</p>
-      <table class="data-table" id="budget-table">
-        <thead><tr><th>Posten</th><th>Betrag (CHF/Jahr)</th><th>Gültig ab</th><th>Typ</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="data-table" id="budget-table">
+          <thead><tr><th>Posten</th><th>Betrag (CHF/Jahr)</th><th>Gültig ab</th><th>Typ</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
@@ -106,10 +108,12 @@
         <div class="chart-wrap"><canvas id="projektion-chart"></canvas></div>
       </div>
       <div class="panel">
-        <table class="data-table" id="projektion-table">
-          <thead><tr><th>Jahr</th><th>Ertrag</th><th>Kosten (budgetiert)</th><th>Netto</th><th>Vermögen Ende</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="data-table" id="projektion-table">
+            <thead><tr><th>Jahr</th><th>Ertrag</th><th>Kosten (budgetiert)</th><th>Netto</th><th>Vermögen Ende</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
@@ -138,11 +142,13 @@
         </div>
         <p class="warning" id="vergleich-jahr-unvollstaendig" style="display:none">Dieses Jahr ist noch nicht abgeschlossen – die Werte sind unvollständig und nicht direkt mit vollen Jahren vergleichbar.</p>
         <div class="chart-wrap"><canvas id="vergleich-jahr-chart"></canvas></div>
-        <table class="data-table" id="vergleich-table">
-          <thead><tr><th>Kategorie</th><th>Budget</th><th>Real</th><th>Abweichung</th><th>Abweichung %</th></tr></thead>
-          <tbody></tbody>
-          <tfoot><tr id="vergleich-table-total"></tr></tfoot>
-        </table>
+        <div class="table-scroll">
+          <table class="data-table" id="vergleich-table">
+            <thead><tr><th>Kategorie</th><th>Budget</th><th>Real</th><th>Abweichung</th><th>Abweichung %</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr id="vergleich-table-total"></tr></tfoot>
+          </table>
+        </div>
 
         <h3>Trend über alle Jahre</h3>
         <p class="hint">* laufendes/zukünftiges Jahr, Daten unvollständig</p>

@@ -123,6 +123,12 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 20px;
+  /* .tab-panel ist ein Flex-Container; Flex-Items schrumpfen ohne dies
+     nicht unter die intrinsische Breite ihres Inhalts (min-width: auto).
+     Eine breite Tabelle im Panel hätte sonst das ganze Panel (inkl. Kopf
+     mit den Aktions-Buttons) samt der ganzen Seite horizontal aufgebläht,
+     statt dass nur die Tabelle selbst in .table-scroll überläuft. */
+  min-width: 0;
 }
 
 .panel h2 {
