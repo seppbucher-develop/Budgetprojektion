@@ -1,45 +1,47 @@
 import { isoYear } from "./dateUtils.js";
 
+function monatsIndex(iso) {
+  return isoYear(iso) * 12 + parseInt(String(iso).slice(5, 7), 10);
+}
+
 /**
- * Anteil eines Jahres ab dem Startmonat (inkl.) bis Jahresende, monatsgenau
- * (Tag im Monat wird nicht berücksichtigt). Für Dezember ergibt sich 1/12,
- * für Juli 6/12, für Januar 12/12 (kein angebrochenes Jahr).
+ * Für einen konkreten Monat (jahr, monat 1-12) gültiger Wert einer
+ * wiederkehrenden Zeitachse: die Zeile mit dem jüngsten "ab"-Monat, der
+ * nicht nach dem Zielmonat liegt (0, falls noch keine Zeile gilt).
  */
-function jahresanteilAb(abIso) {
-  const monat = parseInt(String(abIso).slice(5, 7), 10);
-  const monateVerbleibend = 12 - monat + 1;
-  return monateVerbleibend / 12;
+function wiederkehrenderMonatswert(wiederkehrendRows, jahr, monat) {
+  const zielIndex = jahr * 12 + monat;
+  let bestesBetrag = 0;
+  let bestesIndex = -Infinity;
+  wiederkehrendRows.forEach(function (r) {
+    const index = monatsIndex(r.ab);
+    if (index <= zielIndex && index > bestesIndex) {
+      bestesIndex = index;
+      bestesBetrag = r.betrag;
+    }
+  });
+  return bestesBetrag;
 }
 
 /**
  * Ermittelt den für ein Jahr gültigen Budgetwert eines Postens.
  *
  * Modell: "wiederkehrend"-Zeilen bilden pro Posten eine Zeitachse ("gültig ab
- * diesem Jahr, bis zur nächsten Änderung") – es zählt die Zeile mit dem
- * jüngsten "ab"-Jahr <= Zieljahr. "einmalig"-Zeilen kommen zusätzlich nur in
- * ihrem eigenen Jahr obendrauf (z. B. eine Anschaffung). Beginnt eine
- * wiederkehrende Zeile nicht am 1.1., wird ihr Wert im ersten (angebrochenen)
- * Jahr nur anteilsmässig berücksichtigt.
+ * diesem Monat, bis zur nächsten Änderung"). Der Jahreswert wird monatsgenau
+ * aus den 12 Einzelmonaten aufsummiert, sodass ein Wechsel mitten im Jahr
+ * (z. B. ein neuer Rentenbetrag ab Dezember) korrekt anteilig sowohl den
+ * alten Wert für die Monate davor als auch den neuen Wert für die Monate
+ * danach berücksichtigt – auch wenn dadurch zwei Wechsel im selben
+ * Kalenderjahr liegen. "einmalig"-Zeilen kommen zusätzlich nur in ihrem
+ * eigenen Jahr obendrauf (z. B. eine Anschaffung).
  */
 export function budgetwertFuerJahr(budgetPosten, posten, jahr) {
   const rows = budgetPosten.filter(function (r) { return r.posten === posten; });
+  const wiederkehrendRows = rows.filter(function (r) { return r.typ === "wiederkehrend"; });
 
   let basiswert = 0;
-  let bestesJahr = -Infinity;
-  let bestesAb = null;
-  rows.forEach(function (r) {
-    if (r.typ === "wiederkehrend") {
-      const abJahr = isoYear(r.ab);
-      if (abJahr <= jahr && abJahr > bestesJahr) {
-        bestesJahr = abJahr;
-        basiswert = r.betrag;
-        bestesAb = r.ab;
-      }
-    }
-  });
-
-  if (bestesJahr === jahr && bestesAb) {
-    basiswert *= jahresanteilAb(bestesAb);
+  for (let monat = 1; monat <= 12; monat++) {
+    basiswert += wiederkehrenderMonatswert(wiederkehrendRows, jahr, monat) / 12;
   }
 
   const einmaligSumme = rows
