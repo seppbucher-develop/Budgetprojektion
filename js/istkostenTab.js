@@ -17,7 +17,7 @@ let ausgewaehltesJahr = null;
 
 export function renderIstkostenTab() {
   const state = getState();
-  const hatDaten = state.realTransaktionen.some(function (t) { return !t.istEinnahme; });
+  const hatDaten = state.realTransaktionen.length > 0;
   emptyHint.style.display = hatDaten ? "none" : "block";
   inhalt.style.display = hatDaten ? "block" : "none";
   if (!hatDaten) return;
@@ -49,7 +49,7 @@ function renderTabelleUndChart(daten) {
       "<div>" + z.posten + "</div>" +
       z.werte.map(function (w, i) {
         return '<div><button type="button" class="clickable-value" data-jahr="' + daten.jahre[i] + '">' +
-          currencyFormatter.format(Math.abs(w)) + "</button></div>";
+          currencyFormatter.format(w) + "</button></div>";
       }).join("");
     Array.from(rowEl.querySelectorAll("[data-jahr]")).forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -60,7 +60,7 @@ function renderTabelleUndChart(daten) {
   });
 
   totalRow.innerHTML = "<div>Total</div>" +
-    daten.summenProJahr.map(function (s) { return "<div>" + currencyFormatter.format(Math.abs(s)) + "</div>"; }).join("");
+    daten.summenProJahr.map(function (s) { return "<div>" + currencyFormatter.format(s) + "</div>"; }).join("");
 
   drawGroupedBarChart(chart, daten.zeilen.map(function (z) { return z.posten; }),
     daten.jahre.map(function (jahr, i) {
