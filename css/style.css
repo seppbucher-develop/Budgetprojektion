@@ -43,7 +43,7 @@ body {
 .app {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 24px 10px 48px;
 }
 
 .app-header {
@@ -122,7 +122,7 @@ body {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px;
   /* .tab-panel ist ein Flex-Container; Flex-Items schrumpfen ohne dies
      nicht unter die intrinsische Breite ihres Inhalts (min-width: auto).
      Eine breite Tabelle im Panel hätte sonst das ganze Panel (inkl. Kopf
@@ -365,6 +365,18 @@ body {
 
 .table-scroll {
   overflow-x: auto;
+  /* Bis an den Rand des weissen Panels ausdehnen (negatives Margin hebt
+     dessen padding auf) statt zusätzlich zum Panel-Rand noch einmal Platz
+     zu verschenken — die Tabelle selbst hat über ihre Zellen-Padding schon
+     genug Abstand zum Rand. */
+  margin: 0 -16px;
+}
+
+.table-scroll .budget-row,
+.table-scroll .projektion-row,
+.table-scroll .data-table {
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .data-table {
@@ -602,7 +614,8 @@ dialog.dialog-wide[open] {
   justify-content: space-between;
   gap: 8px;
   flex: 0 0 auto;
-  margin-bottom: 6px;
+  margin: 0 -12px 6px;
+  padding: 0 12px;
 }
 
 .buchungen-head h2 {
@@ -626,18 +639,21 @@ dialog.dialog-wide[open] {
 
 .buchungen-cols {
   flex: 0 0 auto;
+  margin: 0 -12px;
 }
 
 .buchungen-scroll {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
+  margin: 0 -12px;
 }
 
 .buchungen-row {
   display: grid;
   grid-template-columns: 92px 88px 1fr 1fr;
   column-gap: 8px;
+  padding: 0 12px;
 }
 
 .buchungen-row > div {
