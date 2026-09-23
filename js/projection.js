@@ -1,4 +1,18 @@
-import { isoYear } from "./dateUtils.js";
+import { isoYear, daysBetweenIso } from "./dateUtils.js";
+
+/**
+ * Anteil eines Jahres von einem gegebenen Datum (inkl.) bis Jahresende, z. B.
+ * für den 1.7. eines Jahres ca. 0.5. Für den 1.1. ergibt sich 1 (kein
+ * angebrochenes Jahr).
+ */
+function jahresanteilAb(abIso) {
+  const jahr = isoYear(abIso);
+  const jahresbeginn = jahr + "-01-01";
+  const naechsterJahresbeginn = (jahr + 1) + "-01-01";
+  const tageGesamt = daysBetweenIso(jahresbeginn, naechsterJahresbeginn);
+  const tageAbDatum = daysBetweenIso(abIso, naechsterJahresbeginn);
+  return tageAbDatum / tageGesamt;
+}
 
 /**
  * Ermittelt den für ein Jahr gültigen Budgetwert eines Postens.
@@ -6,22 +20,30 @@ import { isoYear } from "./dateUtils.js";
  * Modell: "wiederkehrend"-Zeilen bilden pro Posten eine Zeitachse ("gültig ab
  * diesem Jahr, bis zur nächsten Änderung") – es zählt die Zeile mit dem
  * jüngsten "ab"-Jahr <= Zieljahr. "einmalig"-Zeilen kommen zusätzlich nur in
- * ihrem eigenen Jahr obendrauf (z. B. eine Anschaffung).
+ * ihrem eigenen Jahr obendrauf (z. B. eine Anschaffung). Beginnt eine
+ * wiederkehrende Zeile nicht am 1.1., wird ihr Wert im ersten (angebrochenen)
+ * Jahr nur anteilsmässig berücksichtigt.
  */
 export function budgetwertFuerJahr(budgetPosten, posten, jahr) {
   const rows = budgetPosten.filter(function (r) { return r.posten === posten; });
 
   let basiswert = 0;
   let bestesJahr = -Infinity;
+  let bestesAb = null;
   rows.forEach(function (r) {
     if (r.typ === "wiederkehrend") {
       const abJahr = isoYear(r.ab);
       if (abJahr <= jahr && abJahr > bestesJahr) {
         bestesJahr = abJahr;
         basiswert = r.betrag;
+        bestesAb = r.ab;
       }
     }
   });
+
+  if (bestesJahr === jahr && bestesAb) {
+    basiswert *= jahresanteilAb(bestesAb);
+  }
 
   const einmaligSumme = rows
     .filter(function (r) { return r.typ === "einmalig" && isoYear(r.ab) === jahr; })
