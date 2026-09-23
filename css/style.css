@@ -395,12 +395,75 @@ body {
   border-top: 2px solid var(--color-border);
 }
 
-.data-table .positive {
+.positive {
   color: var(--color-positive);
 }
 
-.data-table .negative {
+.negative {
   color: var(--color-negative);
+}
+
+.th-sub {
+  display: block;
+  font-weight: 400;
+  font-size: 0.75em;
+  color: var(--color-text-muted);
+}
+
+/* Budget & Projektion: jede Zeile ist ein eigenständiges CSS-Grid mit
+   identischem grid-template-columns (wie beim Buchungen-Drilldown) statt
+   <table> mit table-layout oder display:contents auf thead/tbody/tr —
+   letzteres verhält sich bei "echten" Tabellen-Elementen in Chromium
+   nachweislich inkonsistent (jede Zeile bekam leicht andere Spaltenbreiten
+   statt eines gemeinsamen Rasters). Reine divs mit gleichem Raster pro
+   Zeile sind deterministisch und funktionieren überall zuverlässig. */
+.budget-row,
+.projektion-row {
+  display: grid;
+  column-gap: 4px;
+}
+
+.budget-row {
+  /* Summe der festen Spalten bewusst knapp gehalten, damit auf einem
+     schmalen Handy-Bildschirm für "Posten" (1fr) noch echter Platz
+     bleibt. */
+  grid-template-columns: minmax(60px, 1fr) 65px 78px 26px 56px;
+}
+
+.budget-row > div:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projektion-row {
+  grid-template-columns: 55px 90px 90px 90px 95px;
+}
+
+.budget-row > div,
+.projektion-row > div {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.budget-row > div:nth-child(2),
+.projektion-row > div:nth-child(2),
+.projektion-row > div:nth-child(3),
+.projektion-row > div:nth-child(4),
+.projektion-row > div:nth-child(5) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid-headrow > div {
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.typ-symbol {
+  cursor: default;
 }
 
 .row-actions {
@@ -417,6 +480,16 @@ body {
   cursor: pointer;
   font-size: 0.8rem;
   color: var(--color-text);
+}
+
+.row-actions-icons {
+  gap: 4px;
+}
+
+.row-actions-icons button {
+  padding: 2px 5px;
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .badge {
@@ -480,10 +553,6 @@ body {
 }
 
 dialog {
-  /* Explizite Zentrierung statt Verlass auf das UA-Stylesheet
-     (dialog:modal { margin: auto }) — auf manchen mobilen Browsern/WebViews
-     unzuverlässig, dort landete der Dialog sonst am rechten Rand statt
-     zentriert. */
   /* inset:0 + margin:auto statt top/left/transform: das ist exakt der
      Mechanismus, den dialog:modal im UA-Stylesheet eigentlich selbst
      mitbringen sollte — auf manchen mobilen Browsern (u.a. beobachtet auf
@@ -507,32 +576,91 @@ dialog.dialog-wide {
   width: 96vw;
   max-width: 1100px;
   max-height: 85vh;
-  padding: 16px;
+  padding: 12px;
+  overflow: hidden;
 }
 
-/* Buchungen-Drilldown: CSS Grid statt table-layout (auto/fixed verhielten
-   sich auf mindestens einem realen Gerät unvorhersehbar — Breitenangaben
-   wurden ignoriert bzw. aufgebläht). thead/tbody/tfoot/tr werden per
-   display:contents "aufgelöst", ihre th/td-Kinder werden dadurch direkte
-   Grid-Items von #buchungen-table und richten sich an EINEM gemeinsamen
-   Spaltenraster aus — deterministisch in jedem Browser. */
-#buchungen-table {
+/* Nur wenn tatsächlich offen (nicht dialog.dialog-wide allein) — sonst
+   würde diese Regel die UA-Regel dialog:not([open]){display:none}
+   überstimmen (Autor-Styles gewinnen immer gegen UA-Styles, unabhängig
+   von der Spezifität) und der Dialog bliebe permanent sichtbar. */
+dialog.dialog-wide[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Buchungen-Drilldown: Titel/Spaltenköpfe/Totalzeile bleiben fix, nur die
+   Buchungsliste selbst scrollt (analog zum Vermögen-Tab, wo der Panel-Kopf
+   beim Scrollen ebenfalls stehen bleibt). Reines CSS Grid auf div-Zeilen
+   statt <table> — table-layout (auto wie fixed) verhielt sich auf
+   mindestens einem realen Gerät unvorhersehbar (Breiten wurden ignoriert
+   bzw. aufgebläht), Grid-Spaltenbreiten sind dagegen eindeutig
+   spezifiziert und verhalten sich überall identisch. */
+.buchungen-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-bottom: 6px;
+}
+
+.buchungen-head h2 {
+  margin: 0;
+}
+
+.btn-close-icon {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 2px 4px;
+}
+
+.btn-close-icon:hover {
+  color: var(--color-text);
+}
+
+.buchungen-cols {
+  flex: 0 0 auto;
+}
+
+.buchungen-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.buchungen-row {
   display: grid;
   grid-template-columns: 92px 88px 1fr 1fr;
+  column-gap: 8px;
 }
 
-#buchungen-table thead,
-#buchungen-table tbody,
-#buchungen-table tfoot,
-#buchungen-table tr {
-  display: contents;
-}
-
-#buchungen-table td:nth-child(3),
-#buchungen-table td:nth-child(4) {
+.buchungen-row > div {
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.buchungen-row > div:nth-child(2) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.buchungen-headrow > div {
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.buchungen-totalrow > div {
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-border);
 }
 
 .clickable-value {
