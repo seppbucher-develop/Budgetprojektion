@@ -1,17 +1,14 @@
-import { isoYear, daysBetweenIso } from "./dateUtils.js";
+import { isoYear } from "./dateUtils.js";
 
 /**
- * Anteil eines Jahres von einem gegebenen Datum (inkl.) bis Jahresende, z. B.
- * für den 1.7. eines Jahres ca. 0.5. Für den 1.1. ergibt sich 1 (kein
- * angebrochenes Jahr).
+ * Anteil eines Jahres ab dem Startmonat (inkl.) bis Jahresende, monatsgenau
+ * (Tag im Monat wird nicht berücksichtigt). Für Dezember ergibt sich 1/12,
+ * für Juli 6/12, für Januar 12/12 (kein angebrochenes Jahr).
  */
 function jahresanteilAb(abIso) {
-  const jahr = isoYear(abIso);
-  const jahresbeginn = jahr + "-01-01";
-  const naechsterJahresbeginn = (jahr + 1) + "-01-01";
-  const tageGesamt = daysBetweenIso(jahresbeginn, naechsterJahresbeginn);
-  const tageAbDatum = daysBetweenIso(abIso, naechsterJahresbeginn);
-  return tageAbDatum / tageGesamt;
+  const monat = parseInt(String(abIso).slice(5, 7), 10);
+  const monateVerbleibend = 12 - monat + 1;
+  return monateVerbleibend / 12;
 }
 
 /**
