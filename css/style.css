@@ -366,17 +366,12 @@ body {
 .table-scroll {
   overflow-x: auto;
   /* Bis an den Rand des weissen Panels ausdehnen (negatives Margin hebt
-     dessen padding auf) statt zusätzlich zum Panel-Rand noch einmal Platz
-     zu verschenken — die Tabelle selbst hat über ihre Zellen-Padding schon
-     genug Abstand zum Rand. */
+     dessen padding auf), OHNE das Padding auf der Zeile/Tabelle wieder
+     hinzuzufügen — sonst wäre der Effekt netto null (genau das war der
+     Fehler in der letzten Version: Padding wurde nur vom Panel auf die
+     Zeile verschoben statt tatsächlich reduziert). Rand ist jetzt
+     wirklich 0, die erste/letzte Spalte berührt den Panel-Rand. */
   margin: 0 -16px;
-}
-
-.table-scroll .budget-row,
-.table-scroll .projektion-row,
-.table-scroll .data-table {
-  padding-left: 16px;
-  padding-right: 16px;
 }
 
 .data-table {
@@ -614,8 +609,7 @@ dialog.dialog-wide[open] {
   justify-content: space-between;
   gap: 8px;
   flex: 0 0 auto;
-  margin: 0 -12px 6px;
-  padding: 0 12px;
+  margin-bottom: 6px;
 }
 
 .buchungen-head h2 {
@@ -653,7 +647,6 @@ dialog.dialog-wide[open] {
   display: grid;
   grid-template-columns: 92px 88px 1fr 1fr;
   column-gap: 8px;
-  padding: 0 12px;
 }
 
 .buchungen-row > div {
