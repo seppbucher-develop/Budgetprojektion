@@ -523,16 +523,6 @@ body {
   line-height: 1;
 }
 
-.badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  padding: 1px 6px;
-  border-radius: 10px;
-  background: var(--color-positive);
-  color: #fff;
-  vertical-align: middle;
-}
-
 .insight-list {
   margin: 0 0 16px;
   padding-left: 18px;

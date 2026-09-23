@@ -9,8 +9,7 @@ persönliche Finanzplanung:
   (z. B. eine Anschaffung).
 - **Vermögen** – Kontostände zu einem oder mehreren Stichtagen.
 - **Projektion** – 30-Jahres-Hochrechnung des Vermögens auf Basis von
-  Erträgen (real, falls Transaktionen vorhanden, sonst budgetiert),
-  budgetierten Kosten, Rendite- und Inflationsannahmen.
+  budgetierten Erträgen und Kosten sowie Rendite- und Inflationsannahmen.
 - **Realvergleich** – reale Kosten aus einem Bluecoins-CSV-Export mit dem
   Budget vergleichen (Tabelle + Diagramm) und automatisch erkannte
   Einsparungsmöglichkeiten bzw. Budgetreserven anzeigen.
