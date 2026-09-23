@@ -1,6 +1,6 @@
-import { getState, updateState } from "./store.js?v=1";
-import { berechneProjektion } from "./projection.js?v=1";
-import { drawLineChart, currencyFormatter } from "./charts.js?v=1";
+import { getState, updateState } from "./store.js?v=2";
+import { berechneProjektion } from "./projection.js?v=2";
+import { drawLineChart, currencyFormatter } from "./charts.js?v=2";
 
 const form = document.getElementById("form-projektion-einstellungen");
 const rowsContainer = document.getElementById("projektion-rows");
@@ -47,7 +47,7 @@ export function renderProjectionTab() {
     rowEl.className = "projektion-row";
     rowEl.innerHTML =
       "<div>" + j.jahr + "</div>" +
-      '<div class="positive">' + currencyFormatter.format(j.ertrag) + (j.ertragIstReal ? ' <span class="badge">real</span>' : "") + "</div>" +
+      '<div class="positive">' + currencyFormatter.format(j.ertrag) + "</div>" +
       '<div class="negative">' + currencyFormatter.format(j.kosten) + "</div>" +
       '<div class="' + (j.netto >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.netto) + "</div>" +
       '<div class="' + (j.vermoegenEnde >= 0 ? "" : "negative") + '">' + currencyFormatter.format(j.vermoegenEnde) + "</div>";

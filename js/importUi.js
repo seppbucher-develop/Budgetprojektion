@@ -1,7 +1,7 @@
-import { getState, updateState, hasBudgetData } from "./store.js?v=1";
-import { importXlsxFile } from "./importXlsx.js?v=1";
-import { importCsvFile } from "./importCsv.js?v=1";
-import { todayIso, formatIsoDate } from "./dateUtils.js?v=1";
+import { getState, updateState, hasBudgetData } from "./store.js?v=2";
+import { importXlsxFile } from "./importXlsx.js?v=2";
+import { importCsvFile } from "./importCsv.js?v=2";
+import { todayIso, formatIsoDate } from "./dateUtils.js?v=2";
 
 const xlsxDialog = document.getElementById("dialog-import-xlsx");
 const xlsxForm = document.getElementById("form-import-xlsx");

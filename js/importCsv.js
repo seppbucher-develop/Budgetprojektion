@@ -1,4 +1,4 @@
-import { uid } from "./store.js?v=1";
+import { uid } from "./store.js?v=2";
 
 // Generischer CSV-Parser (RFC4180-ähnlich): kommagetrennt, Felder optional in
 // doppelten Anführungszeichen, "" als Escape für ein Anführungszeichen im Feld,

@@ -1,4 +1,4 @@
-import { isoYear } from "./dateUtils.js?v=1";
+import { isoYear } from "./dateUtils.js?v=2";
 
 function monatsIndex(iso) {
   return isoYear(iso) * 12 + parseInt(String(iso).slice(5, 7), 10);
@@ -74,12 +74,6 @@ export function budgetJahresSumme(budgetPosten, jahr) {
   return { ertrag: ertrag, kosten: kosten };
 }
 
-function realErtragFuerJahr(realTransaktionen, jahr) {
-  const treffer = realTransaktionen.filter(function (t) { return t.istEinnahme && isoYear(t.datum) === jahr; });
-  if (treffer.length === 0) return null;
-  return treffer.reduce(function (sum, t) { return sum + t.betragChf; }, 0);
-}
-
 export function letztesVermoegen(state) {
   if (state.vermoegenEintraege.length === 0) return { datum: null, jahr: new Date().getFullYear(), summe: 0 };
   const sortiert = state.vermoegenEintraege.slice().sort(function (a, b) { return a.datum < b.datum ? 1 : -1; });
@@ -90,13 +84,14 @@ export function letztesVermoegen(state) {
 
 /**
  * 30-Jahres-Projektion (Standard, über einstellungen.horizontJahre einstellbar).
- * Ertrag: reale Erträge des Jahres, falls Transaktionen vorhanden, sonst
- * budgetierter Ertrag. Kosten: immer budgetiert, optional mit p.a.-Inflation
- * ab dem laufenden Jahr hochgerechnet. Vermögen wächst mit der eingestellten
- * Rendite p.a. auf dem Vorjahresendbestand.
+ * Ertrag und Kosten sind immer budgetiert (reale Buchungen fliessen bewusst
+ * nicht ein, da sie sich in der Projektion sonst zu stark mit budgetierten
+ * Werten anderer Jahre vermischen), optional mit p.a.-Inflation auf die
+ * Kosten ab dem laufenden Jahr hochgerechnet. Vermögen wächst mit der
+ * eingestellten Rendite p.a. auf dem Vorjahresendbestand.
  */
 export function berechneProjektion(state) {
-  const { budgetPosten, realTransaktionen, einstellungen } = state;
+  const { budgetPosten, einstellungen } = state;
   const start = letztesVermoegen(state);
   const heuteJahr = new Date().getFullYear();
   const startJahr = Math.max(start.jahr, heuteJahr);
@@ -109,8 +104,7 @@ export function berechneProjektion(state) {
 
   for (let jahr = startJahr; jahr < startJahr + horizont; jahr++) {
     const budget = budgetJahresSumme(budgetPosten, jahr);
-    const realErtrag = realErtragFuerJahr(realTransaktionen, jahr);
-    const ertrag = realErtrag !== null ? realErtrag : budget.ertrag;
+    const ertrag = budget.ertrag;
     const inflationFaktor = Math.pow(1 + inflationPct / 100, Math.max(0, jahr - heuteJahr));
     const kosten = budget.kosten * inflationFaktor;
     const netto = ertrag + kosten;
@@ -121,7 +115,6 @@ export function berechneProjektion(state) {
     jahre.push({
       jahr: jahr,
       ertrag: ertrag,
-      ertragIstReal: realErtrag !== null,
       kosten: kosten,
       netto: netto,
       vermoegenStart: vermoegenStart,
