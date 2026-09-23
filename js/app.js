@@ -4,6 +4,7 @@ import { renderBudgetTab } from "./budgetTab.js";
 import { renderVermoegenTab } from "./vermoegenTab.js";
 import { renderProjectionTab } from "./projectionTab.js";
 import { renderCompareTab } from "./compareTab.js";
+import { renderIstkostenTab } from "./istkostenTab.js";
 import { renderBackupTab } from "./backupTab.js";
 import { ladeAppVersion } from "./version.js";
 
@@ -25,6 +26,7 @@ function renderAll() {
   renderVermoegenTab();
   renderProjectionTab();
   renderCompareTab();
+  renderIstkostenTab();
   renderBackupTab();
 }
 

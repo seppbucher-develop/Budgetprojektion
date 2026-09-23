@@ -62,6 +62,32 @@ export function berechneAbweichungen(state) {
 }
 
 /**
+ * Istkostenvergleich: reale Kosten pro Kategorie über drei Jahre
+ * nebeneinander (gewähltes Jahr sowie die zwei vorangehenden), ohne
+ * Budget-Bezug oder Abweichung — reiner Trend der tatsächlichen Ausgaben.
+ */
+export function berechneIstkosten(state, bisJahr) {
+  const jahre = [bisJahr - 2, bisJahr - 1, bisJahr];
+  const ausgaben = state.realTransaktionen.filter(function (t) { return !t.istEinnahme; });
+  const postenListe = distinctSorted(ausgaben.map(function (t) { return t.kategoriengruppe; }).filter(Boolean));
+
+  const zeilen = postenListe.map(function (posten) {
+    const werte = jahre.map(function (jahr) {
+      return ausgaben
+        .filter(function (t) { return t.kategoriengruppe === posten && isoYear(t.datum) === jahr; })
+        .reduce(function (s, t) { return s + t.betragChf; }, 0);
+    });
+    return { posten: posten, werte: werte };
+  }).filter(function (z) { return z.werte.some(function (w) { return w !== 0; }); });
+
+  const summenProJahr = jahre.map(function (_jahr, i) {
+    return zeilen.reduce(function (s, z) { return s + z.werte[i]; }, 0);
+  });
+
+  return { jahre: jahre, zeilen: zeilen, summenProJahr: summenProJahr };
+}
+
+/**
  * Liefert die einzelnen realen Buchungen, aus denen sich der "Real"-Wert
  * einer Zelle der Abweichungstabelle zusammensetzt (für den Drilldown).
  */
