@@ -1,10 +1,10 @@
 // Drilldown-Dialog "Buchungen: <Posten> <Jahr>" — zeigt die einzelnen realen
 // Buchungen hinter einem Real-Kosten-Wert. Wird sowohl vom Realvergleich als
 // auch vom Istkostenvergleich verwendet, daher als eigenständiges Modul.
-import { getState } from "./store.js?v=2";
-import { buchungenFuerJahrPosten } from "./compare.js?v=2";
-import { betragFormatter } from "./charts.js?v=2";
-import { formatIsoDate } from "./dateUtils.js?v=2";
+import { getState } from "./store.js?v=3";
+import { buchungenFuerJahrPosten } from "./compare.js?v=3";
+import { betragFormatter } from "./charts.js?v=3";
+import { formatIsoDate } from "./dateUtils.js?v=3";
 
 const buchungenDialog = document.getElementById("dialog-buchungen");
 const buchungenTitle = document.getElementById("dialog-buchungen-title");

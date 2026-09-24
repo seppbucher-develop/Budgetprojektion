@@ -13,6 +13,14 @@ persönliche Finanzplanung:
 - **Realvergleich** – reale Kosten aus einem Bluecoins-CSV-Export mit dem
   Budget vergleichen (Tabelle + Diagramm) und automatisch erkannte
   Einsparungsmöglichkeiten bzw. Budgetreserven anzeigen.
+- **Analyse** – tatsächliche Vermögensrendite zwischen zwei Vermögens-Stichtagen
+  (Vermögensänderung abzüglich des effektiven Netto-Cashflows in der
+  Zwischenzeit). Der Cashflow kommt nicht aus dem oft bewusst auf ein
+  Budgetjahr verschobenen Buchungsdatum, sondern aus einem bei jedem
+  CSV-Import automatisch geführten Log neu hinzugekommener Buchungen (Abgleich
+  über Unterkategorie + Uhrzeit, dem Import-Zeitpunkt zugeordnet), ergänzt um
+  manuelle Korrekturbuchungen für Fälle, die sich in Bluecoins selbst nicht
+  sinnvoll korrigieren lassen.
 
 ## Nutzung
 
@@ -122,6 +130,13 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/budgetTab.js`, `js/vermoegenTab.js` – CRUD-UI für Budget/Vermögen
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial
+- `js/istkostenTab.js` – Istkostenvergleich (reale Buchungen über drei Jahre)
+- `js/cashflowDiff.js` – Abgleich neuer/geänderter/verschwundener Buchungen
+  beim CSV-Import (Unterkategorie + Uhrzeit als Schlüssel) für den Cashflow-Log
+- `js/cashflowUnklarDialog.js` – Dialog zur manuellen Auflösung mehrdeutiger
+  Zuordnungen aus `cashflowDiff.js`
+- `js/renditeAnalyse.js`, `js/renditeTab.js` – Vermögensrendite zwischen zwei
+  Stichtagen inkl. Korrekturbuchungen
 - `js/charts.js` – Canvas-Diagramme (Linien-/Balkendiagramm)
 - `js/backup.js`, `js/backupTab.js` – Backup & Restore
 - `js/fsapiHandle.js` – IndexedDB-Ablage für den gewählten Backup-Ordner (File System Access API)
@@ -129,5 +144,7 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/app.js` – Tab-Navigation und Bootstrap
 - `version.json` – aktuelle Versionsnummer (siehe Abschnitt Versionierung)
 - `scripts/update-version.sh` – schreibt den aktuellen Git-Tag nach `version.json`
+- `scripts/bump-js-version.sh` – erhöht den JS-Modul-Cache-Buster (`?v=`) in
+  `index.html` und allen `js/*.js`-Imports
 - `.github/workflows/bump-version.yml` – zählt die Patch-Version bei jedem Push auf `master` automatisch hoch
 - `manifest.json`, `icons/` – App-Icon & PWA-Installierbarkeit (siehe Abschnitt „Als App aufs Handy“)

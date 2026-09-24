@@ -1,4 +1,4 @@
-import { uid } from "./store.js?v=2";
+import { uid } from "./store.js?v=3";
 
 // Generischer CSV-Parser (RFC4180-ähnlich): kommagetrennt, Felder optional in
 // doppelten Anführungszeichen, "" als Escape für ein Anführungszeichen im Feld,
@@ -78,11 +78,18 @@ export async function importCsvFile(file) {
     const wechselkurs = parseFloat(row[idx.Wechselkurs]) || 1;
     if (isNaN(betrag)) continue;
 
+    const datumRoh = (row[idx.Datum] || "").trim();
+
     transaktionen.push({
       id: uid(),
       typ: typRoh,
       istEinnahme: TYP_EINNAHMEN.indexOf(typRoh.toLowerCase()) !== -1,
-      datum: (row[idx.Datum] || "").slice(0, 10),
+      datum: datumRoh.slice(0, 10),
+      // Sekundengenaue Uhrzeit aus "Datum" (nicht die redundante Spalte
+      // "Zeit einstellen") — dient als Teil des Abgleichs-Schlüssels beim
+      // CSV-Import (siehe cashflowDiff.js), da sie im Gegensatz zum Datum
+      // nicht bewusst auf ein Budgetjahr verschoben wird.
+      zeit: datumRoh.slice(11, 19),
       name: nameIdx !== -1 ? (row[nameIdx] || "").trim() : "",
       // Bluecoins schreibt den Wechselkurs als "Fremdwährung je 1 CHF"
       // (z. B. USD ~1.14, BRL ~6.69, HKD ~9.96 je CHF), nicht als

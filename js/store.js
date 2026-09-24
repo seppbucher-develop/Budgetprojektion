@@ -22,6 +22,14 @@ function defaultState() {
       inflationPct: 0
     },
     realTransaktionen: [],
+    // Effektiver Cashflow-Log: bei jedem CSV-Import mit dem vorherigen
+    // Import abgeglichene Buchungen (siehe cashflowDiff.js), dem
+    // Import-Zeitpunkt statt dem oft budget-verschobenen Buchungsdatum
+    // zugeordnet — Basis für die Renditeberechnung (siehe renditeTab.js).
+    cashflowLog: [],
+    // Manuelle Korrekturbuchungen für die Renditeberechnung, wenn eine
+    // Korrektur in Bluecoins selbst nicht möglich/sinnvoll ist.
+    korrekturen: [],
     importInfo: {
       xlsxImportiertAm: null,
       csvImportiertAm: null,
