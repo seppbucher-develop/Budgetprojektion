@@ -1,6 +1,6 @@
-import { readXlsxSheets } from "./xlsxReader.js?v=2";
-import { excelSerialToIso, daysBetweenIso } from "./dateUtils.js?v=2";
-import { uid } from "./store.js?v=2";
+import { readXlsxSheets } from "./xlsxReader.js?v=3";
+import { excelSerialToIso, daysBetweenIso } from "./dateUtils.js?v=3";
+import { uid } from "./store.js?v=3";
 
 const SHEET_BUDGET = "Budget";
 const SHEET_VERMOEGEN = "Vermögen";

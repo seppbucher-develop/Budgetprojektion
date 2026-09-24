@@ -1,7 +1,10 @@
-import { getState, updateState, hasBudgetData } from "./store.js?v=2";
-import { importXlsxFile } from "./importXlsx.js?v=2";
-import { importCsvFile } from "./importCsv.js?v=2";
-import { todayIso, formatIsoDate } from "./dateUtils.js?v=2";
+import { getState, updateState, hasBudgetData } from "./store.js?v=3";
+import { importXlsxFile } from "./importXlsx.js?v=3";
+import { importCsvFile } from "./importCsv.js?v=3";
+import { todayIso, formatIsoDate } from "./dateUtils.js?v=3";
+import { berechneCashflowDiff, wendeAutoDiffAn } from "./cashflowDiff.js?v=3";
+import { openCashflowUnklarDialog } from "./cashflowUnklarDialog.js?v=3";
+import { currencyFormatter } from "./charts.js?v=3";
 
 const xlsxDialog = document.getElementById("dialog-import-xlsx");
 const xlsxForm = document.getElementById("form-import-xlsx");
@@ -12,6 +15,7 @@ const csvDialog = document.getElementById("dialog-import-csv");
 const csvForm = document.getElementById("form-import-csv");
 const csvError = document.getElementById("import-csv-error");
 const csvInfo = document.getElementById("csv-import-info");
+const csvCashflowInfo = document.getElementById("csv-cashflow-info");
 
 function openXlsxDialog() {
   xlsxError.textContent = "";
@@ -67,17 +71,32 @@ csvForm.addEventListener("submit", async function (e) {
   if (!file) return;
   try {
     const transaktionen = await importCsvFile(file);
+    const diff = berechneCashflowDiff(getState().realTransaktionen, transaktionen);
     updateState(function (s) {
       s.realTransaktionen = transaktionen;
       s.importInfo.csvImportiertAm = todayIso();
       s.importInfo.csvDateiname = file.name;
       s.importInfo.csvAnzahl = transaktionen.length;
+      wendeAutoDiffAn(s, diff);
     });
     csvDialog.close();
+    zeigeCashflowDiffZusammenfassung(diff);
+    if (diff.unklar.length > 0) openCashflowUnklarDialog(diff);
   } catch (err) {
     csvError.textContent = err.message || String(err);
   }
 });
+
+function zeigeCashflowDiffZusammenfassung(diff) {
+  const summeNeu = diff.neu.reduce(function (s, t) { return s + t.betragChf; }, 0);
+  const teile = [
+    diff.neu.length + " neue Buchung(en) im Cashflow erfasst (" + currencyFormatter.format(summeNeu) + ")"
+  ];
+  if (diff.korrigiert.length > 0) teile.push(diff.korrigiert.length + " Korrektur(en) übernommen");
+  if (diff.verschwunden.length > 0) teile.push(diff.verschwunden.length + " entfernt (nicht mehr in Bluecoins vorhanden)");
+  if (diff.unklar.length > 0) teile.push(diff.unklar.length + " unklare Zuordnung(en) — bitte im Dialog auflösen");
+  csvCashflowInfo.textContent = teile.join(", ") + ".";
+}
 
 export function renderImportInfo() {
   updateCsvInfo();

@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
 <div class="app">
@@ -38,6 +38,7 @@
     <button class="tab-btn" data-tab="projektion">Projektion</button>
     <button class="tab-btn" data-tab="vergleich">Realvergleich</button>
     <button class="tab-btn" data-tab="istkosten">Istkostenvergleich</button>
+    <button class="tab-btn" data-tab="analyse">Analyse</button>
     <button class="tab-btn" data-tab="sicherung">Sicherung<span class="dirty-dot" id="sicherung-dirty-dot"></span></button>
   </nav>
 
@@ -129,6 +130,7 @@
         </div>
       </div>
       <p class="hint" id="csv-import-info"></p>
+      <p class="hint" id="csv-cashflow-info"></p>
     </div>
 
     <p class="hint" id="vergleich-empty-hint">Noch keine realen Buchungen importiert. Importiere eine Transaktions-CSV aus bluecoins/reports.</p>
@@ -185,6 +187,54 @@
           <div id="istkosten-rows"></div>
           <div class="istkosten-row istkosten-totalrow" id="istkosten-total-row"></div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYSE (VERMÖGENSRENDITE) -->
+  <section id="tab-analyse" class="tab-panel">
+    <div class="panel">
+      <h2>Vermögensrendite zwischen zwei Stichtagen</h2>
+      <p class="hint">Rendite = Vermögensänderung abzüglich des effektiven Netto-Cashflows in der Zwischenzeit. Der Cashflow kommt nicht aus dem Buchungsdatum der Bluecoins-Buchungen (das für Budgetzwecke bewusst verschoben sein kann), sondern aus den bei jedem CSV-Import neu erkannten Buchungen (siehe „Realvergleich“) plus manuellen Korrekturen unten.</p>
+      <p class="hint" id="rendite-empty-hint">Für eine Renditeberechnung braucht es mindestens zwei Vermögens-Stichtage (Tab „Vermögen“).</p>
+      <div id="rendite-inhalt">
+        <form id="form-rendite-stichtage" class="inline-form">
+          <div class="field inline-select">
+            <label for="rendite-von">Von (Stichtag)</label>
+            <select id="rendite-von"></select>
+          </div>
+          <div class="field inline-select">
+            <label for="rendite-bis">Bis (Stichtag)</label>
+            <select id="rendite-bis"></select>
+          </div>
+        </form>
+        <p class="warning" id="rendite-vor-log-hinweis" style="display:none"></p>
+        <div id="rendite-summary" class="result-details"></div>
+
+        <h3>Cashflow-Posten in dieser Periode</h3>
+        <p class="hint">Zeitraum (Stichtag Von, Stichtag Bis] — der Start-Stichtag selbst zählt zur Vorperiode.</p>
+        <div class="table-scroll" id="rendite-cashflow-table">
+          <div class="rendite-cashflow-row grid-headrow">
+            <div>Datum</div><div>Bezeichnung</div><div>Quelle</div><div>Betrag</div>
+          </div>
+          <div id="rendite-cashflow-rows"></div>
+        </div>
+        <p class="hint" id="rendite-cashflow-empty" style="display:none">Keine Cashflow-Posten in dieser Periode.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Korrekturbuchungen</h2>
+        <button id="btn-add-korrektur" class="btn-primary">+ Neue Korrektur</button>
+      </div>
+      <p class="hint">Für Anpassungen, die sich in Bluecoins selbst nicht sinnvoll korrigieren lassen — fliessen zusätzlich in die Renditeberechnung oben ein.</p>
+      <p class="hint" id="korrektur-empty-hint">Noch keine Korrekturbuchungen erfasst.</p>
+      <div class="table-scroll" id="korrektur-table">
+        <div class="korrektur-row grid-headrow">
+          <div>Datum</div><div>Betrag</div><div>Beschreibung</div><div></div>
+        </div>
+        <div id="korrektur-rows"></div>
       </div>
     </div>
   </section>
@@ -295,6 +345,40 @@
   </form>
 </dialog>
 
+<!-- Dialog: Korrekturbuchung anlegen/bearbeiten (Vermögensrendite-Analyse) -->
+<dialog id="dialog-korrektur-row">
+  <form id="form-korrektur-row" method="dialog">
+    <h2 id="dialog-korrektur-row-title">Neue Korrekturbuchung</h2>
+    <div class="field">
+      <label for="korrektur-datum">Datum</label>
+      <input type="date" id="korrektur-datum" name="datum" required>
+    </div>
+    <div class="field">
+      <label for="korrektur-betrag">Betrag (CHF)</label>
+      <input type="number" id="korrektur-betrag" name="betrag" step="0.01" required>
+    </div>
+    <div class="field">
+      <label for="korrektur-beschreibung">Beschreibung</label>
+      <input type="text" id="korrektur-beschreibung" name="beschreibung" required>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-korrektur-row-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Unklare Zuordnung beim CSV-Import (Cashflow-Diff, siehe cashflowDiff.js) -->
+<dialog id="dialog-cashflow-unklar" class="dialog-wide">
+  <h2>Unklare Zuordnung beim Import</h2>
+  <p class="hint">Diese Buchungen (gleiche Unterkategorie und Uhrzeit) liessen sich nicht eindeutig zuordnen. Bitte pro Zeile festlegen, ob es sich um eine neue Buchung oder die Korrektur einer bereits erfassten handelt.</p>
+  <div id="cashflow-unklar-gruppen"></div>
+  <div class="dialog-actions">
+    <button type="button" id="dialog-cashflow-unklar-cancel" class="btn-secondary">Später</button>
+    <button type="button" id="dialog-cashflow-unklar-uebernehmen" class="btn-primary">Übernehmen</button>
+  </div>
+</dialog>
+
 <!-- Dialog: Einmaliger Excel-Import -->
 <dialog id="dialog-import-xlsx">
   <form id="form-import-xlsx">
@@ -352,6 +436,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=2"></script>
+<script type="module" src="js/app.js?v=3"></script>
 </body>
 </html>

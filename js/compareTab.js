@@ -1,8 +1,8 @@
-import { getState } from "./store.js?v=2";
-import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=2";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=2";
-import { renderImportInfo } from "./importUi.js?v=2";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=2";
+import { getState } from "./store.js?v=3";
+import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=3";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=3";
+import { renderImportInfo } from "./importUi.js?v=3";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=3";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
