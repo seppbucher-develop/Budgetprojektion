@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/style.css?v=22">
 </head>
 <body>
 <div class="app">
@@ -610,6 +610,30 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=17"></script>
+<script type="module" src="js/app.js?v=18"></script>
+
+<!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
+     analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
+     Cache-Strategie. -->
+<script>
+  window.addEventListener("load", function () {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(function (e) {
+        console.error("Service-Worker-Registrierung fehlgeschlagen:", e);
+      });
+    }
+  });
+</script>
+
+<div id="offline-banner" class="offline-banner" hidden>📴 Offline — zuletzt gespeicherter Stand</div>
+<script>
+  function budgetprojektionOfflineBannerAktualisieren() {
+    var el = document.getElementById("offline-banner");
+    if (el) el.hidden = navigator.onLine;
+  }
+  window.addEventListener("online", budgetprojektionOfflineBannerAktualisieren);
+  window.addEventListener("offline", budgetprojektionOfflineBannerAktualisieren);
+  budgetprojektionOfflineBannerAktualisieren();
+</script>
 </body>
 </html>

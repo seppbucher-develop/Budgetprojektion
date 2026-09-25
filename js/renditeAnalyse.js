@@ -3,7 +3,7 @@
 // Rendite (Zinsen/Dividenden/Kursgewinne) als Restgrösse. Der Cashflow kommt
 // aus dem Valutadatum jeder Buchung (nicht dem Buchungsdatum, das für
 // Budgetzwecke abweichen kann, siehe einnahmenAusgabenTab.js).
-import { unterkategorieName } from "./kategorien.js?v=17";
+import { unterkategorieName } from "./kategorien.js?v=18";
 
 function vermoegenSummeAmStichtag(state, datum) {
   const eintrag = state.vermoegenEintraege.find(function (e) { return e.datum === datum; });
