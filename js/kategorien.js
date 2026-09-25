@@ -42,12 +42,14 @@ export function unterkategorienVonKategorie(state, kategorieId) {
 }
 
 export function unterkategorieWirdVerwendet(state, unterkategorieId) {
-  return state.realTransaktionen.some(function (t) { return t.unterkategorieId === unterkategorieId; });
+  return state.realTransaktionen.some(function (t) { return t.unterkategorieId === unterkategorieId; }) ||
+    state.wiederkehrendeBuchungen.some(function (r) { return r.unterkategorieId === unterkategorieId; });
 }
 
 export function kategorieWirdVerwendet(state, kategorieId) {
   return state.budgetPosten.some(function (r) { return r.kategorieId === kategorieId; }) ||
     state.realTransaktionen.some(function (t) { return t.kategorieId === kategorieId; }) ||
+    state.wiederkehrendeBuchungen.some(function (r) { return r.kategorieId === kategorieId; }) ||
     unterkategorienVonKategorie(state, kategorieId).some(function (u) { return unterkategorieWirdVerwendet(state, u.id); });
 }
 
