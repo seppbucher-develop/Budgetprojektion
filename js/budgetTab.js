@@ -1,7 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=17";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=17";
-import { currencyFormatter } from "./charts.js?v=17";
-import { kategorieName } from "./kategorien.js?v=17";
+import { getState, updateState, uid } from "./store.js?v=19";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=19";
+import { currencyFormatter } from "./charts.js?v=19";
+import { kategorieName } from "./kategorien.js?v=19";
 
 const rowsContainer = document.getElementById("budget-rows");
 const emptyHint = document.getElementById("budget-empty-hint");

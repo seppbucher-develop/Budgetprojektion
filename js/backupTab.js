@@ -1,10 +1,10 @@
-import { getBackupMeta } from "./store.js?v=17";
-import { formatTimestamp } from "./dateUtils.js?v=17";
+import { getState, updateState, getBackupMeta } from "./store.js?v=19";
+import { formatTimestamp } from "./dateUtils.js?v=19";
 import {
   exportBackup, importBackupFile, formatBytes,
   fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
   chooseBackupDirectory, clearBackupDirectory, listFolderBackups
-} from "./backup.js?v=17";
+} from "./backup.js?v=19";
 
 const btnExport = document.getElementById("btn-backup-export");
 const btnImport = document.getElementById("btn-backup-import");
@@ -147,6 +147,32 @@ btnClearFolder.addEventListener("click", async function () {
 });
 
 setupFolderUi();
+
+// Cache-Strategie des Service Workers (siehe sw.js für die ausführliche
+// Erklärung). Die Auswahl wird in state.einstellungen persistiert (übersteht
+// so auch einen Browser-Neustart) und bei jedem Laden zusätzlich per
+// postMessage an den Service Worker geschickt, damit ein evtl. verlorener
+// Cache-Eintrag dort repariert wird.
+const cacheNetworkFirstCheckbox = document.getElementById("cache-network-first");
+
+async function sendCacheStrategyToSw(value) {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg && reg.active) reg.active.postMessage({ type: "setCacheStrategy", value: value });
+  } catch (e) {
+    // Service Worker ist optional -- die App funktioniert auch ohne.
+  }
+}
+
+cacheNetworkFirstCheckbox.checked = !!getState().einstellungen.cacheNetworkFirst;
+sendCacheStrategyToSw(cacheNetworkFirstCheckbox.checked ? "network-first" : "stale-while-revalidate");
+
+cacheNetworkFirstCheckbox.addEventListener("change", function () {
+  const networkFirst = cacheNetworkFirstCheckbox.checked;
+  updateState(function (s) { s.einstellungen.cacheNetworkFirst = networkFirst; });
+  sendCacheStrategyToSw(networkFirst ? "network-first" : "stale-while-revalidate");
+});
 
 export function renderBackupTab() {
   const meta = getBackupMeta();

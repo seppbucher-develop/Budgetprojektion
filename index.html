@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=21">
+<link rel="stylesheet" href="css/style.css?v=22">
 </head>
 <body>
 <div class="app">
@@ -335,6 +335,15 @@
       <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
       <h1 class="page-title">🛠️ Service</h1>
     </div>
+    <div class="panel">
+      <h2>🔄 Updates &amp; Offline-Cache</h2>
+      <p class="hint collapsible">Die App speichert ihre eigenen Seiten für die Offline-Nutzung zwischen. Standardmässig wird beim Öffnen immer sofort die zuletzt gespeicherte Version angezeigt (auch offline oder bei schwachem Netz sofort da) — ein Update wird dadurch erst beim übernächsten Öffnen sichtbar. Mit dieser Einstellung lädt die App stattdessen bei jedem Öffnen zuerst die neueste Version übers Netz; Updates sind dann sofort sichtbar, aber bei schwachem Empfang kann das Laden dadurch spürbar länger dauern.</p>
+      <label class="checkbox-feld">
+        <input type="checkbox" id="cache-network-first">
+        Immer neueste Version laden (Network-First)
+      </label>
+    </div>
+
     <div class="panel" id="backup-folder-panel" style="display:none">
       <h2>📁 Backup-Ordner (automatisch, dieser PC)</h2>
       <p class="hint collapsible">Einmalig festlegen (z. B. dein lokaler Cloud-Sync-Ordner) — künftige Backups landen danach automatisch dort, ganz ohne Dialog. Gilt nur für diesen Browser auf diesem Gerät.</p>
@@ -610,6 +619,30 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=17"></script>
+<script type="module" src="js/app.js?v=19"></script>
+
+<!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
+     analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
+     Cache-Strategie. -->
+<script>
+  window.addEventListener("load", function () {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(function (e) {
+        console.error("Service-Worker-Registrierung fehlgeschlagen:", e);
+      });
+    }
+  });
+</script>
+
+<div id="offline-banner" class="offline-banner" hidden>📴 Offline — zuletzt gespeicherter Stand</div>
+<script>
+  function budgetprojektionOfflineBannerAktualisieren() {
+    var el = document.getElementById("offline-banner");
+    if (el) el.hidden = navigator.onLine;
+  }
+  window.addEventListener("online", budgetprojektionOfflineBannerAktualisieren);
+  window.addEventListener("offline", budgetprojektionOfflineBannerAktualisieren);
+  budgetprojektionOfflineBannerAktualisieren();
+</script>
 </body>
 </html>

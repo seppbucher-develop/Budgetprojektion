@@ -78,6 +78,30 @@ Label „Budget“ und öffnet ohne Browser-Chrome (`display: standalone`). Das
 Icon (Note + Münzen) liegt als Vektorquelle unter `icons/icon.svg` bzw.
 `icons/icon-maskable.svg`; alle PNG-Grössen sind daraus gerendert.
 
+### Offline-Nutzung
+
+Ein Service Worker (`sw.js`, analog zum Schwesterprojekt „Flugbuch“) macht
+die App ab dem zweiten Online-Aufruf offline nutzbar: alle eigenen Dateien
+(HTML/CSS/JS, Icons, Manifest) werden beim ersten Besuch im Cache abgelegt
+und danach nach der Strategie „stale-while-revalidate“ ausgeliefert — sofort
+aus dem Cache, während im Hintergrund ein Netzwerk-Update für den nächsten
+Aufruf läuft (kein Warten auf einen Netzwerk-Timeout bei schwachem/keinem
+Netz). Ist der Browser offline, erscheint unten ein Hinweisbanner „Offline —
+zuletzt gespeicherter Stand“. Einzige Ausnahme vom Caching ist die
+Wechselkursabfrage (siehe oben) — die App selbst bleibt davon unabhängig
+voll nutzbar.
+
+Im Tab „Service“ lässt sich unter „Updates & Offline-Cache“ per Checkbox auf
+„network-first“ umschalten: dann lädt die App bei jedem Öffnen zuerst die
+neueste Version übers Netz (Updates sofort sichtbar, aber bei schwachem
+Empfang potenziell spürbar langsamer) — praktisch zum Testen neuer
+Versionen, ohne dafür lokal den Cache manuell zu löschen.
+
+**Bei jeder Änderung an `js/*.js`** erhöht `scripts/bump-js-version.sh`
+automatisch auch `CACHE_VERSION` in `sw.js` mit — sonst würde ein bereits
+installierter Service Worker seinen alten Cache unverändert weiterverwenden
+und Fixes kämen nicht an.
+
 ### Kategorien verwalten
 
 Im Tab „Budget“ über „Kategorien verwalten…“: Kategorien (z. B. "Wohnen")
@@ -149,6 +173,7 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 ## Struktur
 
 - `index.html` – Tabs, Formulare, Dialoge
+- `sw.js` – Service Worker für Offline-Nutzung (siehe „Offline-Nutzung“ oben)
 - `css/style.css` – Styling (hell/dunkel via `prefers-color-scheme`)
 - `js/store.js` – zentraler Zustand inkl. `localStorage`-Persistenz
 - `js/dateUtils.js` – Datumshilfsfunktionen

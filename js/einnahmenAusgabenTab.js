@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=17";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=17";
-import { betragFormatter } from "./charts.js?v=17";
-import { unterkategorieName } from "./kategorien.js?v=17";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=17";
-import { holeWechselkurs } from "./fx.js?v=17";
+import { getState, updateState, uid } from "./store.js?v=19";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=19";
+import { betragFormatter } from "./charts.js?v=19";
+import { unterkategorieName } from "./kategorien.js?v=19";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=19";
+import { holeWechselkurs } from "./fx.js?v=19";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
