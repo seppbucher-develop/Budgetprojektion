@@ -1,14 +1,15 @@
-import { getState, updateState, uid } from "./store.js?v=7";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=7";
-import { currencyFormatter } from "./charts.js?v=7";
-import { unterkategorieName } from "./kategorien.js?v=7";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=7";
-import { holeWechselkurs } from "./fx.js?v=7";
+import { getState, updateState, uid } from "./store.js?v=8";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=8";
+import { betragFormatter } from "./charts.js?v=8";
+import { unterkategorieName } from "./kategorien.js?v=8";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=8";
+import { holeWechselkurs } from "./fx.js?v=8";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
 const rowsContainer = document.getElementById("buchungen-liste-rows");
 const jahrSelect = document.getElementById("buchungen-jahr-select");
+const sucheInput = document.getElementById("buchungen-suche");
 
 const dialog = document.getElementById("dialog-buchung");
 const form = document.getElementById("form-buchung");
@@ -21,6 +22,7 @@ const kursStatus = document.getElementById("buchung-kurs-status");
 
 let editId = null;
 let ausgewaehltesJahr = null;
+let suchtext = "";
 let aktuelleVorschlaege = [];
 // Zählt Kurs-Abfragen, damit eine spät eintreffende, inzwischen überholte
 // Antwort (z. B. nach schnellem Währungswechsel) das Feld nicht mehr überschreibt.
@@ -45,16 +47,40 @@ function zeilenFuerJahr(state, jahr) {
     });
 }
 
+// Volltextsuche über Bezeichnung und Betrag (mehrere Zahlendarstellungen,
+// damit sowohl "2000" als auch "2000.50" als Suchtext funktionieren). Eine
+// aktive Suche durchsucht bewusst alle Jahre statt nur das gewählte, damit
+// eine Buchung gefunden werden kann, ohne ihr Jahr zu kennen.
+function zeilenGesucht(state, text) {
+  const q = text.trim().toLowerCase();
+  return state.realTransaktionen
+    .filter(function (t) {
+      const heuhaufen = [t.name || "", String(t.betrag), String(t.betragChf), betragFormatter.format(t.betrag), betragFormatter.format(t.betragChf)]
+        .join(" ").toLowerCase();
+      return heuhaufen.indexOf(q) !== -1;
+    })
+    .sort(function (a, b) {
+      if (a.datum !== b.datum) return a.datum < b.datum ? 1 : -1;
+      return a.erfasstAm < b.erfasstAm ? 1 : -1;
+    });
+}
+
+function zeilenGefiltert(state) {
+  return suchtext ? zeilenGesucht(state, suchtext) : zeilenFuerJahr(state, ausgewaehltesJahr);
+}
+
 export function renderEinnahmenAusgabenTab() {
   const state = getState();
   const hatDaten = state.realTransaktionen.length > 0;
   emptyHint.style.display = hatDaten ? "none" : "block";
   table.style.display = hatDaten ? "block" : "none";
+  sucheInput.style.display = hatDaten ? "block" : "none";
   if (!hatDaten) { jahrSelect.innerHTML = ""; rowsContainer.innerHTML = ""; return; }
 
   const jahre = distinctSorted(state.realTransaktionen.map(function (t) { return isoYear(t.datum); })).reverse();
   if (ausgewaehltesJahr === null || jahre.indexOf(ausgewaehltesJahr) === -1) {
-    ausgewaehltesJahr = jahre[0];
+    const heuteJahr = new Date().getFullYear();
+    ausgewaehltesJahr = jahre.indexOf(heuteJahr) !== -1 ? heuteJahr : jahre[0];
   }
   jahrSelect.innerHTML = jahre.map(function (j) {
     return '<option value="' + j + '"' + (j === ausgewaehltesJahr ? " selected" : "") + ">" + j + "</option>";
@@ -64,13 +90,13 @@ export function renderEinnahmenAusgabenTab() {
 }
 
 function renderRows(state) {
-  const rows = zeilenFuerJahr(state, ausgewaehltesJahr);
+  const rows = zeilenGefiltert(state);
   rowsContainer.innerHTML = rows.map(function (t) {
     return '<div class="buchungen-liste-row">' +
       "<div>" + formatIsoDate(t.datum) + "</div>" +
       "<div>" + escapeHtml(t.name) + "</div>" +
       "<div>" + escapeHtml(unterkategorieName(state, t.unterkategorieId)) + "</div>" +
-      '<div class="' + (t.betragChf >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(t.betragChf) + "</div>" +
+      '<div class="' + (t.betragChf >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(t.betragChf) + "</div>" +
       '<div class="row-actions row-actions-icons">' +
         '<button data-action="edit" data-id="' + t.id + '" title="Bearbeiten" aria-label="Bearbeiten">✎</button>' +
         '<button data-action="delete" data-id="' + t.id + '" class="btn-danger-text" title="Löschen" aria-label="Löschen">🗑</button>' +
@@ -90,6 +116,11 @@ function renderRows(state) {
 
 jahrSelect.addEventListener("change", function () {
   ausgewaehltesJahr = parseInt(jahrSelect.value, 10);
+  renderRows(getState());
+});
+
+sucheInput.addEventListener("input", function () {
+  suchtext = sucheInput.value;
   renderRows(getState());
 });
 
@@ -135,9 +166,11 @@ function aktualisiereKursFeldAnzeige() {
 }
 
 // Kurs automatisch aus dem Internet nachladen (Frankfurter API, siehe
-// fx.js), sobald Fremdwährung und Valutadatum bekannt sind. Schlägt die
-// Abfrage fehl (kein Netz, Datum in der Zukunft, ...), bleibt der zuletzt
-// eingetragene Kurs stehen und ein Hinweis erscheint.
+// fx.js), sobald Fremdwährung und Valutadatum bekannt sind. Liegt das
+// Valutadatum in der Zukunft (oder ist heute), wird der aktuelle Kurs
+// verwendet (die API kennt keine Zukunftskurse). Schlägt die Abfrage fehl
+// (kein Netz, ...), bleibt der zuletzt eingetragene Kurs stehen und ein
+// Hinweis erscheint.
 async function ladeKursVorschlag() {
   const waehrung = waehrungSelect.value;
   const datum = form.valutadatum.value;
@@ -146,11 +179,13 @@ async function ladeKursVorschlag() {
 
   const anfrageId = ++kursAnfrageZaehler;
   kursStatus.textContent = "Kurs wird geladen …";
-  const kurs = await holeWechselkurs(datum, waehrung);
+  const ergebnis = await holeWechselkurs(datum, waehrung);
   if (anfrageId !== kursAnfrageZaehler) return; // überholt durch neuere Anfrage
-  if (kurs != null) {
-    kursInput.value = kurs;
-    kursStatus.textContent = "Kurs vom " + formatIsoDate(datum) + " übernommen (Frankfurter API).";
+  if (ergebnis.kurs != null) {
+    kursInput.value = ergebnis.kurs;
+    kursStatus.textContent = ergebnis.aktuell
+      ? "Aktueller Kurs übernommen (Frankfurter API)."
+      : "Kurs vom " + formatIsoDate(ergebnis.datum) + " übernommen (Frankfurter API).";
   } else {
     kursStatus.textContent = "Kurs konnte nicht automatisch geladen werden — bitte manuell erfassen.";
   }
@@ -182,12 +217,16 @@ bezeichnungInput.addEventListener("input", function () {
   vorlagenListe.innerHTML = aktuelleVorschlaege.map(function (v) {
     return '<button type="button" class="vorlagen-eintrag" data-id="' + v.id + '">' +
       '<span class="vorlagen-name">' + escapeHtml(v.name) + "</span>" +
-      '<span class="' + (v.betragChf >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(v.betragChf) + "</span>" +
+      '<span class="' + (v.betragChf >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(v.betragChf) + "</span>" +
       "</button>";
   }).join("");
   vorlagenListe.hidden = false;
 });
 
+// Wird eine Vorlage gewählt, übernimmt der Dialog Unterkategorie, Betrag,
+// Vorzeichen und Währung der gewählten Buchung — der Kurs aber NICHT den
+// damaligen (Vorlage kann alt sein): stattdessen wird der aktuelle Kurs neu
+// nachgeladen, siehe ladeKursVorschlag.
 vorlagenListe.addEventListener("click", function (e) {
   const btn = e.target.closest("[data-id]");
   if (!btn) return;
@@ -198,10 +237,8 @@ vorlagenListe.addEventListener("click", function (e) {
   form.vorzeichen.value = vorlage.betragChf >= 0 ? "einnahme" : "ausgabe";
   form.betrag.value = vorlage.betrag;
   waehrungSelect.value = vorlage.waehrung;
-  kursInput.value = vorlage.kurs;
-  kursStatus.textContent = "";
-  aktualisiereKursFeldAnzeige();
   vorlagenListe.hidden = true;
+  ladeKursVorschlag();
 });
 
 document.addEventListener("click", function (e) {

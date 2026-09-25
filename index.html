@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=13">
+<link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body>
 <div class="app">
@@ -121,9 +121,10 @@
           <button id="btn-add-buchung" class="btn-primary">+ Neue Buchung</button>
         </div>
       </div>
+      <input type="search" id="buchungen-suche" class="buchungen-suche-feld" placeholder="Suche Bezeichnung oder Betrag" aria-label="Suche Bezeichnung oder Betrag">
       <p class="hint" id="buchungen-empty-hint">Noch keine Buchungen erfasst.</p>
       <div class="table-scroll" id="buchungen-liste-table">
-        <div class="buchungen-liste-row grid-headrow">
+        <div class="buchungen-liste-row grid-headrow buchungen-liste-headrow">
           <div>Datum</div><div>Bezeichnung</div><div>Unterkategorie</div><div>Betrag</div><div></div>
         </div>
         <div id="buchungen-liste-rows"></div>
@@ -520,6 +521,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=7"></script>
+<script type="module" src="js/app.js?v=8"></script>
 </body>
 </html>
