@@ -42,8 +42,7 @@ export function unterkategorienVonKategorie(state, kategorieId) {
 }
 
 export function unterkategorieWirdVerwendet(state, unterkategorieId) {
-  return state.realTransaktionen.some(function (t) { return t.unterkategorieId === unterkategorieId; }) ||
-    state.cashflowLog.some(function (e) { return e.unterkategorieId === unterkategorieId; });
+  return state.realTransaktionen.some(function (t) { return t.unterkategorieId === unterkategorieId; });
 }
 
 export function kategorieWirdVerwendet(state, kategorieId) {
@@ -54,11 +53,11 @@ export function kategorieWirdVerwendet(state, kategorieId) {
 
 /**
  * Einmalige, idempotente Migration alter Freitext-Felder
- * (budgetPosten[].posten, realTransaktionen[].kategoriengruppe/.kategorie,
- * cashflowLog[].kategorie) auf die neuen Kategorie-/Unterkategorie-IDs.
- * Wird beim Laden des States aufgerufen (siehe store.js) und übersprungen,
- * sobald keine Altdaten-Felder mehr vorhanden sind. Gibt zurück, ob etwas
- * migriert wurde (damit store.js das Ergebnis persistieren kann).
+ * (budgetPosten[].posten, realTransaktionen[].kategoriengruppe/.kategorie)
+ * auf die neuen Kategorie-/Unterkategorie-IDs. Wird beim Laden des States
+ * aufgerufen (siehe store.js) und übersprungen, sobald keine Altdaten-Felder
+ * mehr vorhanden sind. Gibt zurück, ob etwas migriert wurde (damit store.js
+ * das Ergebnis persistieren kann).
  */
 export function migriereKategorien(state, uidFn) {
   let migriert = false;
@@ -77,25 +76,6 @@ export function migriereKategorien(state, uidFn) {
       t.unterkategorieId = findeOderErstelleUnterkategorie(state, t.kategorieId, t.kategorie, uidFn);
       delete t.kategoriengruppe;
       delete t.kategorie;
-      migriert = true;
-    }
-  });
-
-  state.cashflowLog.forEach(function (e) {
-    if (e.unterkategorieId === undefined && e.kategorie !== undefined) {
-      // Alte Log-Einträge kennen nur die Unterkategorie-Bezeichnung, nicht
-      // die übergeordnete Kategorie — über eine bereits migrierte
-      // Unterkategorie mit gleichem Namen auflösen (Bestmöglich; bei
-      // gleichnamigen Unterkategorien unter verschiedenen Kategorien wird
-      // die erste Übereinstimmung verwendet), sonst unter "Unbekannt" neu anlegen.
-      let passendeUnterkategorie = state.unterkategorien.find(function (u) { return u.name === e.kategorie; });
-      if (!passendeUnterkategorie) {
-        const kategorieId = findeOderErstelleKategorie(state, "Unbekannt", uidFn);
-        const id = findeOderErstelleUnterkategorie(state, kategorieId, e.kategorie, uidFn);
-        passendeUnterkategorie = { id: id };
-      }
-      e.unterkategorieId = passendeUnterkategorie.id;
-      delete e.kategorie;
       migriert = true;
     }
   });

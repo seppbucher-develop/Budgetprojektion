@@ -1,9 +1,8 @@
-import { getState } from "./store.js?v=4";
-import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=4";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=4";
-import { renderImportInfo } from "./importUi.js?v=4";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=4";
-import { kategorieName } from "./kategorien.js?v=4";
+import { getState } from "./store.js?v=7";
+import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=7";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=7";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=7";
+import { kategorieName } from "./kategorien.js?v=7";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -103,7 +102,6 @@ function renderSparpotenzial(sp) {
 }
 
 export function renderCompareTab() {
-  renderImportInfo();
   const state = getState();
   const hatDaten = state.realTransaktionen.length > 0;
   emptyHint.style.display = hatDaten ? "none" : "block";
