@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=10";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=10";
-import { betragFormatter } from "./charts.js?v=10";
-import { unterkategorieName } from "./kategorien.js?v=10";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=10";
-import { holeWechselkurs } from "./fx.js?v=10";
+import { getState, updateState, uid } from "./store.js?v=11";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=11";
+import { betragFormatter } from "./charts.js?v=11";
+import { unterkategorieName } from "./kategorien.js?v=11";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=11";
+import { holeWechselkurs } from "./fx.js?v=11";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -94,7 +94,7 @@ export function renderEinnahmenAusgabenTab() {
 function renderRows(state) {
   const rows = zeilenGefiltert(state);
   rowsContainer.innerHTML = rows.map(function (t) {
-    return '<div class="buchungen-liste-row">' +
+    return '<div class="buchungen-liste-row" data-id="' + t.id + '">' +
       "<div>" + formatIsoDate(t.datum) + "</div>" +
       "<div>" + escapeHtml(t.name) + "</div>" +
       "<div>" + escapeHtml(unterkategorieName(state, t.unterkategorieId)) + "</div>" +
@@ -106,6 +106,15 @@ function renderRows(state) {
       "</div>";
   }).join("");
 
+  // Klick auf die Zeile selbst öffnet ebenfalls den Bearbeiten-Dialog (nicht
+  // nur der Stift), ausser der Klick trifft eine der Aktions-Schaltflächen
+  // (die haben ihr eigenes Verhalten, siehe unten).
+  rowsContainer.querySelectorAll(".buchungen-liste-row").forEach(function (rowEl) {
+    rowEl.addEventListener("click", function (e) {
+      if (e.target.closest("[data-action]")) return;
+      openDialog(rows.find(function (t) { return t.id === rowEl.dataset.id; }));
+    });
+  });
   rowsContainer.querySelectorAll('[data-action="edit"]').forEach(function (btn) {
     btn.addEventListener("click", function () {
       openDialog(rows.find(function (t) { return t.id === btn.dataset.id; }));
