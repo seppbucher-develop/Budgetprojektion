@@ -1,5 +1,5 @@
-import { isoYear } from "./dateUtils.js?v=18";
-import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=18";
+import { isoYear } from "./dateUtils.js?v=19";
+import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=19";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 

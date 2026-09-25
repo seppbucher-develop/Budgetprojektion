@@ -1,17 +1,17 @@
-import { getState, updateState, onStateChanged } from "./store.js?v=18";
-import "./kategorienDialog.js?v=18";
-import "./wiederkehrendDialog.js?v=18";
-import "./collapsibleHints.js?v=18";
-import { renderBudgetTab } from "./budgetTab.js?v=18";
-import { renderVermoegenTab } from "./vermoegenTab.js?v=18";
-import { renderProjectionTab } from "./projectionTab.js?v=18";
-import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=18";
-import { renderCompareTab } from "./compareTab.js?v=18";
-import { renderIstkostenTab } from "./istkostenTab.js?v=18";
-import { renderRenditeTab } from "./renditeTab.js?v=18";
-import { renderBackupTab } from "./backupTab.js?v=18";
-import { ladeAppVersion } from "./version.js?v=18";
-import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=18";
+import { getState, updateState, onStateChanged } from "./store.js?v=19";
+import "./kategorienDialog.js?v=19";
+import "./wiederkehrendDialog.js?v=19";
+import "./collapsibleHints.js?v=19";
+import { renderBudgetTab } from "./budgetTab.js?v=19";
+import { renderVermoegenTab } from "./vermoegenTab.js?v=19";
+import { renderProjectionTab } from "./projectionTab.js?v=19";
+import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=19";
+import { renderCompareTab } from "./compareTab.js?v=19";
+import { renderIstkostenTab } from "./istkostenTab.js?v=19";
+import { renderRenditeTab } from "./renditeTab.js?v=19";
+import { renderBackupTab } from "./backupTab.js?v=19";
+import { ladeAppVersion } from "./version.js?v=19";
+import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=19";
 
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 

@@ -9,7 +9,7 @@
 // hinzugefügt): CACHE_VERSION hochzählen, sonst verwenden bereits
 // installierte Service-Worker weiter ihren alten Cache unverändert.
 // scripts/bump-js-version.sh erledigt das automatisch mit.
-const CACHE_VERSION = "v18";
+const CACHE_VERSION = "v19";
 const CACHE_NAME = "budgetprojektion-cache-" + CACHE_VERSION;
 
 const CORE_ASSETS = [
@@ -67,6 +67,42 @@ function cacheKeyFor(url) {
   return ohneQuery.endsWith("/") ? ohneQuery + "index.html" : ohneQuery;
 }
 
+// Per Checkbox im Service-Tab umschaltbar auf "network-first" (siehe
+// js/backupTab.js): Standard "stale-while-revalidate" zeigt ein Update erst
+// beim ÜBERNÄCHSTEN Öffnen (dafür immer sofort da, auch offline/bei
+// schwachem Netz) -- praktisch für den normalen Gebrauch, aber verwirrend
+// beim aktiven Testen neuer Versionen. "network-first" lädt stattdessen bei
+// jedem Öffnen zuerst über das Netz. Eigener, unversionierter Cache-Name
+// (übersteht anders als CACHE_NAME auch einen CACHE_VERSION-Bump, da die
+// activate-Bereinigung oben nur Caches mit dem Präfix
+// "budgetprojektion-cache-" löscht).
+const SETTINGS_CACHE_NAME = "budgetprojektion-settings";
+const CACHE_STRATEGY_KEY = "/__meta__/cache-strategy";
+
+async function getStrategyOverride() {
+  try {
+    const cache = await caches.open(SETTINGS_CACHE_NAME);
+    const resp = await cache.match(CACHE_STRATEGY_KEY);
+    if (!resp) return "stale-while-revalidate";
+    const text = await resp.text();
+    return text === "network-first" ? "network-first" : "stale-while-revalidate";
+  } catch (e) {
+    return "stale-while-revalidate";
+  }
+}
+
+// Nimmt die Checkbox-Auswahl von js/backupTab.js entgegen (per
+// navigator.serviceWorker.getRegistration() -> reg.active.postMessage(...)
+// gesendet, sowohl beim Umschalten als auch einmal beim Laden der Seite,
+// damit ein evtl. verlorener Cache-Eintrag repariert wird).
+self.addEventListener("message", (event) => {
+  if (!event.data || event.data.type !== "setCacheStrategy") return;
+  const value = event.data.value === "network-first" ? "network-first" : "stale-while-revalidate";
+  event.waitUntil(
+    caches.open(SETTINGS_CACHE_NAME).then((cache) => cache.put(CACHE_STRATEGY_KEY, new Response(value)))
+  );
+});
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
@@ -110,7 +146,7 @@ self.addEventListener("fetch", (event) => {
 
   const cacheKey = cacheKeyFor(url);
 
-  event.respondWith(
+  const respondStaleWhileRevalidate = () =>
     caches.match(cacheKey).then((cached) => {
       const networkUpdate = fetch(req)
         .then((networkResponse) => {
@@ -129,6 +165,24 @@ self.addEventListener("fetch", (event) => {
       // Nichts im Cache (z. B. beim allerersten Aufruf) -- auf das Netzwerk
       // warten; schlägt auch das fehl, auf index.html zurückfallen.
       return networkUpdate.then((networkResponse) => networkResponse || caches.match(INDEX_URL));
-    })
+    });
+
+  // "network-first" (per Checkbox aktivierbar): erst das Netzwerk versuchen,
+  // erst wenn DAS scheitert, kommt der Cache zum Zug.
+  const respondNetworkFirst = () =>
+    fetch(req)
+      .then((networkResponse) => {
+        const clone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, clone));
+        return networkResponse;
+      })
+      .catch(() =>
+        caches.match(cacheKey).then((cached) => cached || caches.match(INDEX_URL))
+      );
+
+  event.respondWith(
+    getStrategyOverride().then((strategy) =>
+      strategy === "network-first" ? respondNetworkFirst() : respondStaleWhileRevalidate()
+    )
   );
 });

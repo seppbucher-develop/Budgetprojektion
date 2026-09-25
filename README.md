@@ -91,6 +91,12 @@ zuletzt gespeicherter Stand“. Einzige Ausnahme vom Caching ist die
 Wechselkursabfrage (siehe oben) — die App selbst bleibt davon unabhängig
 voll nutzbar.
 
+Im Tab „Service“ lässt sich unter „Updates & Offline-Cache“ per Checkbox auf
+„network-first“ umschalten: dann lädt die App bei jedem Öffnen zuerst die
+neueste Version übers Netz (Updates sofort sichtbar, aber bei schwachem
+Empfang potenziell spürbar langsamer) — praktisch zum Testen neuer
+Versionen, ohne dafür lokal den Cache manuell zu löschen.
+
 **Bei jeder Änderung an `js/*.js`** erhöht `scripts/bump-js-version.sh`
 automatisch auch `CACHE_VERSION` in `sw.js` mit — sonst würde ein bereits
 installierter Service Worker seinen alten Cache unverändert weiterverwenden

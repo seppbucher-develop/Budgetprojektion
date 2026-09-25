@@ -1,8 +1,8 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=18";
-import { migriereTransaktionen } from "./transaktionen.js?v=18";
+import { migriereKategorien } from "./kategorien.js?v=19";
+import { migriereTransaktionen } from "./transaktionen.js?v=19";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
@@ -26,7 +26,10 @@ function defaultState() {
     einstellungen: {
       horizontJahre: 30,
       renditePct: 2,
-      inflationPct: 0
+      inflationPct: 0,
+      // Cache-Strategie des Service Workers (siehe sw.js/js/backupTab.js):
+      // false = stale-while-revalidate (Standard), true = network-first.
+      cacheNetworkFirst: false
     },
     // Einnahmen/Ausgaben, direkt in der App gepflegt (siehe
     // einnahmenAusgabenTab.js). Jede Buchung trägt drei Daten: datum
