@@ -1,6 +1,6 @@
-import { getState, updateState, uid } from "./store.js?v=16";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=16";
-import { currencyFormatter } from "./charts.js?v=16";
+import { getState, updateState, uid } from "./store.js?v=17";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=17";
+import { currencyFormatter } from "./charts.js?v=17";
 
 const tbody = document.querySelector("#vermoegen-table tbody");
 const thead = document.querySelector("#vermoegen-table thead tr");

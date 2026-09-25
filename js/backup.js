@@ -2,8 +2,8 @@
 // generisch JEDEN localStorage-Schlüssel mit unserem App-Präfix, statt
 // einzelne Felder hart zu verdrahten. Neue Daten, die künftig dazukommen,
 // werden dadurch automatisch mitgesichert.
-import { STORAGE_PREFIX, markBackupSaved, markBackupRestored, reloadStateFromStorage } from "./store.js?v=16";
-import { fsapiHandle } from "./fsapiHandle.js?v=16";
+import { STORAGE_PREFIX, markBackupSaved, markBackupRestored, reloadStateFromStorage } from "./store.js?v=17";
+import { fsapiHandle } from "./fsapiHandle.js?v=17";
 
 const BACKUP_FILE_REGEX = /^budgetprojektion-backup-.*\.(json|json\.gz)$/i;
 

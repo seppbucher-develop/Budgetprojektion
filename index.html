@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=20">
+<link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
 <div class="app">
@@ -455,7 +455,14 @@
 <!-- Dialog: Buchung (Einnahme/Ausgabe) anlegen/bearbeiten -->
 <dialog id="dialog-buchung">
   <form id="form-buchung" method="dialog">
-    <h2 id="dialog-buchung-title">Neue Buchung</h2>
+    <div class="dialog-buchung-head">
+      <h2 id="dialog-buchung-title">Neue Buchung</h2>
+      <div class="dialog-buchung-head-actions">
+        <button type="button" id="dialog-buchung-delete" class="btn-icon btn-icon-danger" hidden title="Löschen" aria-label="Löschen">🗑</button>
+        <button type="button" id="dialog-buchung-cancel" class="btn-icon" title="Abbrechen" aria-label="Abbrechen">✕</button>
+        <button type="submit" class="btn-icon btn-icon-primary" title="Speichern" aria-label="Speichern">✓</button>
+      </div>
+    </div>
     <div class="field buchung-bezeichnung-feld">
       <label for="buchung-bezeichnung">Bezeichnung</label>
       <input type="text" id="buchung-bezeichnung" name="bezeichnung" autocomplete="off" required>
@@ -473,16 +480,15 @@
     </div>
     <div class="field">
       <label for="buchung-waehrung">Währung</label>
-      <select id="buchung-waehrung" name="waehrung">
-        <option value="CHF">CHF</option>
-        <option value="EUR">EUR</option>
-        <option value="USD">USD</option>
-        <option value="GBP">GBP</option>
-      </select>
-    </div>
-    <div class="field" id="buchung-fremdwaehrung-feld" hidden>
-      <label for="buchung-fremdwaehrung-betrag">Betrag in Fremdwährung</label>
-      <input type="text" inputmode="decimal" id="buchung-fremdwaehrung-betrag" name="fremdwaehrungbetrag">
+      <div class="waehrung-mit-fremdbetrag">
+        <select id="buchung-waehrung" name="waehrung">
+          <option value="CHF">CHF</option>
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+          <option value="GBP">GBP</option>
+        </select>
+        <input type="text" inputmode="decimal" id="buchung-fremdwaehrung-betrag" name="fremdwaehrungbetrag" aria-label="Betrag in Fremdwährung" placeholder="Betrag in Fremdwährung" hidden>
+      </div>
     </div>
     <div class="field" id="buchung-kurs-feld" hidden>
       <label for="buchung-kurs">Kurs zu CHF</label>
@@ -493,18 +499,15 @@
       <label for="buchung-unterkategorie">Unterkategorie</label>
       <select id="buchung-unterkategorie" name="unterkategorieId" required></select>
     </div>
-    <div class="field">
-      <label for="buchung-datum">Buchungsdatum</label>
-      <input type="date" id="buchung-datum" name="datum" required>
-    </div>
-    <div class="field">
-      <label for="buchung-valutadatum">Valutadatum</label>
-      <input type="date" id="buchung-valutadatum" name="valutadatum" required>
-    </div>
-    <div class="dialog-actions">
-      <button type="button" id="dialog-buchung-delete" class="btn-danger" hidden>Löschen</button>
-      <button type="button" id="dialog-buchung-cancel" class="btn-secondary">Abbrechen</button>
-      <button type="submit" class="btn-primary">Speichern</button>
+    <div class="buchung-datum-zeile">
+      <div class="field">
+        <label for="buchung-datum">Buchungsdatum</label>
+        <input type="date" id="buchung-datum" name="datum" required>
+      </div>
+      <div class="field">
+        <label for="buchung-valutadatum">Valutadatum</label>
+        <input type="date" id="buchung-valutadatum" name="valutadatum" required>
+      </div>
     </div>
   </form>
 </dialog>
@@ -607,6 +610,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=16"></script>
+<script type="module" src="js/app.js?v=17"></script>
 </body>
 </html>
