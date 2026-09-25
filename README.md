@@ -1,9 +1,10 @@
 # Budgetprojektion
 
-Eine rein clientseitige Webapp (kein Backend, keine Datenübertragung) für die
-persönliche Finanzplanung. Die primären Funktionen erscheinen beim Öffnen als
-Kartenübersicht (analog dem Schwesterprojekt „Flugbuch“); Sekundäres wie
-Backup/Restore steckt gesammelt unter „Service“:
+Eine rein clientseitige Webapp (kein eigenes Backend, keine Datenübertragung
+an Server der App-Betreiberin) für die persönliche Finanzplanung. Die
+primären Funktionen erscheinen beim Öffnen als Kartenübersicht (analog dem
+Schwesterprojekt „Flugbuch“); Sekundäres wie Backup/Restore steckt gesammelt
+unter „Service“:
 
 - **Einnahmen/Ausgaben** – alle Buchungen direkt in der App erfassen und
   pflegen (kein CSV-Import mehr). Jede Buchung trägt drei Daten: das
@@ -11,7 +12,10 @@ Backup/Restore steckt gesammelt unter „Service“:
   Rendite-Analyse) und einen automatisch gesetzten Erfassungszeitpunkt.
   Beim Eintippen der Bezeichnung schlägt ein Typeahead passende frühere
   Buchungen vor (je Bezeichnung die jüngste); Auswahl übernimmt
-  Unterkategorie, Betrag und Vorzeichen.
+  Unterkategorie, Betrag, Vorzeichen, Währung und Kurs. Buchungen können in
+  Fremdwährung erfasst werden (Default CHF); bei Fremdwährung schlägt die App
+  automatisch den Tageskurs zum Valutadatum vor (siehe „Wechselkurse“ unten),
+  der Kurs bleibt aber jederzeit manuell überschreibbar.
 - **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
   AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
   *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben
@@ -42,6 +46,16 @@ Browsern zuverlässig).
 
 Alle Daten (Budget, Vermögen, Einnahmen/Ausgaben, Einstellungen) werden
 ausschliesslich im `localStorage` des Browsers gespeichert.
+
+### Wechselkurse
+
+Für Buchungen in Fremdwährung ruft die App den Tageskurs zum Valutadatum bei
+der [Frankfurter API](https://frankfurter.dev) ab (Kursdaten der
+Europäischen Zentralbank, kostenlos, ohne API-Key, mit CORS-Freigabe für
+Browser-Aufrufe — siehe `js/fx.js`). Das ist der einzige externe
+Netzwerkaufruf der App; schlägt er fehl (kein Netz, Datum in der Zukunft,
+Kurs für diesen Tag nicht verfügbar) bleibt der Kurs manuell erfassbar/
+korrigierbar. CHF-Buchungen lösen nie einen Aufruf aus (Kurs fest 1).
 
 ### Als App aufs Handy
 
@@ -132,9 +146,11 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
   Freitext-Felder auf IDs
 - `js/kategorienDialog.js` – CRUD-Dialog "Kategorien verwalten" (Budget-Tab)
 - `js/transaktionen.js` – Migration alter CSV-Import-Felder auf Buchungs-/
-  Valuta-/Erfassungsdatum sowie die Vorlagen-Suche für den Typeahead
+  Valuta-/Erfassungsdatum sowie Fremdwährung/Kurs, sowie die Vorlagen-Suche
+  für den Typeahead
+- `js/fx.js` – Wechselkurs-Abfrage (Frankfurter API) für Fremdwährungs-Buchungen
 - `js/einnahmenAusgabenTab.js` – CRUD-UI "Einnahmen/Ausgaben" inkl.
-  Erfassungsdialog mit Bezeichnungs-Typeahead
+  Erfassungsdialog mit Bezeichnungs-Typeahead und Währungs-/Kurserfassung
 - `js/budgetTab.js`, `js/vermoegenTab.js` – CRUD-UI für Budget/Vermögen
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial

@@ -6,9 +6,11 @@
  * Einmalige, idempotente Migration: Buchungen aus dem ehemaligen CSV-Import
  * kannten nur ein Buchungsdatum. Für sie werden Valutadatum und
  * Erfassungsdatum auf dieses Buchungsdatum gesetzt (Erfassungs-, Buchungs-
- * und Valutadatum bestehender Records sind identisch). Nicht mehr benötigte
- * Felder aus der CSV-Zeit (Konto, Uhrzeit, Währung, Typ/istEinnahme — der
- * Typ ergibt sich seither aus dem Vorzeichen von betragChf) werden entfernt.
+ * und Valutadatum bestehender Records sind identisch). Sie kannten auch noch
+ * keine Fremdwährung — betragChf war bereits der CHF-Betrag —, darum werden
+ * Währung "CHF", Kurs 1 und der native Betrag (= |betragChf|) ergänzt. Nicht
+ * mehr benötigte Felder aus der CSV-Zeit (Konto, Uhrzeit, Typ/istEinnahme —
+ * der Typ ergibt sich seither aus dem Vorzeichen von betragChf) werden entfernt.
  */
 export function migriereTransaktionen(state) {
   let migriert = false;
@@ -18,7 +20,13 @@ export function migriereTransaktionen(state) {
       t.erfasstAm = t.datum + "T00:00:00.000Z";
       migriert = true;
     }
-    ["konto", "zeit", "waehrung", "typ", "istEinnahme"].forEach(function (feld) {
+    if (t.waehrung === undefined) {
+      t.waehrung = "CHF";
+      t.kurs = 1;
+      t.betrag = Math.abs(t.betragChf);
+      migriert = true;
+    }
+    ["konto", "zeit", "typ", "istEinnahme"].forEach(function (feld) {
       if (t[feld] !== undefined) { delete t[feld]; migriert = true; }
     });
   });

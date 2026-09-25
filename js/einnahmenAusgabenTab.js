@@ -1,8 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=6";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=6";
-import { currencyFormatter } from "./charts.js?v=6";
-import { unterkategorieName } from "./kategorien.js?v=6";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=6";
+import { getState, updateState, uid } from "./store.js?v=7";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=7";
+import { currencyFormatter } from "./charts.js?v=7";
+import { unterkategorieName } from "./kategorien.js?v=7";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=7";
+import { holeWechselkurs } from "./fx.js?v=7";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -14,10 +15,16 @@ const form = document.getElementById("form-buchung");
 const bezeichnungInput = document.getElementById("buchung-bezeichnung");
 const vorlagenListe = document.getElementById("buchung-vorlagen-liste");
 const unterkategorieSelect = document.getElementById("buchung-unterkategorie");
+const waehrungSelect = document.getElementById("buchung-waehrung");
+const kursInput = document.getElementById("buchung-kurs");
+const kursStatus = document.getElementById("buchung-kurs-status");
 
 let editId = null;
 let ausgewaehltesJahr = null;
 let aktuelleVorschlaege = [];
+// Zählt Kurs-Abfragen, damit eine spät eintreffende, inzwischen überholte
+// Antwort (z. B. nach schnellem Währungswechsel) das Feld nicht mehr überschreibt.
+let kursAnfrageZaehler = 0;
 
 function escapeHtml(s) {
   const div = document.createElement("div");
@@ -106,13 +113,51 @@ function openDialog(row) {
   fillUnterkategorieSelect(row ? row.unterkategorieId : null);
   bezeichnungInput.value = row ? row.name : "";
   form.vorzeichen.value = row && row.betragChf >= 0 ? "einnahme" : "ausgabe";
-  form.betrag.value = row ? Math.abs(row.betragChf) : "";
+  form.betrag.value = row ? row.betrag : "";
   form.datum.value = row ? row.datum : todayIso();
   form.valutadatum.value = row ? row.valutadatum : todayIso();
+  waehrungSelect.value = row ? row.waehrung : "CHF";
+  kursInput.value = row ? row.kurs : 1;
+  kursStatus.textContent = "";
+  aktualisiereKursFeldAnzeige();
   document.getElementById("dialog-buchung-title").textContent = row ? "Buchung bearbeiten" : "Neue Buchung";
   vorlagenListe.hidden = true;
   dialog.showModal();
 }
+
+// CHF braucht keinen Kurs (immer 1, Feld gesperrt); bei Fremdwährung ist der
+// Kurs frei editierbar (Vorschlag kommt automatisch aus dem Internet, siehe
+// unten, kann aber jederzeit manuell übersteuert werden).
+function aktualisiereKursFeldAnzeige() {
+  const istChf = waehrungSelect.value === "CHF";
+  kursInput.disabled = istChf;
+  if (istChf) kursInput.value = 1;
+}
+
+// Kurs automatisch aus dem Internet nachladen (Frankfurter API, siehe
+// fx.js), sobald Fremdwährung und Valutadatum bekannt sind. Schlägt die
+// Abfrage fehl (kein Netz, Datum in der Zukunft, ...), bleibt der zuletzt
+// eingetragene Kurs stehen und ein Hinweis erscheint.
+async function ladeKursVorschlag() {
+  const waehrung = waehrungSelect.value;
+  const datum = form.valutadatum.value;
+  aktualisiereKursFeldAnzeige();
+  if (waehrung === "CHF") return;
+
+  const anfrageId = ++kursAnfrageZaehler;
+  kursStatus.textContent = "Kurs wird geladen …";
+  const kurs = await holeWechselkurs(datum, waehrung);
+  if (anfrageId !== kursAnfrageZaehler) return; // überholt durch neuere Anfrage
+  if (kurs != null) {
+    kursInput.value = kurs;
+    kursStatus.textContent = "Kurs vom " + formatIsoDate(datum) + " übernommen (Frankfurter API).";
+  } else {
+    kursStatus.textContent = "Kurs konnte nicht automatisch geladen werden — bitte manuell erfassen.";
+  }
+}
+
+waehrungSelect.addEventListener("change", ladeKursVorschlag);
+form.valutadatum.addEventListener("change", ladeKursVorschlag);
 
 function deleteBuchung(id) {
   if (!confirm("Diese Buchung wirklich löschen?")) return;
@@ -151,7 +196,11 @@ vorlagenListe.addEventListener("click", function (e) {
   bezeichnungInput.value = vorlage.name;
   fillUnterkategorieSelect(vorlage.unterkategorieId);
   form.vorzeichen.value = vorlage.betragChf >= 0 ? "einnahme" : "ausgabe";
-  form.betrag.value = Math.abs(vorlage.betragChf);
+  form.betrag.value = vorlage.betrag;
+  waehrungSelect.value = vorlage.waehrung;
+  kursInput.value = vorlage.kurs;
+  kursStatus.textContent = "";
+  aktualisiereKursFeldAnzeige();
   vorlagenListe.hidden = true;
 });
 
@@ -165,16 +214,21 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
   const state = getState();
   const unterkategorie = state.unterkategorien.find(function (u) { return u.id === form.unterkategorieId.value; });
-  const betragsBetrag = Math.abs(parseFloat(form.betrag.value));
+  const betrag = Math.abs(parseFloat(form.betrag.value));
+  const kurs = Math.abs(parseFloat(kursInput.value));
+  const betragChf = betrag * kurs;
   const data = {
     name: bezeichnungInput.value.trim(),
-    betragChf: form.vorzeichen.value === "ausgabe" ? -betragsBetrag : betragsBetrag,
+    betrag: betrag,
+    waehrung: waehrungSelect.value,
+    kurs: kurs,
+    betragChf: form.vorzeichen.value === "ausgabe" ? -betragChf : betragChf,
     unterkategorieId: unterkategorie ? unterkategorie.id : null,
     kategorieId: unterkategorie ? unterkategorie.kategorieId : null,
     datum: form.datum.value,
     valutadatum: form.valutadatum.value
   };
-  if (!data.name || isNaN(data.betragChf) || !data.unterkategorieId || !data.datum || !data.valutadatum) return;
+  if (!data.name || isNaN(betrag) || isNaN(kurs) || !data.unterkategorieId || !data.datum || !data.valutadatum) return;
 
   updateState(function (s) {
     if (editId) {

@@ -303,6 +303,31 @@ body {
   min-width: 0;
 }
 
+.waehrung-mit-kurs {
+  display: flex;
+  gap: 8px;
+}
+
+.waehrung-mit-kurs select {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.waehrung-mit-kurs input {
+  flex: 1;
+  min-width: 0;
+}
+
+.waehrung-mit-kurs input:disabled {
+  opacity: 0.6;
+}
+
+#buchung-kurs-status {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  min-height: 1.1em;
+}
+
 .btn-primary,
 .btn-secondary {
   padding: 9px 16px;

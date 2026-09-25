@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=12">
+<link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
 <div class="app">
@@ -458,7 +458,7 @@
       <div id="buchung-vorlagen-liste" class="vorlagen-liste" hidden></div>
     </div>
     <div class="field">
-      <label for="buchung-betrag">Betrag (CHF)</label>
+      <label for="buchung-betrag">Betrag</label>
       <div class="amount-with-sign">
         <select id="buchung-vorzeichen" name="vorzeichen">
           <option value="ausgabe">Ausgabe (–)</option>
@@ -466,6 +466,19 @@
         </select>
         <input type="number" id="buchung-betrag" name="betrag" step="0.01" min="0" inputmode="decimal" required>
       </div>
+    </div>
+    <div class="field">
+      <label for="buchung-waehrung">Währung / Kurs zu CHF</label>
+      <div class="waehrung-mit-kurs">
+        <select id="buchung-waehrung" name="waehrung">
+          <option value="CHF">CHF</option>
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+          <option value="GBP">GBP</option>
+        </select>
+        <input type="number" id="buchung-kurs" name="kurs" step="0.0001" min="0" inputmode="decimal" aria-label="Kurs zu CHF" required>
+      </div>
+      <p id="buchung-kurs-status" class="hint"></p>
     </div>
     <div class="field">
       <label for="buchung-unterkategorie">Unterkategorie</label>
@@ -507,6 +520,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=6"></script>
+<script type="module" src="js/app.js?v=7"></script>
 </body>
 </html>
