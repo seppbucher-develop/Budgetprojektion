@@ -233,6 +233,19 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  /* Buttons ohne eigenes Label (z. B. "Wiederkehrend…") sollen auf Höhe des
+     Eingabefelds neben ihnen sitzen (z. B. "Jahr"), nicht auf Höhe von
+     dessen Label+Feld zusammen -- Ausrichtung am unteren Rand der Zeile
+     erreicht das, analog zu .inline-form. */
+  align-items: flex-end;
+}
+
+.panel-actions .field {
+  /* .field bringt sonst margin-bottom:14px mit (Abstand zwischen
+     gestapelten Feldern in einem Formular) -- align-items:flex-end richtet
+     Flex-Items an der Aussenkante inkl. Margin aus, wodurch dieser Rand
+     sonst eine sichtbare Lücke zwischen Select und Button erzeugen würde. */
+  margin-bottom: 0;
 }
 
 .field {
@@ -937,14 +950,23 @@ body {
 }
 
 dialog {
-  /* inset:0 + margin:auto statt top/left/transform: das ist exakt der
-     Mechanismus, den dialog:modal im UA-Stylesheet eigentlich selbst
-     mitbringen sollte — auf manchen mobilen Browsern (u.a. beobachtet auf
-     einem Samsung Galaxy) griff das aber nicht zuverlässig, daher hier
-     explizit gesetzt statt sich darauf zu verlassen. */
+  /* Am oberen Rand verankert (top + translateX) statt vertikal zentriert
+     (frühere Lösung: inset:0 + margin:auto) -- vertikal zentriert lag ein
+     Dialog bei geöffneter Bildschirmtastatur zur Hälfte dahinter verborgen,
+     weil die Zentrierung sich an der vollen (tastatur-unabhängigen)
+     Viewport-Höhe orientierte. Oben verankert bleibt der Anfang des Dialogs
+     (inkl. des gerade fokussierten Felds, meist weiter oben) sichtbar, der
+     Rest ist bei Bedarf per overflow-y scrollbar. max-height nutzt dvh
+     (dynamic viewport height) statt vh, dazu interactive-widget=
+     resizes-content im viewport-meta-Tag (index.html) -- beides zusammen
+     lässt Höhe/verfügbaren Platz mit ein-/ausgeblendeter Tastatur neu
+     berechnen statt nur den (dann teils verdeckten) vollen Bildschirm
+     anzunehmen. */
   position: fixed;
-  inset: 0;
-  margin: auto;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   border: none;
   border-radius: var(--radius);
   padding: 24px;
@@ -952,14 +974,14 @@ dialog {
   color: var(--color-text);
   max-width: 480px;
   width: 90vw;
-  max-height: 90vh;
+  max-height: calc(100dvh - 32px);
   overflow-y: auto;
 }
 
 dialog.dialog-wide {
   width: 96vw;
   max-width: 1100px;
-  max-height: 85vh;
+  max-height: calc(100dvh - 32px);
   padding: 12px;
   overflow: hidden;
 }
