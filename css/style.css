@@ -303,22 +303,9 @@ body {
   min-width: 0;
 }
 
-.waehrung-mit-kurs {
-  display: flex;
-  gap: 8px;
-}
-
-.waehrung-mit-kurs select {
-  flex: 0 0 auto;
-  width: auto;
-}
-
-.waehrung-mit-kurs input {
-  flex: 1;
-  min-width: 0;
-}
-
-.waehrung-mit-kurs input:disabled {
+#buchung-betrag:disabled,
+#buchung-kurs:disabled,
+#buchung-fremdwaehrung-betrag:disabled {
   opacity: 0.6;
 }
 
