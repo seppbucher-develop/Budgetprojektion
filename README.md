@@ -19,7 +19,14 @@ unter „Service“:
   „Wechselkurse“ unten) – zum Valutadatum, oder den aktuellen Kurs, wenn das
   Valutadatum in der Zukunft liegt oder eine Vorlage gewählt wurde (nie den
   ggf. veralteten Kurs der Vorlage selbst) –, bleibt aber jederzeit manuell
-  überschreibbar.
+  überschreibbar. Über „Wiederkehrend…“ lassen sich zudem Regeln für
+  automatisch zu erzeugende Buchungen pflegen (z. B. Miete, Abos): beim
+  Öffnen der App prüft sie, ob seit der letzten Erzeugung ein Termin fällig
+  geworden ist (wöchentlich/monatlich/quartalsweise/halbjährlich/jährlich),
+  und legt dafür je eine normale, unabhängige Buchung an — auch rückwirkend
+  für mehrere verpasste Termine, falls die App länger nicht geöffnet war.
+  Bearbeiten oder Löschen einer Regel wirkt sich nur auf künftige
+  Erzeugungen aus, nie auf bereits erzeugte Buchungen.
 - **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
   AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
   *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben
@@ -155,6 +162,10 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/fx.js` – Wechselkurs-Abfrage (Frankfurter API) für Fremdwährungs-Buchungen
 - `js/einnahmenAusgabenTab.js` – CRUD-UI "Einnahmen/Ausgaben" inkl.
   Erfassungsdialog mit Bezeichnungs-Typeahead und Währungs-/Kurserfassung
+- `js/wiederkehrendeBuchungen.js` – Erzeugungslogik für wiederkehrende
+  Buchungen (fällige Termine berechnen, Buchungen inkl. Fremdwährungskurs
+  erzeugen), aufgerufen beim App-Start (siehe `js/app.js`)
+- `js/wiederkehrendDialog.js` – CRUD-UI "Wiederkehrende Buchungen verwalten"
 - `js/budgetTab.js`, `js/vermoegenTab.js` – CRUD-UI für Budget/Vermögen
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial

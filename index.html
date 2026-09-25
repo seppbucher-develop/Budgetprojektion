@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body>
 <div class="app">
@@ -118,6 +118,7 @@
             <label for="buchungen-jahr-select">Jahr</label>
             <select id="buchungen-jahr-select"></select>
           </div>
+          <button type="button" id="btn-open-wiederkehrend" class="btn-secondary">Wiederkehrend…</button>
           <button id="btn-add-buchung" class="btn-primary">+ Neue Buchung</button>
         </div>
       </div>
@@ -508,6 +509,83 @@
   </form>
 </dialog>
 
+<!-- Dialog: Wiederkehrende Buchungen verwalten (Liste) -->
+<dialog id="dialog-wiederkehrend" class="dialog-wide">
+  <div class="buchungen-head">
+    <h2>Wiederkehrende Buchungen</h2>
+    <button type="button" id="dialog-wiederkehrend-close" class="btn-close-icon" aria-label="Schliessen">✕</button>
+  </div>
+  <p class="hint collapsible">Erzeugen beim Öffnen der App automatisch echte Buchungen, sobald ein Termin fällig ist (z. B. Miete, Abos). Einmal erzeugte Buchungen sind danach normale, unabhängige Buchungen — Bearbeiten/Löschen einer Regel wirkt sich nur auf künftige Erzeugungen aus.</p>
+  <button type="button" id="btn-add-wiederkehrend" class="btn-primary" style="margin-bottom:14px">+ Neue Regel</button>
+  <p class="hint" id="wiederkehrend-empty-hint">Noch keine wiederkehrenden Buchungen erfasst.</p>
+  <div id="wiederkehrend-liste"></div>
+</dialog>
+
+<!-- Dialog: Wiederkehrende Buchung anlegen/bearbeiten -->
+<dialog id="dialog-wiederkehrend-row">
+  <form id="form-wiederkehrend-row" method="dialog">
+    <h2 id="dialog-wiederkehrend-row-title">Neue wiederkehrende Buchung</h2>
+    <div class="field">
+      <label for="wiederkehrend-name">Bezeichnung</label>
+      <input type="text" id="wiederkehrend-name" name="name" required>
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-betrag">Betrag (CHF)</label>
+      <div class="amount-with-sign">
+        <select id="wiederkehrend-vorzeichen" name="vorzeichen">
+          <option value="ausgabe">Ausgabe (–)</option>
+          <option value="einnahme">Einnahme (+)</option>
+        </select>
+        <input type="text" inputmode="decimal" id="wiederkehrend-betrag" name="betrag" required>
+      </div>
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-waehrung">Währung</label>
+      <select id="wiederkehrend-waehrung" name="waehrung">
+        <option value="CHF">CHF</option>
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+        <option value="GBP">GBP</option>
+      </select>
+    </div>
+    <div class="field" id="wiederkehrend-fremdwaehrung-feld" hidden>
+      <label for="wiederkehrend-fremdwaehrung-betrag">Betrag in Fremdwährung</label>
+      <input type="text" inputmode="decimal" id="wiederkehrend-fremdwaehrung-betrag">
+    </div>
+    <div class="field" id="wiederkehrend-kurs-feld" hidden>
+      <label for="wiederkehrend-kurs">Kurs zu CHF (Richtwert — wird bei jeder Erzeugung aktuell nachgeladen)</label>
+      <input type="text" inputmode="decimal" id="wiederkehrend-kurs" name="kurs">
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-unterkategorie">Unterkategorie</label>
+      <select id="wiederkehrend-unterkategorie" name="unterkategorieId" required></select>
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-rhythmus">Rhythmus</label>
+      <select id="wiederkehrend-rhythmus" name="rhythmus">
+        <option value="woechentlich">Wöchentlich</option>
+        <option value="monatlich">Monatlich</option>
+        <option value="quartalsweise">Quartalsweise</option>
+        <option value="halbjaehrlich">Halbjährlich</option>
+        <option value="jaehrlich">Jährlich</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-ab">Ab</label>
+      <input type="date" id="wiederkehrend-ab" name="ab" required>
+    </div>
+    <label class="checkbox-feld">
+      <input type="checkbox" id="wiederkehrend-aktiv">
+      Aktiv
+    </label>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-wiederkehrend-row-delete" class="btn-danger" hidden>Löschen</button>
+      <button type="button" id="dialog-wiederkehrend-row-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Dialog: Drilldown der realen Buchungen hinter einem Real-Wert -->
 <dialog id="dialog-buchungen" class="dialog-wide">
   <div class="buchungen-head">
@@ -529,6 +607,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=14"></script>
+<script type="module" src="js/app.js?v=15"></script>
 </body>
 </html>

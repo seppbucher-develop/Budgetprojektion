@@ -1,8 +1,8 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=14";
-import { migriereTransaktionen } from "./transaktionen.js?v=14";
+import { migriereKategorien } from "./kategorien.js?v=15";
+import { migriereTransaktionen } from "./transaktionen.js?v=15";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
@@ -32,7 +32,11 @@ function defaultState() {
     // einnahmenAusgabenTab.js). Jede Buchung trägt drei Daten: datum
     // (Buchungsdatum, für den Budgetvergleich), valutadatum (für Cashflow/
     // Rendite-Analyse) und erfasstAm (Zeitstempel der Erfassung, nur intern).
-    realTransaktionen: []
+    realTransaktionen: [],
+    // Vorlagen für automatisch zu erzeugende Buchungen (z. B. Miete, Abos),
+    // siehe wiederkehrendeBuchungen.js. Erzeugte Buchungen landen als
+    // normale, unabhängige Einträge in realTransaktionen.
+    wiederkehrendeBuchungen: []
   };
 }
 
