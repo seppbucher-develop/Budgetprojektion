@@ -6,11 +6,25 @@
  * Einmalige, idempotente Migration: Buchungen aus dem ehemaligen CSV-Import
  * kannten nur ein Buchungsdatum. Für sie werden Valutadatum und
  * Erfassungsdatum auf dieses Buchungsdatum gesetzt (Erfassungs-, Buchungs-
- * und Valutadatum bestehender Records sind identisch). Sie kannten auch noch
- * keine Fremdwährung — betragChf war bereits der CHF-Betrag —, darum werden
- * Währung "CHF", Kurs 1 und der native Betrag (= |betragChf|) ergänzt. Nicht
- * mehr benötigte Felder aus der CSV-Zeit (Konto, Uhrzeit, Typ/istEinnahme —
- * der Typ ergibt sich seither aus dem Vorzeichen von betragChf) werden entfernt.
+ * und Valutadatum bestehender Records sind identisch).
+ *
+ * Betrag/Kurs kannten sie noch nicht als eigene Felder — betragChf war der
+ * einzige Betrag. Der native Betrag und der Kurs werden darum unabhängig
+ * voneinander ergänzt, FALLS SIE FEHLEN (nicht daran gekoppelt, ob z. B.
+ * Währung schon gesetzt ist): der alte CSV-Import selbst hatte pro Buchung
+ * bereits eine eigene Währung erfasst (z. B. "EUR" bei Fremdwährungsreisen),
+ * ganz unabhängig von dieser Migration — Betrag/Kurs blieben bei solchen
+ * Buchungen darum bislang unergänzt, wenn die Prüfung an "Währung fehlt"
+ * gekoppelt war. Da der native Fremdwährungsbetrag zum Zeitpunkt des
+ * Imports nicht aufgezeichnet wurde, ist der historisch korrekte Kurs nicht
+ * mehr rekonstruierbar: Betrag wird darum auf |betragChf| und Kurs auf 1
+ * gesetzt (betragChf selbst — die einzige Grösse, mit der der Rest der App
+ * rechnet — bleibt dabei unverändert, nur Betrag/Kurs sind für solche alten
+ * Fremdwährungsbuchungen als Anzeige-/Bearbeitungswerte nicht mehr exakt).
+ *
+ * Nicht mehr benötigte Felder aus der CSV-Zeit (Konto, Uhrzeit,
+ * Typ/istEinnahme — der Typ ergibt sich seither aus dem Vorzeichen von
+ * betragChf) werden entfernt.
  */
 export function migriereTransaktionen(state) {
   let migriert = false;
@@ -22,8 +36,14 @@ export function migriereTransaktionen(state) {
     }
     if (t.waehrung === undefined) {
       t.waehrung = "CHF";
-      t.kurs = 1;
+      migriert = true;
+    }
+    if (t.betrag === undefined) {
       t.betrag = Math.abs(t.betragChf);
+      migriert = true;
+    }
+    if (t.kurs === undefined) {
+      t.kurs = 1;
       migriert = true;
     }
     ["konto", "zeit", "typ", "istEinnahme"].forEach(function (feld) {
