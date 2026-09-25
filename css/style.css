@@ -61,76 +61,85 @@ body {
   color: var(--color-text-muted);
 }
 
-/* Home: primäre Funktionen als Karten (analog Flugbuch) statt Tab-Leiste. */
+/* Home: primäre Funktionen als kompaktes 2-Spalten-Kartenraster (analog
+   Flugbuch, aber dichter gepackt) statt Tab-Leiste — so bleiben auch mit
+   8 Einträgen alle ohne Scrollen sichtbar. */
 .home-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 480px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-width: 520px;
   margin: 0 auto;
   width: 100%;
 }
 
 .home-card {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
   text-align: left;
   text-decoration: none;
   color: inherit;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 10px 12px;
   font: inherit;
   cursor: pointer;
 }
 
 .home-card:active {
-  transform: scale(0.99);
+  transform: scale(0.98);
 }
 
 .home-card-icon {
   position: relative;
-  font-size: 26px;
+  font-size: 19px;
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-bg);
 }
 
-.home-card-icon-budget { background: rgba(37, 99, 235, 0.12); }
-.home-card-icon-vermoegen { background: rgba(22, 163, 74, 0.12); }
+.home-card-icon-buchungen { background: rgba(37, 99, 235, 0.12); }
+.home-card-icon-budget { background: rgba(22, 163, 74, 0.12); }
+.home-card-icon-vermoegen { background: rgba(8, 145, 178, 0.12); }
 .home-card-icon-projektion { background: rgba(124, 58, 237, 0.12); }
 .home-card-icon-vergleich { background: rgba(217, 119, 6, 0.12); }
-.home-card-icon-istkosten { background: rgba(8, 145, 178, 0.12); }
-.home-card-icon-analyse { background: rgba(219, 39, 119, 0.12); }
+.home-card-icon-istkosten { background: rgba(219, 39, 119, 0.12); }
+.home-card-icon-analyse { background: rgba(13, 148, 136, 0.12); }
 .home-card-icon-service { background: rgba(220, 38, 38, 0.12); }
 
 .home-card-text {
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
 .home-card-title {
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-card-desc {
-  font-size: 0.78rem;
+  font-size: 0.66rem;
   color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-card-arrow {
-  font-size: 1.2rem;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
+  display: none;
 }
 
 .dirty-dot {
@@ -591,7 +600,7 @@ body {
 
 .rendite-cashflow-row {
   display: grid;
-  grid-template-columns: 90px minmax(80px, 1fr) 80px 90px;
+  grid-template-columns: 90px minmax(80px, 1fr) 90px;
   column-gap: 8px;
 }
 
@@ -608,13 +617,13 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.korrektur-row {
+.buchungen-liste-row {
   display: grid;
-  grid-template-columns: 90px 90px minmax(80px, 1fr) 56px;
+  grid-template-columns: 85px minmax(90px, 1fr) minmax(80px, 1fr) 90px 56px;
   column-gap: 8px;
 }
 
-.korrektur-row > div {
+.buchungen-liste-row > div {
   padding: 4px 8px;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
@@ -622,30 +631,57 @@ body {
   text-overflow: ellipsis;
 }
 
-.korrektur-row > div:nth-child(2) {
+.buchungen-liste-row > div:nth-child(4) {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.unklar-gruppe {
+.buchung-bezeichnung-feld {
+  position: relative;
+}
+
+.vorlagen-liste {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  margin-bottom: 12px;
+  border-radius: 8px;
+  margin-top: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.unklar-gruppe h3 {
-  margin: 0 0 6px;
-  font-size: 0.95rem;
-}
-
-.unklar-zeile {
+.vorlagen-eintrag {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  border-top: 1px solid var(--color-border);
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vorlagen-eintrag:last-child {
+  border-bottom: none;
+}
+
+.vorlagen-eintrag:hover {
+  background: var(--color-bg);
+}
+
+.vorlagen-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kategorie-block {

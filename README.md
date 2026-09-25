@@ -5,6 +5,13 @@ persönliche Finanzplanung. Die primären Funktionen erscheinen beim Öffnen als
 Kartenübersicht (analog dem Schwesterprojekt „Flugbuch“); Sekundäres wie
 Backup/Restore steckt gesammelt unter „Service“:
 
+- **Einnahmen/Ausgaben** – alle Buchungen direkt in der App erfassen und
+  pflegen (kein CSV-Import mehr). Jede Buchung trägt drei Daten: das
+  Buchungsdatum (für den Budgetvergleich), das Valutadatum (für die
+  Rendite-Analyse) und einen automatisch gesetzten Erfassungszeitpunkt.
+  Beim Eintippen der Bezeichnung schlägt ein Typeahead passende frühere
+  Buchungen vor (je Bezeichnung die jüngste); Auswahl übernimmt
+  Unterkategorie, Betrag und Vorzeichen.
 - **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
   AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
   *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben
@@ -12,17 +19,14 @@ Backup/Restore steckt gesammelt unter „Service“:
 - **Vermögen** – Kontostände zu einem oder mehreren Stichtagen.
 - **Projektion** – 30-Jahres-Hochrechnung des Vermögens auf Basis von
   budgetierten Erträgen und Kosten sowie Rendite- und Inflationsannahmen.
-- **Realvergleich** – reale Kosten aus einem Bluecoins-CSV-Export mit dem
-  Budget vergleichen (Tabelle + Diagramm) und automatisch erkannte
-  Einsparungsmöglichkeiten bzw. Budgetreserven anzeigen.
+- **Realvergleich** – reale Buchungen mit dem Budget vergleichen (Tabelle +
+  Diagramm) und automatisch erkannte Einsparungsmöglichkeiten bzw.
+  Budgetreserven anzeigen.
 - **Analyse** – tatsächliche Vermögensrendite zwischen zwei Vermögens-Stichtagen
   (Vermögensänderung abzüglich des effektiven Netto-Cashflows in der
-  Zwischenzeit). Der Cashflow kommt nicht aus dem oft bewusst auf ein
-  Budgetjahr verschobenen Buchungsdatum, sondern aus einem bei jedem
-  CSV-Import automatisch geführten Log neu hinzugekommener Buchungen (Abgleich
-  über Unterkategorie + Uhrzeit, dem Import-Zeitpunkt zugeordnet), ergänzt um
-  manuelle Korrekturbuchungen für Fälle, die sich in Bluecoins selbst nicht
-  sinnvoll korrigieren lassen.
+  Zwischenzeit). Der Cashflow kommt aus dem Valutadatum jeder Buchung, nicht
+  aus dem Buchungsdatum (das für den Budgetvergleich massgeblich ist, aber
+  vom tatsächlichen Zahlungszeitpunkt abweichen kann).
 
 ## Nutzung
 
@@ -36,8 +40,8 @@ und dann `http://localhost:8000` öffnen (ein direktes Öffnen der
 `index.html` per `file://` funktioniert wegen der ES-Module nicht in allen
 Browsern zuverlässig).
 
-Alle Daten (Budget, Vermögen, importierte Transaktionen, Einstellungen)
-werden ausschliesslich im `localStorage` des Browsers gespeichert.
+Alle Daten (Budget, Vermögen, Einnahmen/Ausgaben, Einstellungen) werden
+ausschliesslich im `localStorage` des Browsers gespeichert.
 
 ### Als App aufs Handy
 
@@ -55,26 +59,18 @@ Im Tab „Budget“ über „Kategorien verwalten…“: Kategorien (z. B. "Wohn
 und ihre Unterkategorien (z. B. "Miete") werden mit einer stabilen ID als
 Primärschlüssel angelegt/umbenannt/gelöscht (Löschen ist blockiert, solange
 sie noch von einem Budget-Posten oder einer realen Buchung referenziert
-werden). Budget-Posten sowie beim CSV-Import gefundene Kategoriengruppe/
-Kategorie werden anhand ihres Namens dieser Liste zugeordnet (neue
-Bezeichnungen legen automatisch eine neue Kategorie/Unterkategorie an).
+werden).
 
-### Budget & Vermögen pflegen
+### Budget, Vermögen & Buchungen pflegen
 
-Budget-Posten und Vermögens-Stichtage werden direkt in der App gepflegt
-(hinzufügen, bearbeiten, löschen) — es gibt keinen Datei-Import dafür.
-
-### Reale Kosten importieren
-
-Im Tab „Realvergleich“ kann wiederholt eine Transaktions-CSV aus
-`bluecoins/reports` importiert werden. Jeder Import ersetzt sämtliche
-zuvor importierten Buchungen vollständig (kein Zusammenführen), damit die
-Daten immer dem aktuellen Export entsprechen.
+Budget-Posten, Vermögens-Stichtage und Einnahmen/Ausgaben-Buchungen werden
+direkt in der App gepflegt (hinzufügen, bearbeiten, löschen) — es gibt
+keinen Datei-Import dafür.
 
 ### Backup & Restore
 
 Im Tab „Service“ lässt sich der gesamte App-Zustand (Budget, Vermögen,
-importierte Transaktionen, Einstellungen) als Datei sichern und wieder
+Einnahmen/Ausgaben, Einstellungen) als Datei sichern und wieder
 einspielen — z. B. vor grösseren Änderungen oder zum Übertragen auf ein
 anderes Gerät. Das Backup sichert generisch jeden `localStorage`-Schlüssel
 der App (Präfix `budgetprojektion.`), neue Daten werden also automatisch
@@ -135,17 +131,16 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
   Namens-Lookup, Verwendungsprüfung) und die einmalige Migration alter
   Freitext-Felder auf IDs
 - `js/kategorienDialog.js` – CRUD-Dialog "Kategorien verwalten" (Budget-Tab)
-- `js/importCsv.js` – wiederholbarer Import der Bluecoins-CSV
+- `js/transaktionen.js` – Migration alter CSV-Import-Felder auf Buchungs-/
+  Valuta-/Erfassungsdatum sowie die Vorlagen-Suche für den Typeahead
+- `js/einnahmenAusgabenTab.js` – CRUD-UI "Einnahmen/Ausgaben" inkl.
+  Erfassungsdialog mit Bezeichnungs-Typeahead
 - `js/budgetTab.js`, `js/vermoegenTab.js` – CRUD-UI für Budget/Vermögen
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial
 - `js/istkostenTab.js` – Istkostenvergleich (reale Buchungen über drei Jahre)
-- `js/cashflowDiff.js` – Abgleich neuer/geänderter/verschwundener Buchungen
-  beim CSV-Import (Unterkategorie + Uhrzeit als Schlüssel) für den Cashflow-Log
-- `js/cashflowUnklarDialog.js` – Dialog zur manuellen Auflösung mehrdeutiger
-  Zuordnungen aus `cashflowDiff.js`
 - `js/renditeAnalyse.js`, `js/renditeTab.js` – Vermögensrendite zwischen zwei
-  Stichtagen inkl. Korrekturbuchungen
+  Stichtagen (Cashflow aus dem Valutadatum jeder Buchung)
 - `js/charts.js` – Canvas-Diagramme (Linien-/Balkendiagramm)
 - `js/backup.js`, `js/backupTab.js` – Backup & Restore
 - `js/fsapiHandle.js` – IndexedDB-Ablage für den gewählten Backup-Ordner (File System Access API)

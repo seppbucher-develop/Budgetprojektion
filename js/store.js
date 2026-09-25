@@ -1,7 +1,8 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=4";
+import { migriereKategorien } from "./kategorien.js?v=6";
+import { migriereTransaktionen } from "./transaktionen.js?v=6";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
@@ -27,20 +28,11 @@ function defaultState() {
       renditePct: 2,
       inflationPct: 0
     },
-    realTransaktionen: [],
-    // Effektiver Cashflow-Log: bei jedem CSV-Import mit dem vorherigen
-    // Import abgeglichene Buchungen (siehe cashflowDiff.js), dem
-    // Import-Zeitpunkt statt dem oft budget-verschobenen Buchungsdatum
-    // zugeordnet — Basis für die Renditeberechnung (siehe renditeTab.js).
-    cashflowLog: [],
-    // Manuelle Korrekturbuchungen für die Renditeberechnung, wenn eine
-    // Korrektur in Bluecoins selbst nicht möglich/sinnvoll ist.
-    korrekturen: [],
-    importInfo: {
-      csvImportiertAm: null,
-      csvDateiname: null,
-      csvAnzahl: 0
-    }
+    // Einnahmen/Ausgaben, direkt in der App gepflegt (siehe
+    // einnahmenAusgabenTab.js). Jede Buchung trägt drei Daten: datum
+    // (Buchungsdatum, für den Budgetvergleich), valutadatum (für Cashflow/
+    // Rendite-Analyse) und erfasstAm (Zeitstempel der Erfassung, nur intern).
+    realTransaktionen: []
   };
 }
 
@@ -53,7 +45,9 @@ function load() {
     const parsed = JSON.parse(raw);
     // fehlende Felder aus Default ergänzen (z. B. nach App-Update)
     const s = Object.assign(defaultState(), parsed);
-    if (migriereKategorien(s, uid)) {
+    const kategorienMigriert = migriereKategorien(s, uid);
+    const transaktionenMigriert = migriereTransaktionen(s);
+    if (kategorienMigriert || transaktionenMigriert) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* siehe persist() */ }
     }
     return s;

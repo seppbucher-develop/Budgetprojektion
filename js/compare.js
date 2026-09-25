@@ -1,5 +1,5 @@
-import { isoYear } from "./dateUtils.js?v=4";
-import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=4";
+import { isoYear } from "./dateUtils.js?v=6";
+import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=6";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 
@@ -14,13 +14,13 @@ function istUnvollstaendig(jahr) {
 /**
  * Typ einer Kategorie ("kosten" oder "ertrag"), ermittelt primär aus dem
  * Vorzeichen des Budgetwerts, ersatzweise (Kategorie ohne Budget-Zeile) aus
- * dem istEinnahme-Flag der realen Buchungen.
+ * dem Vorzeichen der realen Buchungen.
  */
 function kategorieTyp(state, kategorieId) {
   const budgetRow = state.budgetPosten.find(function (r) { return r.kategorieId === kategorieId; });
   if (budgetRow) return budgetRow.betrag < 0 ? "kosten" : "ertrag";
   const txn = state.realTransaktionen.find(function (t) { return t.kategorieId === kategorieId; });
-  return txn && txn.istEinnahme ? "ertrag" : "kosten";
+  return txn && txn.betragChf >= 0 ? "ertrag" : "kosten";
 }
 
 /**

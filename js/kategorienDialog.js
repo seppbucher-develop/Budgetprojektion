@@ -2,8 +2,8 @@
 // Unterkategorien. Löschen ist blockiert, solange die Kategorie/
 // Unterkategorie noch irgendwo referenziert wird (Budget-Posten, reale
 // Buchungen, Cashflow-Log) — verhindert verwaiste IDs im Datenbestand.
-import { getState, updateState, uid } from "./store.js?v=4";
-import { unterkategorienVonKategorie, kategorieWirdVerwendet, unterkategorieWirdVerwendet } from "./kategorien.js?v=4";
+import { getState, updateState, uid } from "./store.js?v=6";
+import { unterkategorienVonKategorie, kategorieWirdVerwendet, unterkategorieWirdVerwendet } from "./kategorien.js?v=6";
 
 const dialog = document.getElementById("dialog-kategorien");
 const liste = document.getElementById("kategorien-liste");
@@ -72,7 +72,7 @@ function render() {
   }).join("");
 
   if (kategorien.length === 0) {
-    liste.innerHTML = '<p class="hint">Noch keine Kategorien vorhanden — oben eine anlegen oder eine CSV importieren.</p>';
+    liste.innerHTML = '<p class="hint">Noch keine Kategorien vorhanden — oben eine anlegen.</p>';
   }
 }
 
