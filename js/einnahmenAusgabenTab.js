@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=9";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=9";
-import { betragFormatter } from "./charts.js?v=9";
-import { unterkategorieName } from "./kategorien.js?v=9";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=9";
-import { holeWechselkurs } from "./fx.js?v=9";
+import { getState, updateState, uid } from "./store.js?v=10";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=10";
+import { betragFormatter } from "./charts.js?v=10";
+import { unterkategorieName } from "./kategorien.js?v=10";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=10";
+import { holeWechselkurs } from "./fx.js?v=10";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -248,10 +248,10 @@ bezeichnungInput.addEventListener("input", function () {
 // Vorzeichen und Währung der gewählten Buchung — der Kurs aber NICHT den
 // damaligen (Vorlage kann alt sein): stattdessen wird der aktuelle Kurs neu
 // nachgeladen, siehe ladeKursVorschlag.
-vorlagenListe.addEventListener("click", function (e) {
-  const btn = e.target.closest("[data-id]");
-  if (!btn) return;
-  const vorlage = aktuelleVorschlaege.find(function (v) { return v.id === btn.dataset.id; });
+let vorlageUebernommen = false;
+
+function vorlageWaehlen(id) {
+  const vorlage = aktuelleVorschlaege.find(function (v) { return v.id === id; });
   if (!vorlage) return;
   bezeichnungInput.value = vorlage.name;
   fillUnterkategorieSelect(vorlage.unterkategorieId);
@@ -260,6 +260,32 @@ vorlagenListe.addEventListener("click", function (e) {
   waehrungSelect.value = vorlage.waehrung;
   vorlagenListe.hidden = true;
   ladeKursVorschlag();
+}
+
+// Absichtlich zusätzlich auf "pointerdown" (nicht nur "click"): ein Tap auf
+// den Vorschlag lässt das Bezeichnungsfeld zuerst den Fokus verlieren
+// (blur), bevor "click" feuert. Auf Android/Chrome kann dieses blur ein
+// zusätzliches, vom Tastatur-IME ausgelöstes "input"-Event auf dem
+// Bezeichnungsfeld nach sich ziehen, das die Vorschlagsliste
+// (aktuelleVorschlaege + ihr DOM) neu aufbaut, bevor der "click" verarbeitet
+// wird — mit dem Ergebnis, dass nur ein Teil der Felder übernommen wird.
+// preventDefault() auf "pointerdown" verhindert den Fokuswechsel überhaupt,
+// bevor die Auswahl hier synchron und vollständig verarbeitet ist. "click"
+// bleibt zusätzlich bestehen für Tastatur-Bedienung (Enter/Space auf einem
+// per Tab fokussierten Vorschlag), wo kein pointerdown vorausgeht.
+vorlagenListe.addEventListener("pointerdown", function (e) {
+  const btn = e.target.closest("[data-id]");
+  if (!btn) return;
+  e.preventDefault();
+  vorlageUebernommen = true;
+  vorlageWaehlen(btn.dataset.id);
+});
+
+vorlagenListe.addEventListener("click", function (e) {
+  const btn = e.target.closest("[data-id]");
+  if (!btn) return;
+  if (vorlageUebernommen) { vorlageUebernommen = false; return; }
+  vorlageWaehlen(btn.dataset.id);
 });
 
 document.addEventListener("click", function (e) {
