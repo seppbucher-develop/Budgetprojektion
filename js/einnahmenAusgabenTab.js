@@ -1,15 +1,17 @@
-import { getState, updateState, uid } from "./store.js?v=8";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=8";
-import { betragFormatter } from "./charts.js?v=8";
-import { unterkategorieName } from "./kategorien.js?v=8";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=8";
-import { holeWechselkurs } from "./fx.js?v=8";
+import { getState, updateState, uid } from "./store.js?v=9";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=9";
+import { betragFormatter } from "./charts.js?v=9";
+import { unterkategorieName } from "./kategorien.js?v=9";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=9";
+import { holeWechselkurs } from "./fx.js?v=9";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
 const rowsContainer = document.getElementById("buchungen-liste-rows");
 const jahrSelect = document.getElementById("buchungen-jahr-select");
 const sucheInput = document.getElementById("buchungen-suche");
+const listeHeadrow = document.querySelector("#buchungen-liste-table .buchungen-liste-headrow");
+const listeScroll = document.querySelector("#buchungen-liste-table .buchungen-liste-scroll");
 
 const dialog = document.getElementById("dialog-buchung");
 const form = document.getElementById("form-buchung");
@@ -122,6 +124,25 @@ jahrSelect.addEventListener("change", function () {
 sucheInput.addEventListener("input", function () {
   suchtext = sucheInput.value;
   renderRows(getState());
+});
+
+// Kopfzeile ist sticky (bleibt beim vertikalen Scrollen stehen) und hat
+// darum zwangsläufig einen eigenen horizontalen Scroll-Container statt des
+// gemeinsamen mit den Zeilen -- Position hier synchron halten, damit die
+// Spalten auf schmalen Bildschirmen (horizontaler Scroll nötig) weiterhin
+// zur Kopfzeile passen.
+let syncSperre = false;
+listeScroll.addEventListener("scroll", function () {
+  if (syncSperre) return;
+  syncSperre = true;
+  listeHeadrow.scrollLeft = listeScroll.scrollLeft;
+  syncSperre = false;
+});
+listeHeadrow.addEventListener("scroll", function () {
+  if (syncSperre) return;
+  syncSperre = true;
+  listeScroll.scrollLeft = listeHeadrow.scrollLeft;
+  syncSperre = false;
 });
 
 function fillUnterkategorieSelect(selectedId) {
