@@ -1,6 +1,6 @@
-import { getState, updateState } from "./store.js?v=16";
-import { berechneProjektion } from "./projection.js?v=16";
-import { drawLineChart, currencyFormatter } from "./charts.js?v=16";
+import { getState, updateState } from "./store.js?v=17";
+import { berechneProjektion } from "./projection.js?v=17";
+import { drawLineChart, currencyFormatter } from "./charts.js?v=17";
 
 const form = document.getElementById("form-projektion-einstellungen");
 const rowsContainer = document.getElementById("projektion-rows");

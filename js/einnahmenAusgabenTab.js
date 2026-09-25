@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=16";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=16";
-import { betragFormatter } from "./charts.js?v=16";
-import { unterkategorieName } from "./kategorien.js?v=16";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=16";
-import { holeWechselkurs } from "./fx.js?v=16";
+import { getState, updateState, uid } from "./store.js?v=17";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=17";
+import { betragFormatter } from "./charts.js?v=17";
+import { unterkategorieName } from "./kategorien.js?v=17";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=17";
+import { holeWechselkurs } from "./fx.js?v=17";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -21,7 +21,6 @@ const vorlagenListe = document.getElementById("buchung-vorlagen-liste");
 const unterkategorieSelect = document.getElementById("buchung-unterkategorie");
 const waehrungSelect = document.getElementById("buchung-waehrung");
 const betragInput = document.getElementById("buchung-betrag");
-const fremdwaehrungFeld = document.getElementById("buchung-fremdwaehrung-feld");
 const fremdwaehrungBetragInput = document.getElementById("buchung-fremdwaehrung-betrag");
 const kursFeld = document.getElementById("buchung-kurs-feld");
 const kursInput = document.getElementById("buchung-kurs");
@@ -210,7 +209,7 @@ function openDialog(row) {
 // Internet, siehe ladeKursVorschlag, bleibt aber manuell übersteuerbar).
 function aktualisiereWaehrungsFelder() {
   const istChf = waehrungSelect.value === "CHF";
-  fremdwaehrungFeld.hidden = istChf;
+  fremdwaehrungBetragInput.hidden = istChf;
   fremdwaehrungBetragInput.disabled = istChf;
   kursFeld.hidden = istChf;
   kursInput.disabled = istChf;
@@ -260,7 +259,16 @@ async function ladeKursVorschlag() {
   aktualisiereBetragAusFremdwaehrung();
 }
 
-waehrungSelect.addEventListener("change", ladeKursVorschlag);
+// Beim Wechsel auf eine Fremdwährung übernimmt der Fremdwährungsbetrag den
+// bisherigen Wert aus dem Betragsfeld (statt leer zu bleiben) -- direkt
+// danach berechnet ladeKursVorschlag() den umgerechneten CHF-Betrag daraus
+// neu und schreibt ihn ins Betragsfeld zurück.
+waehrungSelect.addEventListener("change", function () {
+  if (waehrungSelect.value !== "CHF" && betragInput.value !== "") {
+    fremdwaehrungBetragInput.value = betragInput.value;
+  }
+  ladeKursVorschlag();
+});
 form.valutadatum.addEventListener("change", ladeKursVorschlag);
 fremdwaehrungBetragInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
 kursInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
