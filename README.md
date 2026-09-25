@@ -7,15 +7,19 @@ Schwesterprojekt „Flugbuch“); Sekundäres wie Backup/Restore steckt gesammel
 unter „Service“:
 
 - **Einnahmen/Ausgaben** – alle Buchungen direkt in der App erfassen und
-  pflegen (kein CSV-Import mehr). Jede Buchung trägt drei Daten: das
-  Buchungsdatum (für den Budgetvergleich), das Valutadatum (für die
-  Rendite-Analyse) und einen automatisch gesetzten Erfassungszeitpunkt.
-  Beim Eintippen der Bezeichnung schlägt ein Typeahead passende frühere
-  Buchungen vor (je Bezeichnung die jüngste); Auswahl übernimmt
-  Unterkategorie, Betrag, Vorzeichen, Währung und Kurs. Buchungen können in
-  Fremdwährung erfasst werden (Default CHF); bei Fremdwährung schlägt die App
-  automatisch den Tageskurs zum Valutadatum vor (siehe „Wechselkurse“ unten),
-  der Kurs bleibt aber jederzeit manuell überschreibbar.
+  pflegen (kein CSV-Import mehr), gefiltert nach Jahr (Default: laufendes
+  Jahr) oder per Volltextsuche über Bezeichnung/Betrag (durchsucht alle
+  Jahre). Jede Buchung trägt drei Daten: das Buchungsdatum (für den
+  Budgetvergleich), das Valutadatum (für die Rendite-Analyse) und einen
+  automatisch gesetzten Erfassungszeitpunkt. Beim Eintippen der Bezeichnung
+  schlägt ein Typeahead passende frühere Buchungen vor (je Bezeichnung die
+  jüngste); Auswahl übernimmt Unterkategorie, Betrag, Vorzeichen und
+  Währung. Buchungen können in Fremdwährung erfasst werden (Default CHF);
+  bei Fremdwährung schlägt die App automatisch den Kurs vor (siehe
+  „Wechselkurse“ unten) – zum Valutadatum, oder den aktuellen Kurs, wenn das
+  Valutadatum in der Zukunft liegt oder eine Vorlage gewählt wurde (nie den
+  ggf. veralteten Kurs der Vorlage selbst) –, bleibt aber jederzeit manuell
+  überschreibbar.
 - **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
   AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
   *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben
