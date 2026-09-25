@@ -1,6 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=3";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=3";
-import { currencyFormatter } from "./charts.js?v=3";
+import { getState, updateState, uid } from "./store.js?v=4";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=4";
+import { currencyFormatter } from "./charts.js?v=4";
+import { kategorieName } from "./kategorien.js?v=4";
 
 const rowsContainer = document.getElementById("budget-rows");
 const emptyHint = document.getElementById("budget-empty-hint");
@@ -10,13 +11,17 @@ const form = document.getElementById("form-budget-row");
 let editId = null;
 
 function sortedRows() {
-  return getState().budgetPosten.slice().sort(function (a, b) {
-    if (a.posten !== b.posten) return a.posten.localeCompare(b.posten);
+  const state = getState();
+  return state.budgetPosten.slice().sort(function (a, b) {
+    const na = kategorieName(state, a.kategorieId);
+    const nb = kategorieName(state, b.kategorieId);
+    if (na !== nb) return na.localeCompare(nb);
     return a.ab < b.ab ? -1 : a.ab > b.ab ? 1 : 0;
   });
 }
 
 export function renderBudgetTab() {
+  const state = getState();
   const rows = sortedRows();
   emptyHint.style.display = rows.length === 0 ? "block" : "none";
   document.getElementById("budget-table").style.display = rows.length === 0 ? "none" : "block";
@@ -29,7 +34,7 @@ export function renderBudgetTab() {
       ? '<span class="typ-symbol" title="Einmalig (nur im angegebenen Jahr)">1×</span>'
       : '<span class="typ-symbol" title="Wiederkehrend (gilt ab diesem Jahr bis zur nächsten Änderung)">↻</span>';
     rowEl.innerHTML =
-      "<div>" + escapeHtml(row.posten) + "</div>" +
+      "<div>" + escapeHtml(kategorieName(state, row.kategorieId)) + "</div>" +
       '<div class="' + (row.betrag < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(row.betrag) + "</div>" +
       "<div>" + formatIsoDate(row.ab) + "</div>" +
       "<div>" + typSymbol + "</div>" +
@@ -49,16 +54,18 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
-function fillPostenDatalist() {
-  const namen = Array.from(new Set(getState().budgetPosten.map(function (r) { return r.posten; })));
-  document.getElementById("budget-posten-liste").innerHTML =
-    namen.map(function (n) { return '<option value="' + n.replace(/"/g, "&quot;") + '">'; }).join("");
+function fillKategorieSelect(selectedId) {
+  const state = getState();
+  const kategorien = state.kategorien.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+  form.kategorieId.innerHTML = kategorien.map(function (k) {
+    return '<option value="' + k.id + '">' + escapeHtml(k.name) + "</option>";
+  }).join("");
+  if (selectedId) form.kategorieId.value = selectedId;
 }
 
 function openDialog(row) {
   editId = row ? row.id : null;
-  fillPostenDatalist();
-  form.posten.value = row ? row.posten : "";
+  fillKategorieSelect(row ? row.kategorieId : null);
   form.vorzeichen.value = row && row.betrag > 0 ? "ertrag" : "kosten";
   form.betrag.value = row ? Math.abs(row.betrag) : "";
   form.ab.value = row ? row.ab : todayIso();
@@ -81,12 +88,12 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
   const betragsBetrag = Math.abs(parseFloat(form.betrag.value));
   const data = {
-    posten: form.posten.value.trim(),
+    kategorieId: form.kategorieId.value,
     betrag: form.vorzeichen.value === "kosten" ? -betragsBetrag : betragsBetrag,
     ab: form.ab.value,
     typ: form.typ.value
   };
-  if (!data.posten || isNaN(data.betrag) || !data.ab) return;
+  if (!data.kategorieId || isNaN(data.betrag) || !data.ab) return;
 
   updateState(function (s) {
     if (editId) {

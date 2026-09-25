@@ -1,12 +1,14 @@
 # Budgetprojektion
 
 Eine rein clientseitige Webapp (kein Backend, keine Datenübertragung) für die
-persönliche Finanzplanung:
+persönliche Finanzplanung. Die primären Funktionen erscheinen beim Öffnen als
+Kartenübersicht (analog dem Schwesterprojekt „Flugbuch“); Sekundäres wie
+Backup/Restore steckt gesammelt unter „Service“:
 
-- **Budget** – Kosten und Erträge pro Jahr, pro Posten (z. B. Auto, Wohnen,
-  AHV/PK). Jeder Posten gilt entweder *wiederkehrend* ab einem Datum (bis zur
-  nächsten Änderung derselben Kategorie) oder *einmalig* nur in seinem Jahr
-  (z. B. eine Anschaffung).
+- **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
+  AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
+  *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben
+  Kategorie) oder *einmalig* nur in seinem Jahr (z. B. eine Anschaffung).
 - **Vermögen** – Kontostände zu einem oder mehreren Stichtagen.
 - **Projektion** – 30-Jahres-Hochrechnung des Vermögens auf Basis von
   budgetierten Erträgen und Kosten sowie Rendite- und Inflationsannahmen.
@@ -47,15 +49,20 @@ Label „Budget“ und öffnet ohne Browser-Chrome (`display: standalone`). Das
 Icon (Note + Münzen) liegt als Vektorquelle unter `icons/icon.svg` bzw.
 `icons/icon-maskable.svg`; alle PNG-Grössen sind daraus gerendert.
 
-### Budget & Vermögen importieren
+### Kategorien verwalten
 
-Im Tab „Budget“ kann einmalig eine `Budget_Pension.xlsx`-Datei importiert
-werden (Tab „Budget“ mit Spalten *Posten*, *Budget*, *ab*; Tab „Vermögen“
-mit Spalte *Datum* und beliebig vielen Kontospalten). Der xlsx-Reader ist
-selbst geschrieben (kein externer Netzwerk-Dependency) und liest die Datei
-direkt im Browser. Nach dem Import werden beide Tabs vollständig in der App
-gepflegt (Posten/Stichtage hinzufügen, bearbeiten, löschen); ein erneuter
-Excel-Import ist jederzeit möglich, überschreibt aber die aktuellen Daten.
+Im Tab „Budget“ über „Kategorien verwalten…“: Kategorien (z. B. "Wohnen")
+und ihre Unterkategorien (z. B. "Miete") werden mit einer stabilen ID als
+Primärschlüssel angelegt/umbenannt/gelöscht (Löschen ist blockiert, solange
+sie noch von einem Budget-Posten oder einer realen Buchung referenziert
+werden). Budget-Posten sowie beim CSV-Import gefundene Kategoriengruppe/
+Kategorie werden anhand ihres Namens dieser Liste zugeordnet (neue
+Bezeichnungen legen automatisch eine neue Kategorie/Unterkategorie an).
+
+### Budget & Vermögen pflegen
+
+Budget-Posten und Vermögens-Stichtage werden direkt in der App gepflegt
+(hinzufügen, bearbeiten, löschen) — es gibt keinen Datei-Import dafür.
 
 ### Reale Kosten importieren
 
@@ -66,7 +73,7 @@ Daten immer dem aktuellen Export entsprechen.
 
 ### Backup & Restore
 
-Im Tab „Sicherung“ lässt sich der gesamte App-Zustand (Budget, Vermögen,
+Im Tab „Service“ lässt sich der gesamte App-Zustand (Budget, Vermögen,
 importierte Transaktionen, Einstellungen) als Datei sichern und wieder
 einspielen — z. B. vor grösseren Änderungen oder zum Übertragen auf ein
 anderes Gerät. Das Backup sichert generisch jeden `localStorage`-Schlüssel
@@ -93,7 +100,7 @@ es beim Teilen-/Download-Weg oben.
 Die Version der App wird aus Git-Tags abgeleitet und in `version.json`
 festgehalten (es gibt keinen Build-Server, der das für die App selbst
 automatisch könnte). Sie erscheint im Footer sowie im Dateinamen jedes
-Backups (Tab „Sicherung“).
+Backups (Tab „Service“).
 
 **Patch-Version (v0.1.0 → v0.1.1 → v0.1.2 → …): automatisch.** Der
 GitHub-Actions-Workflow `.github/workflows/bump-version.yml` läuft nach
@@ -123,9 +130,11 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `index.html` – Tabs, Formulare, Dialoge
 - `css/style.css` – Styling (hell/dunkel via `prefers-color-scheme`)
 - `js/store.js` – zentraler Zustand inkl. `localStorage`-Persistenz
-- `js/dateUtils.js` – Datumshilfsfunktionen (u. a. Excel-Serial-Daten)
-- `js/xlsxReader.js` – minimaler, abhängigkeitsfreier xlsx-Reader (ZIP + XML)
-- `js/importXlsx.js` – einmaliger Import aus der Excel-Datei
+- `js/dateUtils.js` – Datumshilfsfunktionen
+- `js/kategorien.js` – Kategorie-/Unterkategorie-Stammdaten (find-or-create,
+  Namens-Lookup, Verwendungsprüfung) und die einmalige Migration alter
+  Freitext-Felder auf IDs
+- `js/kategorienDialog.js` – CRUD-Dialog "Kategorien verwalten" (Budget-Tab)
 - `js/importCsv.js` – wiederholbarer Import der Bluecoins-CSV
 - `js/budgetTab.js`, `js/vermoegenTab.js` – CRUD-UI für Budget/Vermögen
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
@@ -141,7 +150,9 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/backup.js`, `js/backupTab.js` – Backup & Restore
 - `js/fsapiHandle.js` – IndexedDB-Ablage für den gewählten Backup-Ordner (File System Access API)
 - `js/version.js` – lädt `version.json` und zeigt sie im Footer an
-- `js/app.js` – Tab-Navigation und Bootstrap
+- `js/collapsibleHints.js` – macht Erklärungstexte (`.hint.collapsible`)
+  standardmässig eingeklappt und über ein Symbol aufklappbar
+- `js/app.js` – Kartenübersicht/Tab-Navigation und Bootstrap
 - `version.json` – aktuelle Versionsnummer (siehe Abschnitt Versionierung)
 - `scripts/update-version.sh` – schreibt den aktuellen Git-Tag nach `version.json`
 - `scripts/bump-js-version.sh` – erhöht den JS-Modul-Cache-Buster (`?v=`) in

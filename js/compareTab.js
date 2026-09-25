@@ -1,8 +1,9 @@
-import { getState } from "./store.js?v=3";
-import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=3";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=3";
-import { renderImportInfo } from "./importUi.js?v=3";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=3";
+import { getState } from "./store.js?v=4";
+import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=4";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=4";
+import { renderImportInfo } from "./importUi.js?v=4";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=4";
+import { kategorieName } from "./kategorien.js?v=4";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -22,6 +23,7 @@ function pctText(v) {
 }
 
 function renderJahrTabelleUndChart(abw) {
+  const state = getState();
   const jahr = ausgewaehltesJahr;
   const zeilen = abw.zeilen.filter(function (z) { return z.jahr === jahr; }).sort(function (a, b) {
     return Math.abs(b.abweichung) - Math.abs(a.abweichung);
@@ -34,13 +36,13 @@ function renderJahrTabelleUndChart(abw) {
   zeilen.forEach(function (z) {
     const tr = document.createElement("tr");
     tr.innerHTML =
-      "<td>" + z.posten + "</td>" +
+      "<td>" + kategorieName(state, z.kategorieId) + "</td>" +
       '<td class="num">' + currencyFormatter.format(z.budget) + "</td>" +
       '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(z.real) + "</button></td>" +
       '<td class="num ' + (z.abweichung < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(z.abweichung) + "</td>" +
       '<td class="num ' + (z.abweichung < 0 ? "negative" : "positive") + '">' + pctText(z.abweichungPct) + "</td>";
     tr.querySelector('[data-action="buchungen"]').addEventListener("click", function () {
-      openBuchungenDialog(jahr, z.posten);
+      openBuchungenDialog(jahr, z.kategorieId);
     });
     tbody.appendChild(tr);
   });
@@ -56,7 +58,7 @@ function renderJahrTabelleUndChart(abw) {
     '<td class="num total ' + (abweichungSumme < 0 ? "negative" : "positive") + '">' + currencyFormatter.format(abweichungSumme) + "</td>" +
     '<td class="num total ' + (abweichungSumme < 0 ? "negative" : "positive") + '">' + pctText(abweichungSummePct) + "</td>";
 
-  drawGroupedBarChart(jahrChart, zeilen.map(function (z) { return z.posten; }), [
+  drawGroupedBarChart(jahrChart, zeilen.map(function (z) { return kategorieName(state, z.kategorieId); }), [
     { name: "Budget", color: "#94a3b8", values: zeilen.map(function (z) { return Math.abs(z.budget); }) },
     { name: "Real", color: "#2563eb", values: zeilen.map(function (z) { return Math.abs(z.real); }) }
   ]);
@@ -75,6 +77,7 @@ function renderTrendChart(abw) {
 }
 
 function renderSparpotenzial(sp) {
+  const state = getState();
   function liste(el, items, art) {
     el.innerHTML = "";
     if (items.length === 0) {
@@ -84,11 +87,12 @@ function renderSparpotenzial(sp) {
     items.forEach(function (item) {
       const li = document.createElement("li");
       const betrag = currencyFormatter.format(Math.abs(item.durchschnittAbweichung));
+      const name = kategorieName(state, item.kategorieId);
       if (art === "ueberschreitung") {
-        li.innerHTML = "<strong>" + item.posten + "</strong>: im Schnitt " + betrag +
+        li.innerHTML = "<strong>" + name + "</strong>: im Schnitt " + betrag +
           "/Jahr über Budget (" + item.anzahlJahre + " Jahr(e) betrachtet) – Reduktion auf Budgetniveau spart ca. " + betrag + "/Jahr.";
       } else {
-        li.innerHTML = "<strong>" + item.posten + "</strong>: im Schnitt " + betrag +
+        li.innerHTML = "<strong>" + name + "</strong>: im Schnitt " + betrag +
           "/Jahr unter Budget (" + item.anzahlJahre + " Jahr(e) betrachtet) – Budget könnte reduziert oder umverteilt werden.";
       }
       el.appendChild(li);

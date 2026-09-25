@@ -5,11 +5,11 @@
 // Uhrzeit (Sekunde), siehe importCsv.js. Ergebnis speist den cashflowLog
 // (renditeAnalyse.js), der dem tatsächlichen Erfassungs-/Zahlungszeitpunkt
 // statt dem Buchungsdatum zugeordnet wird.
-import { uid } from "./store.js?v=3";
-import { todayIso } from "./dateUtils.js?v=3";
+import { uid } from "./store.js?v=4";
+import { todayIso } from "./dateUtils.js?v=4";
 
 function transaktionsKey(t) {
-  return (t.kategorie || "") + "|" + (t.zeit || "");
+  return (t.unterkategorieId || "") + "|" + (t.zeit || "");
 }
 
 function gruppiereNachKey(transaktionen) {
@@ -77,7 +77,7 @@ export function berechneCashflowDiff(alteTransaktionen, neueTransaktionen) {
       const beispiel = neue[0] || alte[0];
       unklar.push({
         key: key,
-        kategorie: beispiel.kategorie,
+        unterkategorieId: beispiel.unterkategorieId,
         zeit: beispiel.zeit,
         alte: rest.alteRest,
         neue: rest.neueRest
@@ -88,9 +88,9 @@ export function berechneCashflowDiff(alteTransaktionen, neueTransaktionen) {
   return { neu: neu, verschwunden: verschwunden, korrigiert: korrigiert, unklar: unklar };
 }
 
-function findeLogEintrag(cashflowLog, kategorie, zeit, betrag) {
+function findeLogEintrag(cashflowLog, unterkategorieId, zeit, betrag) {
   return cashflowLog.findIndex(function (e) {
-    return e.kategorie === kategorie && e.zeit === zeit && e.betrag === betrag;
+    return e.unterkategorieId === unterkategorieId && e.zeit === zeit && e.betrag === betrag;
   });
 }
 
@@ -103,16 +103,16 @@ export function wendeAutoDiffAn(state, diff) {
   const heute = todayIso();
 
   diff.neu.forEach(function (t) {
-    state.cashflowLog.push({ id: uid(), kategorie: t.kategorie, zeit: t.zeit, betrag: t.betragChf, erkanntAm: heute });
+    state.cashflowLog.push({ id: uid(), unterkategorieId: t.unterkategorieId, zeit: t.zeit, betrag: t.betragChf, erkanntAm: heute });
   });
 
   diff.verschwunden.forEach(function (t) {
-    const idx = findeLogEintrag(state.cashflowLog, t.kategorie, t.zeit, t.betragChf);
+    const idx = findeLogEintrag(state.cashflowLog, t.unterkategorieId, t.zeit, t.betragChf);
     if (idx !== -1) state.cashflowLog.splice(idx, 1);
   });
 
   diff.korrigiert.forEach(function (paar) {
-    const idx = findeLogEintrag(state.cashflowLog, paar.alt.kategorie, paar.alt.zeit, paar.alt.betragChf);
+    const idx = findeLogEintrag(state.cashflowLog, paar.alt.unterkategorieId, paar.alt.zeit, paar.alt.betragChf);
     if (idx !== -1) state.cashflowLog[idx].betrag = paar.neu.betragChf;
   });
 }
@@ -135,13 +135,13 @@ export function wendeUnklarEntscheideAn(state, diff, unklarEntscheide) {
       const neuerEintrag = gruppe.neue[j];
       if (!neuerEintrag) return;
       if (entscheid.art === "korrektur") {
-        const idx = findeLogEintrag(state.cashflowLog, gruppe.kategorie, gruppe.zeit, entscheid.altBetrag);
+        const idx = findeLogEintrag(state.cashflowLog, gruppe.unterkategorieId, gruppe.zeit, entscheid.altBetrag);
         if (idx !== -1) {
           state.cashflowLog[idx].betrag = neuerEintrag.betragChf;
           return;
         }
       }
-      state.cashflowLog.push({ id: uid(), kategorie: gruppe.kategorie, zeit: gruppe.zeit, betrag: neuerEintrag.betragChf, erkanntAm: heute });
+      state.cashflowLog.push({ id: uid(), unterkategorieId: gruppe.unterkategorieId, zeit: gruppe.zeit, betrag: neuerEintrag.betragChf, erkanntAm: heute });
     });
   });
 }
