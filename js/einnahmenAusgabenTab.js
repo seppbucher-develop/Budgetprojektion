@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=12";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=12";
-import { betragFormatter } from "./charts.js?v=12";
-import { unterkategorieName } from "./kategorien.js?v=12";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=12";
-import { holeWechselkurs } from "./fx.js?v=12";
+import { getState, updateState, uid } from "./store.js?v=14";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=14";
+import { betragFormatter } from "./charts.js?v=14";
+import { unterkategorieName } from "./kategorien.js?v=14";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=14";
+import { holeWechselkurs } from "./fx.js?v=14";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -15,12 +15,25 @@ const listeScroll = document.querySelector("#buchungen-liste-table .buchungen-li
 
 const dialog = document.getElementById("dialog-buchung");
 const form = document.getElementById("form-buchung");
+const dialogDeleteBtn = document.getElementById("dialog-buchung-delete");
 const bezeichnungInput = document.getElementById("buchung-bezeichnung");
 const vorlagenListe = document.getElementById("buchung-vorlagen-liste");
 const unterkategorieSelect = document.getElementById("buchung-unterkategorie");
 const waehrungSelect = document.getElementById("buchung-waehrung");
+const betragInput = document.getElementById("buchung-betrag");
+const fremdwaehrungFeld = document.getElementById("buchung-fremdwaehrung-feld");
+const fremdwaehrungBetragInput = document.getElementById("buchung-fremdwaehrung-betrag");
+const kursFeld = document.getElementById("buchung-kurs-feld");
 const kursInput = document.getElementById("buchung-kurs");
 const kursStatus = document.getElementById("buchung-kurs-status");
+
+// Erlaubt sowohl "." als auch "," als Dezimaltrennzeichen bei der Eingabe
+// (Android zeigt je nach Geräte-/Tastatur-Locale mal das eine, mal das
+// andere) -- angezeigt wird dank Textfeldern (statt type="number") überall
+// einheitlich mit ".", wie in der Buchungsliste.
+function parseDezimal(text) {
+  return parseFloat(String(text).trim().replace(",", "."));
+}
 
 let editId = null;
 let ausgewaehltesJahr = null;
@@ -174,25 +187,50 @@ function openDialog(row) {
   fillUnterkategorieSelect(row ? row.unterkategorieId : null);
   bezeichnungInput.value = row ? row.name : "";
   form.vorzeichen.value = row && row.betragChf >= 0 ? "einnahme" : "ausgabe";
-  form.betrag.value = row ? row.betrag : "";
   form.datum.value = row ? row.datum : todayIso();
   form.valutadatum.value = row ? row.valutadatum : todayIso();
   waehrungSelect.value = row ? row.waehrung : "CHF";
   kursInput.value = row ? row.kurs : 1;
+  fremdwaehrungBetragInput.value = row ? row.betrag : "";
+  betragInput.value = row
+    ? (row.waehrung === "CHF" ? row.betrag : Math.abs(row.betragChf).toFixed(2))
+    : "";
   kursStatus.textContent = "";
-  aktualisiereKursFeldAnzeige();
+  aktualisiereWaehrungsFelder();
   document.getElementById("dialog-buchung-title").textContent = row ? "Buchung bearbeiten" : "Neue Buchung";
+  dialogDeleteBtn.hidden = !row;
   vorlagenListe.hidden = true;
   dialog.showModal();
 }
 
-// CHF braucht keinen Kurs (immer 1, Feld gesperrt); bei Fremdwährung ist der
-// Kurs frei editierbar (Vorschlag kommt automatisch aus dem Internet, siehe
-// unten, kann aber jederzeit manuell übersteuert werden).
-function aktualisiereKursFeldAnzeige() {
+// CHF: Betrag direkt editierbar (kein Kurs nötig, Fremdwährungsfeld
+// unnötig). Fremdwährung: Betrag (CHF) wird aus Fremdwährungsbetrag × Kurs
+// berechnet und ist darum gesperrt -- editiert werden stattdessen der
+// Fremdwährungsbetrag und der Kurs (Vorschlag kommt automatisch aus dem
+// Internet, siehe ladeKursVorschlag, bleibt aber manuell übersteuerbar).
+function aktualisiereWaehrungsFelder() {
   const istChf = waehrungSelect.value === "CHF";
+  fremdwaehrungFeld.hidden = istChf;
+  fremdwaehrungBetragInput.disabled = istChf;
+  kursFeld.hidden = istChf;
   kursInput.disabled = istChf;
-  if (istChf) kursInput.value = 1;
+  betragInput.disabled = !istChf;
+  if (istChf) {
+    kursInput.value = "1";
+  } else {
+    aktualisiereBetragAusFremdwaehrung();
+  }
+}
+
+// Betrag (CHF) live aus Fremdwährungsbetrag × Kurs berechnen (nur bei
+// Fremdwährung -- bei CHF bleibt das Feld frei editierbar).
+function aktualisiereBetragAusFremdwaehrung() {
+  if (waehrungSelect.value === "CHF") return;
+  const fremdwaehrungsbetrag = parseDezimal(fremdwaehrungBetragInput.value);
+  const kurs = parseDezimal(kursInput.value);
+  betragInput.value = (!isNaN(fremdwaehrungsbetrag) && !isNaN(kurs))
+    ? (fremdwaehrungsbetrag * kurs).toFixed(2)
+    : "";
 }
 
 // Kurs automatisch aus dem Internet nachladen (Frankfurter API, siehe
@@ -204,7 +242,7 @@ function aktualisiereKursFeldAnzeige() {
 async function ladeKursVorschlag() {
   const waehrung = waehrungSelect.value;
   const datum = form.valutadatum.value;
-  aktualisiereKursFeldAnzeige();
+  aktualisiereWaehrungsFelder();
   if (waehrung === "CHF") return;
 
   const anfrageId = ++kursAnfrageZaehler;
@@ -219,20 +257,28 @@ async function ladeKursVorschlag() {
   } else {
     kursStatus.textContent = "Kurs konnte nicht automatisch geladen werden — bitte manuell erfassen.";
   }
+  aktualisiereBetragAusFremdwaehrung();
 }
 
 waehrungSelect.addEventListener("change", ladeKursVorschlag);
 form.valutadatum.addEventListener("change", ladeKursVorschlag);
+fremdwaehrungBetragInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
+kursInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
 
 function deleteBuchung(id) {
-  if (!confirm("Diese Buchung wirklich löschen?")) return;
+  if (!confirm("Diese Buchung wirklich löschen?")) return false;
   updateState(function (s) {
     s.realTransaktionen = s.realTransaktionen.filter(function (t) { return t.id !== id; });
   });
+  return true;
 }
 
 document.getElementById("btn-add-buchung").addEventListener("click", function () { openDialog(null); });
 document.getElementById("dialog-buchung-cancel").addEventListener("click", function () { dialog.close(); });
+dialogDeleteBtn.addEventListener("click", function () {
+  if (!editId) return;
+  if (deleteBuchung(editId)) dialog.close();
+});
 
 // Vorlagen-Typeahead: bei jeder Eingabe die passenden früheren Buchungen
 // (je Bezeichnung nur die jüngste) als Auswahlliste anzeigen. Übernommen
@@ -265,8 +311,12 @@ function vorlageWaehlen(id) {
   bezeichnungInput.value = vorlage.name;
   fillUnterkategorieSelect(vorlage.unterkategorieId);
   form.vorzeichen.value = vorlage.betragChf >= 0 ? "einnahme" : "ausgabe";
-  form.betrag.value = vorlage.betrag;
   waehrungSelect.value = vorlage.waehrung;
+  if (vorlage.waehrung === "CHF") {
+    betragInput.value = vorlage.betrag;
+  } else {
+    fremdwaehrungBetragInput.value = vorlage.betrag;
+  }
   vorlagenListe.hidden = true;
   ladeKursVorschlag();
 }
@@ -307,8 +357,9 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
   const state = getState();
   const unterkategorie = state.unterkategorien.find(function (u) { return u.id === form.unterkategorieId.value; });
-  const betrag = Math.abs(parseFloat(form.betrag.value));
-  const kurs = Math.abs(parseFloat(kursInput.value));
+  const istChf = waehrungSelect.value === "CHF";
+  const kurs = istChf ? 1 : Math.abs(parseDezimal(kursInput.value));
+  const betrag = Math.abs(istChf ? parseDezimal(betragInput.value) : parseDezimal(fremdwaehrungBetragInput.value));
   const betragChf = betrag * kurs;
   const data = {
     name: bezeichnungInput.value.trim(),
