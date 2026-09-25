@@ -648,6 +648,14 @@ body {
   column-gap: 8px;
 }
 
+#buchungen-liste-rows .buchungen-liste-row {
+  cursor: pointer;
+}
+
+#buchungen-liste-rows .buchungen-liste-row:hover {
+  background: var(--color-bg);
+}
+
 .buchungen-liste-row > div {
   padding: 4px 8px;
   border-bottom: 1px solid var(--color-border);
@@ -661,16 +669,38 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Kopfzeile beim Scrollen der Liste stehen lassen. .table-scroll hat
-   overflow-x: auto, wodurch overflow-y je nach Browser implizit ebenfalls
-   zum Scroll-Container werden kann -- sticky mit top:0 bleibt aber auch
-   dann korrekt, weil die Kopfzeile die volle Zeilenbreite einnimmt und nie
-   selbst horizontal verschoben werden muss. */
+/* Kopfzeile beim Scrollen der Liste stehen lassen. Damit position:sticky
+   relativ zur Seite (statt zu einem inneren Container) greift, darf kein
+   Vorfahre der Kopfzeile selbst overflow ungleich "visible" setzen -- sonst
+   wird DIESER Vorfahre zum Bezugsrahmen fuer "sticky" und die Kopfzeile
+   "klebt" nur innerhalb von dessen (nie scrollender) Box, statt beim
+   Scrollen der Seite oben stehen zu bleiben. Deshalb liegt die Kopfzeile
+   hier als Geschwister VOR .buchungen-liste-scroll (die horizontal
+   scrollbar sein darf), nicht als Kind davon. Auf schmalen Bildschirmen,
+   auf denen die Zeile breiter als der Bildschirm ist, braucht darum auch
+   die Kopfzeile selbst einen eigenen (unsichtbaren) horizontalen Scroll,
+   dessen Position per JS mit dem der Zeilen synchron gehalten wird (siehe
+   einnahmenAusgabenTab.js) -- sonst würden die Spalten beim horizontalen
+   Scrollen der Zeilen nicht mehr zur Kopfzeile passen. */
+#buchungen-liste-table {
+  margin: 0 -16px;
+}
+
+.buchungen-liste-scroll {
+  overflow-x: auto;
+}
+
 .buchungen-liste-headrow {
   position: sticky;
   top: 0;
   z-index: 2;
   background: var(--color-surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.buchungen-liste-headrow::-webkit-scrollbar {
+  display: none;
 }
 
 .buchungen-suche-feld {

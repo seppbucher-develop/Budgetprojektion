@@ -1,15 +1,17 @@
-import { getState, updateState, uid } from "./store.js?v=8";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=8";
-import { betragFormatter } from "./charts.js?v=8";
-import { unterkategorieName } from "./kategorien.js?v=8";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=8";
-import { holeWechselkurs } from "./fx.js?v=8";
+import { getState, updateState, uid } from "./store.js?v=11";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=11";
+import { betragFormatter } from "./charts.js?v=11";
+import { unterkategorieName } from "./kategorien.js?v=11";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=11";
+import { holeWechselkurs } from "./fx.js?v=11";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
 const rowsContainer = document.getElementById("buchungen-liste-rows");
 const jahrSelect = document.getElementById("buchungen-jahr-select");
 const sucheInput = document.getElementById("buchungen-suche");
+const listeHeadrow = document.querySelector("#buchungen-liste-table .buchungen-liste-headrow");
+const listeScroll = document.querySelector("#buchungen-liste-table .buchungen-liste-scroll");
 
 const dialog = document.getElementById("dialog-buchung");
 const form = document.getElementById("form-buchung");
@@ -92,7 +94,7 @@ export function renderEinnahmenAusgabenTab() {
 function renderRows(state) {
   const rows = zeilenGefiltert(state);
   rowsContainer.innerHTML = rows.map(function (t) {
-    return '<div class="buchungen-liste-row">' +
+    return '<div class="buchungen-liste-row" data-id="' + t.id + '">' +
       "<div>" + formatIsoDate(t.datum) + "</div>" +
       "<div>" + escapeHtml(t.name) + "</div>" +
       "<div>" + escapeHtml(unterkategorieName(state, t.unterkategorieId)) + "</div>" +
@@ -104,6 +106,15 @@ function renderRows(state) {
       "</div>";
   }).join("");
 
+  // Klick auf die Zeile selbst öffnet ebenfalls den Bearbeiten-Dialog (nicht
+  // nur der Stift), ausser der Klick trifft eine der Aktions-Schaltflächen
+  // (die haben ihr eigenes Verhalten, siehe unten).
+  rowsContainer.querySelectorAll(".buchungen-liste-row").forEach(function (rowEl) {
+    rowEl.addEventListener("click", function (e) {
+      if (e.target.closest("[data-action]")) return;
+      openDialog(rows.find(function (t) { return t.id === rowEl.dataset.id; }));
+    });
+  });
   rowsContainer.querySelectorAll('[data-action="edit"]').forEach(function (btn) {
     btn.addEventListener("click", function () {
       openDialog(rows.find(function (t) { return t.id === btn.dataset.id; }));
@@ -122,6 +133,25 @@ jahrSelect.addEventListener("change", function () {
 sucheInput.addEventListener("input", function () {
   suchtext = sucheInput.value;
   renderRows(getState());
+});
+
+// Kopfzeile ist sticky (bleibt beim vertikalen Scrollen stehen) und hat
+// darum zwangsläufig einen eigenen horizontalen Scroll-Container statt des
+// gemeinsamen mit den Zeilen -- Position hier synchron halten, damit die
+// Spalten auf schmalen Bildschirmen (horizontaler Scroll nötig) weiterhin
+// zur Kopfzeile passen.
+let syncSperre = false;
+listeScroll.addEventListener("scroll", function () {
+  if (syncSperre) return;
+  syncSperre = true;
+  listeHeadrow.scrollLeft = listeScroll.scrollLeft;
+  syncSperre = false;
+});
+listeHeadrow.addEventListener("scroll", function () {
+  if (syncSperre) return;
+  syncSperre = true;
+  listeScroll.scrollLeft = listeHeadrow.scrollLeft;
+  syncSperre = false;
 });
 
 function fillUnterkategorieSelect(selectedId) {
@@ -227,10 +257,10 @@ bezeichnungInput.addEventListener("input", function () {
 // Vorzeichen und Währung der gewählten Buchung — der Kurs aber NICHT den
 // damaligen (Vorlage kann alt sein): stattdessen wird der aktuelle Kurs neu
 // nachgeladen, siehe ladeKursVorschlag.
-vorlagenListe.addEventListener("click", function (e) {
-  const btn = e.target.closest("[data-id]");
-  if (!btn) return;
-  const vorlage = aktuelleVorschlaege.find(function (v) { return v.id === btn.dataset.id; });
+let vorlageUebernommen = false;
+
+function vorlageWaehlen(id) {
+  const vorlage = aktuelleVorschlaege.find(function (v) { return v.id === id; });
   if (!vorlage) return;
   bezeichnungInput.value = vorlage.name;
   fillUnterkategorieSelect(vorlage.unterkategorieId);
@@ -239,6 +269,32 @@ vorlagenListe.addEventListener("click", function (e) {
   waehrungSelect.value = vorlage.waehrung;
   vorlagenListe.hidden = true;
   ladeKursVorschlag();
+}
+
+// Absichtlich zusätzlich auf "pointerdown" (nicht nur "click"): ein Tap auf
+// den Vorschlag lässt das Bezeichnungsfeld zuerst den Fokus verlieren
+// (blur), bevor "click" feuert. Auf Android/Chrome kann dieses blur ein
+// zusätzliches, vom Tastatur-IME ausgelöstes "input"-Event auf dem
+// Bezeichnungsfeld nach sich ziehen, das die Vorschlagsliste
+// (aktuelleVorschlaege + ihr DOM) neu aufbaut, bevor der "click" verarbeitet
+// wird — mit dem Ergebnis, dass nur ein Teil der Felder übernommen wird.
+// preventDefault() auf "pointerdown" verhindert den Fokuswechsel überhaupt,
+// bevor die Auswahl hier synchron und vollständig verarbeitet ist. "click"
+// bleibt zusätzlich bestehen für Tastatur-Bedienung (Enter/Space auf einem
+// per Tab fokussierten Vorschlag), wo kein pointerdown vorausgeht.
+vorlagenListe.addEventListener("pointerdown", function (e) {
+  const btn = e.target.closest("[data-id]");
+  if (!btn) return;
+  e.preventDefault();
+  vorlageUebernommen = true;
+  vorlageWaehlen(btn.dataset.id);
+});
+
+vorlagenListe.addEventListener("click", function (e) {
+  const btn = e.target.closest("[data-id]");
+  if (!btn) return;
+  if (vorlageUebernommen) { vorlageUebernommen = false; return; }
+  vorlageWaehlen(btn.dataset.id);
 });
 
 document.addEventListener("click", function (e) {
