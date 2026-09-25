@@ -1,4 +1,4 @@
-import { isoYear } from "./dateUtils.js?v=3";
+import { isoYear } from "./dateUtils.js?v=4";
 
 function monatsIndex(iso) {
   return isoYear(iso) * 12 + parseInt(String(iso).slice(5, 7), 10);
@@ -35,8 +35,8 @@ function wiederkehrenderMonatswert(wiederkehrendRows, jahr, monat) {
  * Kalenderjahr liegen. "einmalig"-Zeilen kommen zusätzlich nur in ihrem
  * eigenen Jahr obendrauf (z. B. eine Anschaffung).
  */
-export function budgetwertFuerJahr(budgetPosten, posten, jahr) {
-  const rows = budgetPosten.filter(function (r) { return r.posten === posten; });
+export function budgetwertFuerJahr(budgetPosten, kategorieId, jahr) {
+  const rows = budgetPosten.filter(function (r) { return r.kategorieId === kategorieId; });
   const wiederkehrendRows = rows.filter(function (r) { return r.typ === "wiederkehrend"; });
 
   let basiswert = 0;
@@ -51,12 +51,12 @@ export function budgetwertFuerJahr(budgetPosten, posten, jahr) {
   return basiswert + einmaligSumme;
 }
 
-export function alleBudgetPostenNamen(budgetPosten) {
-  const namen = [];
+export function alleBudgetKategorieIds(budgetPosten) {
+  const ids = [];
   budgetPosten.forEach(function (r) {
-    if (namen.indexOf(r.posten) === -1) namen.push(r.posten);
+    if (ids.indexOf(r.kategorieId) === -1) ids.push(r.kategorieId);
   });
-  return namen;
+  return ids;
 }
 
 /**
@@ -64,11 +64,11 @@ export function alleBudgetPostenNamen(budgetPosten) {
  * und Kosten (negative Postenwerte).
  */
 export function budgetJahresSumme(budgetPosten, jahr) {
-  const namen = alleBudgetPostenNamen(budgetPosten);
+  const kategorieIds = alleBudgetKategorieIds(budgetPosten);
   let ertrag = 0;
   let kosten = 0;
-  namen.forEach(function (posten) {
-    const wert = budgetwertFuerJahr(budgetPosten, posten, jahr);
+  kategorieIds.forEach(function (kategorieId) {
+    const wert = budgetwertFuerJahr(budgetPosten, kategorieId, jahr);
     if (wert >= 0) ertrag += wert; else kosten += wert;
   });
   return { ertrag: ertrag, kosten: kosten };

@@ -1,49 +1,15 @@
-import { getState, updateState, hasBudgetData } from "./store.js?v=3";
-import { importXlsxFile } from "./importXlsx.js?v=3";
-import { importCsvFile } from "./importCsv.js?v=3";
-import { todayIso, formatIsoDate } from "./dateUtils.js?v=3";
-import { berechneCashflowDiff, wendeAutoDiffAn } from "./cashflowDiff.js?v=3";
-import { openCashflowUnklarDialog } from "./cashflowUnklarDialog.js?v=3";
-import { currencyFormatter } from "./charts.js?v=3";
-
-const xlsxDialog = document.getElementById("dialog-import-xlsx");
-const xlsxForm = document.getElementById("form-import-xlsx");
-const xlsxWarning = document.getElementById("import-xlsx-warning");
-const xlsxError = document.getElementById("import-xlsx-error");
+import { getState, updateState, uid } from "./store.js?v=4";
+import { importCsvFile, loeseKategorienAuf } from "./importCsv.js?v=4";
+import { todayIso, formatIsoDate } from "./dateUtils.js?v=4";
+import { berechneCashflowDiff, wendeAutoDiffAn } from "./cashflowDiff.js?v=4";
+import { openCashflowUnklarDialog } from "./cashflowUnklarDialog.js?v=4";
+import { currencyFormatter } from "./charts.js?v=4";
 
 const csvDialog = document.getElementById("dialog-import-csv");
 const csvForm = document.getElementById("form-import-csv");
 const csvError = document.getElementById("import-csv-error");
 const csvInfo = document.getElementById("csv-import-info");
 const csvCashflowInfo = document.getElementById("csv-cashflow-info");
-
-function openXlsxDialog() {
-  xlsxError.textContent = "";
-  xlsxForm.reset();
-  xlsxWarning.style.display = hasBudgetData() ? "block" : "none";
-  xlsxDialog.showModal();
-}
-
-document.getElementById("btn-import-xlsx").addEventListener("click", openXlsxDialog);
-document.getElementById("dialog-import-xlsx-cancel").addEventListener("click", function () { xlsxDialog.close(); });
-
-xlsxForm.addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const file = xlsxForm.datei.files[0];
-  if (!file) return;
-  try {
-    const daten = await importXlsxFile(file);
-    updateState(function (s) {
-      s.budgetPosten = daten.budgetPosten;
-      s.vermoegenKonten = daten.vermoegenKonten;
-      s.vermoegenEintraege = daten.vermoegenEintraege;
-      s.importInfo.xlsxImportiertAm = todayIso();
-    });
-    xlsxDialog.close();
-  } catch (err) {
-    xlsxError.textContent = err.message || String(err);
-  }
-});
 
 function updateCsvInfo() {
   const info = getState().importInfo;
@@ -70,9 +36,11 @@ csvForm.addEventListener("submit", async function (e) {
   const file = csvForm.datei.files[0];
   if (!file) return;
   try {
-    const transaktionen = await importCsvFile(file);
-    const diff = berechneCashflowDiff(getState().realTransaktionen, transaktionen);
+    const rohTransaktionen = await importCsvFile(file);
+    let diff;
     updateState(function (s) {
+      const transaktionen = loeseKategorienAuf(s, rohTransaktionen, uid);
+      diff = berechneCashflowDiff(s.realTransaktionen, transaktionen);
       s.realTransaktionen = transaktionen;
       s.importInfo.csvImportiertAm = todayIso();
       s.importInfo.csvDateiname = file.name;

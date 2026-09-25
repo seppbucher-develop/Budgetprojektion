@@ -1,4 +1,5 @@
-import { uid } from "./store.js?v=3";
+import { uid } from "./store.js?v=4";
+import { findeOderErstelleKategorie, findeOderErstelleUnterkategorie } from "./kategorien.js?v=4";
 
 // Generischer CSV-Parser (RFC4180-ähnlich): kommagetrennt, Felder optional in
 // doppelten Anführungszeichen, "" als Escape für ein Anführungszeichen im Feld,
@@ -97,8 +98,11 @@ export async function importCsvFile(file) {
       // nicht multiplizieren.
       betragChf: betrag / wechselkurs,
       waehrung: row[idx.Währung] || "",
-      kategoriengruppe: (row[idx.Kategoriengruppe] || "").trim(),
-      kategorie: (row[idx.Kategorie] || "").trim(),
+      // Rohe Bezeichnungen aus der CSV — werden erst in loeseKategorienAuf()
+      // zu Kategorie-/Unterkategorie-IDs aufgelöst (braucht Zugriff auf den
+      // aktuellen State, siehe importUi.js).
+      kategoriengruppeRoh: (row[idx.Kategoriengruppe] || "").trim(),
+      kategorieRoh: (row[idx.Kategorie] || "").trim(),
       konto: (row[idx.Konto] || "").trim()
     });
   }
@@ -106,4 +110,25 @@ export async function importCsvFile(file) {
   if (transaktionen.length === 0) throw new Error("Es konnten keine gültigen Transaktionen aus der Datei gelesen werden.");
 
   return transaktionen;
+}
+
+/**
+ * Löst die rohen Kategorie-/Unterkategorie-Bezeichnungen einer frisch
+ * importierten CSV gegen den aktuellen State auf (find-or-create, siehe
+ * kategorien.js) und gibt die finalen Transaktionen mit kategorieId/
+ * unterkategorieId statt Freitext zurück. Muss innerhalb von updateState()
+ * aufgerufen werden, da sie state.kategorien/state.unterkategorien um neu
+ * gesehene Bezeichnungen ergänzt.
+ */
+export function loeseKategorienAuf(state, rohTransaktionen, uidFn) {
+  return rohTransaktionen.map(function (t) {
+    const kategorieId = findeOderErstelleKategorie(state, t.kategoriengruppeRoh, uidFn);
+    const unterkategorieId = findeOderErstelleUnterkategorie(state, kategorieId, t.kategorieRoh, uidFn);
+    const kopie = Object.assign({}, t);
+    delete kopie.kategoriengruppeRoh;
+    delete kopie.kategorieRoh;
+    kopie.kategorieId = kategorieId;
+    kopie.unterkategorieId = unterkategorieId;
+    return kopie;
+  });
 }

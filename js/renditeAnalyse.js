@@ -4,6 +4,8 @@
 // nicht aus dem (oft budget-verschobenen) Buchungsdatum der Bluecoins-Daten,
 // sondern aus dem cashflowLog (siehe cashflowDiff.js, dem Import-Zeitpunkt
 // zugeordnet) sowie manuellen Korrekturbuchungen (state.korrekturen).
+import { unterkategorieName } from "./kategorien.js?v=4";
+
 function vermoegenSummeAmStichtag(state, datum) {
   const eintrag = state.vermoegenEintraege.find(function (e) { return e.datum === datum; });
   if (!eintrag) return null;
@@ -18,7 +20,7 @@ export function cashflowPostenImZeitraum(state, stichtagVon, stichtagBis) {
   const posten = [];
   state.cashflowLog.forEach(function (e) {
     if (e.erkanntAm > stichtagVon && e.erkanntAm <= stichtagBis) {
-      posten.push({ datum: e.erkanntAm, betrag: e.betrag, bezeichnung: e.kategorie, quelle: "import" });
+      posten.push({ datum: e.erkanntAm, betrag: e.betrag, bezeichnung: unterkategorieName(state, e.unterkategorieId), quelle: "import" });
     }
   });
   state.korrekturen.forEach(function (k) {

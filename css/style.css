@@ -61,51 +61,117 @@ body {
   color: var(--color-text-muted);
 }
 
-.tabs {
+/* Home: primäre Funktionen als Karten (analog Flugbuch) statt Tab-Leiste. */
+.home-cards {
   display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.tab-btn {
-  padding: 10px 16px;
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-  font-weight: 600;
+.home-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 16px;
+  font: inherit;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
 }
 
-.tab-btn:hover {
-  color: var(--color-text);
+.home-card:active {
+  transform: scale(0.99);
 }
 
-.tab-btn.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-}
-
-.tab-btn {
+.home-card-icon {
   position: relative;
+  font-size: 26px;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.home-card-icon-budget { background: rgba(37, 99, 235, 0.12); }
+.home-card-icon-vermoegen { background: rgba(22, 163, 74, 0.12); }
+.home-card-icon-projektion { background: rgba(124, 58, 237, 0.12); }
+.home-card-icon-vergleich { background: rgba(217, 119, 6, 0.12); }
+.home-card-icon-istkosten { background: rgba(8, 145, 178, 0.12); }
+.home-card-icon-analyse { background: rgba(219, 39, 119, 0.12); }
+.home-card-icon-service { background: rgba(220, 38, 38, 0.12); }
+
+.home-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.home-card-desc {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.home-card-arrow {
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .dirty-dot {
   position: absolute;
-  top: 4px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
+  top: -3px;
+  right: -3px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--color-negative);
+  border: 2px solid var(--color-surface);
   display: none;
 }
 
 .dirty-dot.show {
   display: inline-block;
+}
+
+/* Seitenkopf innerhalb eines Bereichs (analog Flugbuch: "‹" zurück zur
+   Kartenübersicht + Titel), ersetzt die frühere immer sichtbare Tab-Leiste. */
+.page-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.btn-back-home {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px 2px 0;
+  flex-shrink: 0;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.3rem;
 }
 
 .tab-panel {
@@ -269,6 +335,21 @@ body {
 .hint {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.hint-toggle {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.hint-toggle:hover {
+  color: var(--color-text);
 }
 
 .warning {
@@ -493,6 +574,21 @@ body {
   border-bottom: 2px solid var(--color-border);
 }
 
+.istkosten-toggle {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 2px 0 0;
+  font-size: 0.8em;
+}
+
+.istkosten-subrow > div:first-child {
+  padding-left: 22px;
+  color: var(--color-text-muted);
+  font-size: 0.92em;
+}
+
 .rendite-cashflow-row {
   display: grid;
   grid-template-columns: 90px minmax(80px, 1fr) 80px 90px;
@@ -550,6 +646,51 @@ body {
   gap: 12px;
   padding: 6px 0;
   border-top: 1px solid var(--color-border);
+}
+
+.kategorie-block {
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 0;
+}
+
+.kategorie-kopfzeile,
+.kategorie-editzeile,
+.unterkategorie-zeile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kategorie-kopfzeile,
+.unterkategorie-zeile {
+  justify-content: space-between;
+}
+
+.kategorie-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.unterkategorien-liste {
+  margin: 6px 0 4px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.unterkategorie-zeile span {
+  flex: 1;
+  color: var(--color-text-muted);
+}
+
+.kategorie-editzeile input,
+.unterkategorie-umbenennen-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .typ-symbol {

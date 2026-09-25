@@ -1,10 +1,12 @@
-// Drilldown-Dialog "Buchungen: <Posten> <Jahr>" — zeigt die einzelnen realen
-// Buchungen hinter einem Real-Kosten-Wert. Wird sowohl vom Realvergleich als
-// auch vom Istkostenvergleich verwendet, daher als eigenständiges Modul.
-import { getState } from "./store.js?v=3";
-import { buchungenFuerJahrPosten } from "./compare.js?v=3";
-import { betragFormatter } from "./charts.js?v=3";
-import { formatIsoDate } from "./dateUtils.js?v=3";
+// Drilldown-Dialog "Buchungen: <Kategorie> <Jahr>" — zeigt die einzelnen
+// realen Buchungen hinter einem Real-Kosten-Wert. Wird sowohl vom
+// Realvergleich als auch vom Istkostenvergleich verwendet, daher als
+// eigenständiges Modul.
+import { getState } from "./store.js?v=4";
+import { buchungenFuerJahrKategorie } from "./compare.js?v=4";
+import { betragFormatter } from "./charts.js?v=4";
+import { formatIsoDate } from "./dateUtils.js?v=4";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=4";
 
 const buchungenDialog = document.getElementById("dialog-buchungen");
 const buchungenTitle = document.getElementById("dialog-buchungen-title");
@@ -18,9 +20,16 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
-export function openBuchungenDialog(jahr, posten) {
-  const buchungen = buchungenFuerJahrPosten(getState(), jahr, posten);
-  buchungenTitle.textContent = "Buchungen: " + posten + " " + jahr;
+/**
+ * jahr, kategorieId: Pflicht. unterkategorieId: optional, schränkt den
+ * Drilldown auf eine einzelne Unterkategorie ein (Istkostenvergleich in der
+ * aufgeklappten Ansicht) statt die ganze Kategorie zu zeigen.
+ */
+export function openBuchungenDialog(jahr, kategorieId, unterkategorieId) {
+  const state = getState();
+  const buchungen = buchungenFuerJahrKategorie(state, jahr, kategorieId, unterkategorieId);
+  const titel = unterkategorieId ? unterkategorieName(state, unterkategorieId) : kategorieName(state, kategorieId);
+  buchungenTitle.textContent = "Buchungen: " + titel + " " + jahr;
 
   if (buchungen.length === 0) {
     buchungenRows.innerHTML = '<div class="buchungen-row"><div style="grid-column: span 4" class="hint">Keine Buchungen gefunden.</div></div>';
@@ -30,7 +39,7 @@ export function openBuchungenDialog(jahr, posten) {
         "<div>" + formatIsoDate(b.datum) + "</div>" +
         "<div>" + betragFormatter.format(b.betragChf) + "</div>" +
         "<div>" + escapeHtml(b.name) + "</div>" +
-        "<div>" + escapeHtml(b.kategorie) + "</div>" +
+        "<div>" + escapeHtml(unterkategorieName(state, b.unterkategorieId)) + "</div>" +
         "</div>";
     }).join("");
   }

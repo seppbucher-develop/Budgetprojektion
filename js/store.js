@@ -1,6 +1,7 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
+import { migriereKategorien } from "./kategorien.js?v=4";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
@@ -13,6 +14,11 @@ const BACKUP_META_KEY = STORAGE_PREFIX + "backupmeta.v1";
 function defaultState() {
   return {
     version: 2,
+    // Kategorien (z. B. "Wohnen") und Unterkategorien (z. B. "Miete") mit
+    // stabiler ID als Primärschlüssel, siehe kategorien.js. budgetPosten
+    // und realTransaktionen referenzieren diese IDs.
+    kategorien: [],
+    unterkategorien: [],
     budgetPosten: [],
     vermoegenKonten: [],
     vermoegenEintraege: [],
@@ -31,7 +37,6 @@ function defaultState() {
     // Korrektur in Bluecoins selbst nicht möglich/sinnvoll ist.
     korrekturen: [],
     importInfo: {
-      xlsxImportiertAm: null,
       csvImportiertAm: null,
       csvDateiname: null,
       csvAnzahl: 0
@@ -47,7 +52,11 @@ function load() {
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
     // fehlende Felder aus Default ergänzen (z. B. nach App-Update)
-    return Object.assign(defaultState(), parsed);
+    const s = Object.assign(defaultState(), parsed);
+    if (migriereKategorien(s, uid)) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* siehe persist() */ }
+    }
+    return s;
   } catch (e) {
     return defaultState();
   }
@@ -134,8 +143,4 @@ export function onStateChanged(handler) {
 export function uid() {
   if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
   return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
-}
-
-export function hasBudgetData() {
-  return state.budgetPosten.length > 0 || state.vermoegenEintraege.length > 0;
 }

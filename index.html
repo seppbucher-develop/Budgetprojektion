@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body>
 <div class="app">
@@ -32,27 +32,85 @@
     <p class="subtitle">Budget, Vermögen und eine 30-Jahres-Projektion – alles lokal im Browser</p>
   </header>
 
-  <nav class="tabs">
-    <button class="tab-btn active" data-tab="budget">Budget</button>
-    <button class="tab-btn" data-tab="vermoegen">Vermögen</button>
-    <button class="tab-btn" data-tab="projektion">Projektion</button>
-    <button class="tab-btn" data-tab="vergleich">Realvergleich</button>
-    <button class="tab-btn" data-tab="istkosten">Istkostenvergleich</button>
-    <button class="tab-btn" data-tab="analyse">Analyse</button>
-    <button class="tab-btn" data-tab="sicherung">Sicherung<span class="dirty-dot" id="sicherung-dirty-dot"></span></button>
-  </nav>
+  <!-- HOME: primäre Funktionen als Karten (analog Flugbuch) statt einer
+       Tab-Leiste — jede Karte aktiviert per data-tab das gleichnamige
+       tab-panel (siehe app.js), Sekundäres (Sicherung) steckt in "Service". -->
+  <section id="tab-home" class="tab-panel active">
+    <div class="home-cards">
+      <button type="button" class="home-card" data-tab="budget">
+        <div class="home-card-icon home-card-icon-budget">💰</div>
+        <div class="home-card-text">
+          <div class="home-card-title">Budget</div>
+          <div class="home-card-desc">Kosten &amp; Erträge pro Jahr, Kategorien</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button type="button" class="home-card" data-tab="vermoegen">
+        <div class="home-card-icon home-card-icon-vermoegen">🏦</div>
+        <div class="home-card-text">
+          <div class="home-card-title">Vermögen</div>
+          <div class="home-card-desc">Kontostände zu Stichtagen</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button type="button" class="home-card" data-tab="projektion">
+        <div class="home-card-icon home-card-icon-projektion">📈</div>
+        <div class="home-card-text">
+          <div class="home-card-title">Projektion</div>
+          <div class="home-card-desc">30-Jahres-Hochrechnung des Vermögens</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button type="button" class="home-card" data-tab="vergleich">
+        <div class="home-card-icon home-card-icon-vergleich">⚖️</div>
+        <div class="home-card-text">
+          <div class="home-card-title">Realvergleich</div>
+          <div class="home-card-desc">Reale Buchungen vs. Budget, Sparpotenzial</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button type="button" class="home-card" data-tab="istkosten">
+        <div class="home-card-icon home-card-icon-istkosten">📊</div>
+        <div class="home-card-text">
+          <div class="home-card-title">Istkostenvergleich</div>
+          <div class="home-card-desc">Reale Kosten über drei Jahre, nach Unterkategorie</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button type="button" class="home-card" data-tab="analyse">
+        <div class="home-card-icon home-card-icon-analyse">📐</div>
+        <div class="home-card-text">
+          <div class="home-card-title">Analyse</div>
+          <div class="home-card-desc">Vermögensrendite zwischen zwei Stichtagen</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+      <button type="button" class="home-card home-card-service" data-tab="service">
+        <div class="home-card-icon home-card-icon-service">🛠️<span class="dirty-dot" id="sicherung-dirty-dot"></span></div>
+        <div class="home-card-text">
+          <div class="home-card-title">Service</div>
+          <div class="home-card-desc">Sicherung, Backup &amp; Restore</div>
+        </div>
+        <div class="home-card-arrow">›</div>
+      </button>
+    </div>
+  </section>
 
   <!-- BUDGET -->
-  <section id="tab-budget" class="tab-panel active">
+  <section id="tab-budget" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">💰 Budget</h1>
+    </div>
     <div class="panel">
       <div class="panel-header">
         <h2>Kosten &amp; Erträge pro Jahr</h2>
         <div class="panel-actions">
-          <button id="btn-import-xlsx" class="btn-secondary">Aus Excel importieren…</button>
+          <button id="btn-open-kategorien" class="btn-secondary">Kategorien verwalten…</button>
           <button id="btn-add-budget-row" class="btn-primary">+ Neuer Posten</button>
         </div>
       </div>
-      <p class="hint" id="budget-empty-hint">Noch keine Budgetdaten vorhanden. Importiere die Budget_Pension.xlsx (Tabs „Budget“ und „Vermögen“) oder lege Posten manuell an.</p>
+      <p class="hint" id="budget-empty-hint">Noch keine Budgetdaten vorhanden. Lege Posten manuell an.</p>
       <div class="table-scroll" id="budget-table">
         <div class="budget-row grid-headrow">
           <div>Posten</div><div>Betrag<br><span class="th-sub">CHF/Jahr</span></div><div>Gültig ab</div><div>Typ</div><div></div>
@@ -64,6 +122,10 @@
 
   <!-- VERMÖGEN -->
   <section id="tab-vermoegen" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">🏦 Vermögen</h1>
+    </div>
     <div class="panel">
       <div class="panel-header">
         <h2>Vermögen zum Stichtag</h2>
@@ -71,7 +133,7 @@
           <button id="btn-add-vermoegen-row" class="btn-primary">+ Neuer Stichtag</button>
         </div>
       </div>
-      <p class="hint" id="vermoegen-empty-hint">Noch keine Vermögensdaten vorhanden. Importiere die Excel-Datei im Tab „Budget“ oder lege einen Stichtag manuell an.</p>
+      <p class="hint" id="vermoegen-empty-hint">Noch keine Vermögensdaten vorhanden. Lege einen Stichtag manuell an.</p>
       <div class="table-scroll">
         <table class="data-table" id="vermoegen-table">
           <thead><tr></tr></thead>
@@ -83,6 +145,10 @@
 
   <!-- PROJEKTION -->
   <section id="tab-projektion" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">📈 Projektion</h1>
+    </div>
     <div class="panel">
       <h2>Annahmen</h2>
       <form id="form-projektion-einstellungen" class="inline-form">
@@ -122,6 +188,10 @@
 
   <!-- REALVERGLEICH -->
   <section id="tab-vergleich" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">⚖️ Realvergleich</h1>
+    </div>
     <div class="panel">
       <div class="panel-header">
         <h2>Reale Buchungen importieren</h2>
@@ -170,6 +240,10 @@
 
   <!-- ISTKOSTENVERGLEICH -->
   <section id="tab-istkosten" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">📊 Istkostenvergleich</h1>
+    </div>
     <div class="panel">
       <div class="panel-header">
         <h2>Istkostenvergleich</h2>
@@ -178,7 +252,7 @@
           <select id="istkosten-jahr-select"></select>
         </div>
       </div>
-      <p class="hint">Reale Buchungen pro Kategorie über drei Jahre, ohne Budget-Bezug.</p>
+      <p class="hint collapsible">Reale Buchungen pro Kategorie über drei Jahre, ohne Budget-Bezug.</p>
       <p class="hint" id="istkosten-empty-hint">Noch keine realen Buchungen importiert. Importiere eine Transaktions-CSV im Tab „Realvergleich“.</p>
       <div id="istkosten-inhalt">
         <div class="chart-wrap"><canvas id="istkosten-chart"></canvas></div>
@@ -193,9 +267,13 @@
 
   <!-- ANALYSE (VERMÖGENSRENDITE) -->
   <section id="tab-analyse" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">📐 Analyse</h1>
+    </div>
     <div class="panel">
       <h2>Vermögensrendite zwischen zwei Stichtagen</h2>
-      <p class="hint">Rendite = Vermögensänderung abzüglich des effektiven Netto-Cashflows in der Zwischenzeit. Der Cashflow kommt nicht aus dem Buchungsdatum der Bluecoins-Buchungen (das für Budgetzwecke bewusst verschoben sein kann), sondern aus den bei jedem CSV-Import neu erkannten Buchungen (siehe „Realvergleich“) plus manuellen Korrekturen unten.</p>
+      <p class="hint collapsible">Rendite = Vermögensänderung abzüglich des effektiven Netto-Cashflows in der Zwischenzeit. Der Cashflow kommt nicht aus dem Buchungsdatum der Bluecoins-Buchungen (das für Budgetzwecke bewusst verschoben sein kann), sondern aus den bei jedem CSV-Import neu erkannten Buchungen (siehe „Realvergleich“) plus manuellen Korrekturen unten.</p>
       <p class="hint" id="rendite-empty-hint">Für eine Renditeberechnung braucht es mindestens zwei Vermögens-Stichtage (Tab „Vermögen“).</p>
       <div id="rendite-inhalt">
         <form id="form-rendite-stichtage" class="inline-form">
@@ -212,7 +290,7 @@
         <div id="rendite-summary" class="result-details"></div>
 
         <h3>Cashflow-Posten in dieser Periode</h3>
-        <p class="hint">Zeitraum (Stichtag Von, Stichtag Bis] — der Start-Stichtag selbst zählt zur Vorperiode.</p>
+        <p class="hint collapsible">Zeitraum (Stichtag Von, Stichtag Bis] — der Start-Stichtag selbst zählt zur Vorperiode.</p>
         <div class="table-scroll" id="rendite-cashflow-table">
           <div class="rendite-cashflow-row grid-headrow">
             <div>Datum</div><div>Bezeichnung</div><div>Quelle</div><div>Betrag</div>
@@ -228,7 +306,7 @@
         <h2>Korrekturbuchungen</h2>
         <button id="btn-add-korrektur" class="btn-primary">+ Neue Korrektur</button>
       </div>
-      <p class="hint">Für Anpassungen, die sich in Bluecoins selbst nicht sinnvoll korrigieren lassen — fliessen zusätzlich in die Renditeberechnung oben ein.</p>
+      <p class="hint collapsible">Für Anpassungen, die sich in Bluecoins selbst nicht sinnvoll korrigieren lassen — fliessen zusätzlich in die Renditeberechnung oben ein.</p>
       <p class="hint" id="korrektur-empty-hint">Noch keine Korrekturbuchungen erfasst.</p>
       <div class="table-scroll" id="korrektur-table">
         <div class="korrektur-row grid-headrow">
@@ -239,11 +317,15 @@
     </div>
   </section>
 
-  <!-- SICHERUNG -->
-  <section id="tab-sicherung" class="tab-panel">
+  <!-- SERVICE (SICHERUNG) -->
+  <section id="tab-service" class="tab-panel">
+    <div class="page-topbar">
+      <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
+      <h1 class="page-title">🛠️ Service</h1>
+    </div>
     <div class="panel" id="backup-folder-panel" style="display:none">
       <h2>📁 Backup-Ordner (automatisch, dieser PC)</h2>
-      <p class="hint">Einmalig festlegen (z. B. dein lokaler Cloud-Sync-Ordner) — künftige Backups landen danach automatisch dort, ganz ohne Dialog. Gilt nur für diesen Browser auf diesem Gerät.</p>
+      <p class="hint collapsible">Einmalig festlegen (z. B. dein lokaler Cloud-Sync-Ordner) — künftige Backups landen danach automatisch dort, ganz ohne Dialog. Gilt nur für diesen Browser auf diesem Gerät.</p>
       <div id="backup-folder-none">
         <button id="btn-choose-folder" class="btn-primary">📁 Ordner auswählen…</button>
       </div>
@@ -262,7 +344,7 @@
 
     <div class="panel">
       <h2>☁️ Backup &amp; Restore</h2>
-      <p class="hint">Sichert alle App-Daten (Budget, Vermögen, importierte Transaktionen, Einstellungen) als Datei — z. B. vor grösseren Änderungen oder zum Übertragen auf ein anderes Gerät.</p>
+      <p class="hint collapsible">Sichert alle App-Daten (Budget, Vermögen, importierte Transaktionen, Einstellungen) als Datei — z. B. vor grösseren Änderungen oder zum Übertragen auf ein anderes Gerät.</p>
       <div class="backup-actions">
         <div class="backup-action">
           <button id="btn-backup-export" class="btn-primary">☁️ Backup sichern</button>
@@ -290,9 +372,8 @@
   <form id="form-budget-row" method="dialog">
     <h2 id="dialog-budget-row-title">Neuer Budgetposten</h2>
     <div class="field">
-      <label for="budget-posten">Posten</label>
-      <input type="text" id="budget-posten" name="posten" list="budget-posten-liste" required>
-      <datalist id="budget-posten-liste"></datalist>
+      <label for="budget-posten">Kategorie</label>
+      <select id="budget-posten" name="kategorieId" required></select>
     </div>
     <div class="field">
       <label for="budget-betrag">Betrag pro Jahr (CHF)</label>
@@ -320,6 +401,20 @@
       <button type="submit" class="btn-primary">Speichern</button>
     </div>
   </form>
+</dialog>
+
+<!-- Dialog: Kategorien & Unterkategorien verwalten -->
+<dialog id="dialog-kategorien" class="dialog-wide">
+  <div class="buchungen-head">
+    <h2>Kategorien verwalten</h2>
+    <button type="button" id="dialog-kategorien-close" class="btn-close-icon" aria-label="Schliessen">✕</button>
+  </div>
+  <p class="hint collapsible">Kategorien (z. B. "Wohnen") gliedern sich in Unterkategorien (z. B. "Miete"). Budget-Posten, importierte Buchungen und Auswertungen beziehen sich auf diese Kategorien.</p>
+  <div class="inline-add" style="margin-bottom:14px">
+    <input type="text" id="neue-kategorie-name" placeholder="Neue Kategorie">
+    <button type="button" id="btn-add-kategorie" class="btn-secondary">Hinzufügen</button>
+  </div>
+  <div id="kategorien-liste"></div>
 </dialog>
 
 <!-- Dialog: Vermögens-Stichtag anlegen/bearbeiten -->
@@ -379,24 +474,6 @@
   </div>
 </dialog>
 
-<!-- Dialog: Einmaliger Excel-Import -->
-<dialog id="dialog-import-xlsx">
-  <form id="form-import-xlsx">
-    <h2>Budget &amp; Vermögen aus Excel importieren</h2>
-    <p>Die Datei muss die Tabs „Budget“ (Spalten Posten/Budget/ab) und „Vermögen“ (Spalte Datum + Kontospalten) enthalten.</p>
-    <p class="warning" id="import-xlsx-warning" style="display:none">Achtung: Bestehende Budget- und Vermögensdaten werden dabei komplett ersetzt.</p>
-    <div class="field">
-      <label for="import-xlsx-datei">Excel-Datei (.xlsx)</label>
-      <input type="file" id="import-xlsx-datei" name="datei" accept=".xlsx" required>
-    </div>
-    <p class="error" id="import-xlsx-error"></p>
-    <div class="dialog-actions">
-      <button type="button" id="dialog-import-xlsx-cancel" class="btn-secondary">Abbrechen</button>
-      <button type="submit" class="btn-primary">Importieren</button>
-    </div>
-  </form>
-</dialog>
-
 <!-- Dialog: Wiederholbarer CSV-Import realer Kosten -->
 <dialog id="dialog-import-csv">
   <form id="form-import-csv">
@@ -436,6 +513,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=3"></script>
+<script type="module" src="js/app.js?v=4"></script>
 </body>
 </html>
