@@ -2,7 +2,7 @@
 // Europäischen Zentralbank, kostenlos, ohne API-Key, mit CORS-Freigabe für
 // Browser-Aufrufe — siehe README für Alternativen/Hintergrund). Für CHF wird
 // nie ein Kurs abgefragt (immer 1).
-import { todayIso } from "./dateUtils.js?v=13";
+import { todayIso } from "./dateUtils.js?v=14";
 
 const FRANKFURTER_BASE = "https://api.frankfurter.dev/v1";
 

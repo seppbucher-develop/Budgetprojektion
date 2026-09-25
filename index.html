@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=17">
+<link rel="stylesheet" href="css/style.css?v=18">
 </head>
 <body>
 <div class="app">
@@ -501,6 +501,7 @@
       <input type="date" id="buchung-valutadatum" name="valutadatum" required>
     </div>
     <div class="dialog-actions">
+      <button type="button" id="dialog-buchung-delete" class="btn-danger" hidden>Löschen</button>
       <button type="button" id="dialog-buchung-cancel" class="btn-secondary">Abbrechen</button>
       <button type="submit" class="btn-primary">Speichern</button>
     </div>
@@ -528,6 +529,6 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=13"></script>
+<script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>

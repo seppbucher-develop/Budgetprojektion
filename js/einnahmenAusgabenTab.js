@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=13";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=13";
-import { betragFormatter } from "./charts.js?v=13";
-import { unterkategorieName } from "./kategorien.js?v=13";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=13";
-import { holeWechselkurs } from "./fx.js?v=13";
+import { getState, updateState, uid } from "./store.js?v=14";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=14";
+import { betragFormatter } from "./charts.js?v=14";
+import { unterkategorieName } from "./kategorien.js?v=14";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=14";
+import { holeWechselkurs } from "./fx.js?v=14";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -15,6 +15,7 @@ const listeScroll = document.querySelector("#buchungen-liste-table .buchungen-li
 
 const dialog = document.getElementById("dialog-buchung");
 const form = document.getElementById("form-buchung");
+const dialogDeleteBtn = document.getElementById("dialog-buchung-delete");
 const bezeichnungInput = document.getElementById("buchung-bezeichnung");
 const vorlagenListe = document.getElementById("buchung-vorlagen-liste");
 const unterkategorieSelect = document.getElementById("buchung-unterkategorie");
@@ -197,6 +198,7 @@ function openDialog(row) {
   kursStatus.textContent = "";
   aktualisiereWaehrungsFelder();
   document.getElementById("dialog-buchung-title").textContent = row ? "Buchung bearbeiten" : "Neue Buchung";
+  dialogDeleteBtn.hidden = !row;
   vorlagenListe.hidden = true;
   dialog.showModal();
 }
@@ -264,14 +266,19 @@ fremdwaehrungBetragInput.addEventListener("input", aktualisiereBetragAusFremdwae
 kursInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
 
 function deleteBuchung(id) {
-  if (!confirm("Diese Buchung wirklich löschen?")) return;
+  if (!confirm("Diese Buchung wirklich löschen?")) return false;
   updateState(function (s) {
     s.realTransaktionen = s.realTransaktionen.filter(function (t) { return t.id !== id; });
   });
+  return true;
 }
 
 document.getElementById("btn-add-buchung").addEventListener("click", function () { openDialog(null); });
 document.getElementById("dialog-buchung-cancel").addEventListener("click", function () { dialog.close(); });
+dialogDeleteBtn.addEventListener("click", function () {
+  if (!editId) return;
+  if (deleteBuchung(editId)) dialog.close();
+});
 
 // Vorlagen-Typeahead: bei jeder Eingabe die passenden früheren Buchungen
 // (je Bezeichnung nur die jüngste) als Auswahlliste anzeigen. Übernommen
