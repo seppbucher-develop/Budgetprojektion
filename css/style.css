@@ -950,6 +950,78 @@ body {
   opacity: 0.55;
 }
 
+/* Strom Auto (Einnahmen/Ausgaben-Tab): Liste der erfassten Quartale plus
+   Erfassungsdialog mit Live-Vorschau der daraus entstehenden Buchungen. */
+.strom-auto-scroll {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.strom-auto-einstellungen {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.strom-auto-einstellungen .field {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* fieldset hat standardmässig min-width: min-content und Inputs eine
+   intrinsische Breite -- ohne dies laufen drei Monatsfelder nebeneinander
+   auf schmalen Bildschirmen aus dem Dialog hinaus. */
+#form-strom-auto-row input,
+#form-strom-auto-row select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.strom-auto-gruppe {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px 0;
+  margin: 0 0 10px;
+}
+
+.strom-auto-gruppe legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.strom-auto-vorschau {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.strom-auto-vorschau table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.strom-auto-vorschau td {
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.strom-auto-vorschau td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.strom-auto-fehler {
+  color: var(--color-negative);
+  margin: 6px 0 0;
+  min-height: 1em;
+}
+
+.strom-auto-ausstehend {
+  color: var(--color-warning-text);
+}
+
 .checkbox-feld {
   display: flex;
   align-items: center;

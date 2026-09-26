@@ -27,6 +27,18 @@ unter „Service“:
   für mehrere verpasste Termine, falls die App länger nicht geöffnet war.
   Bearbeiten oder Löschen einer Regel wirkt sich nur auf künftige
   Erzeugungen aus, nie auf bereits erzeugte Buchungen.
+  Über „⚡ Strom Auto…“ werden pro Quartal die Stromrechnung (verrechnete
+  kWh + Betrag, optional Zahlungsdatum als Valuta) und die an der
+  Ladestation je Monat ans Elektroauto gelieferten kWh erfasst (ersetzt die
+  frühere Excel-Tabelle `Strom_Auto.xlsx`). Daraus entstehen automatisch
+  Buchungen: je Monat der Auto-Anteil (kWh × Preis/kWh der Rechnung) unter
+  der gewählten Kraftstoff-Unterkategorie, Buchungsdatum letzter Tag des
+  Monats; die Differenz zum Rechnungsbetrag als Betriebskosten,
+  Buchungsdatum letzter Tag des abgerechneten Quartals (Rechnung trifft im
+  Folgequartal ein). Beträge sind auf Rappen gerundet, die Summe entspricht
+  immer exakt dem Rechnungsbetrag. Die Buchungen werden bei jedem Speichern
+  des Quartals neu erzeugt; ein Klick auf eine solche Buchung (⚡) öffnet
+  darum das Quartal statt des normalen Buchungsdialogs.
 - **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
   AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
   *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben
@@ -191,6 +203,9 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
   Buchungen (fällige Termine berechnen, Buchungen inkl. Fremdwährungskurs
   erzeugen), aufgerufen beim App-Start (siehe `js/app.js`)
 - `js/wiederkehrendDialog.js` – CRUD-UI "Wiederkehrende Buchungen verwalten"
+- `js/stromAuto.js` – Berechnung Strom Auto (Preis/kWh, Kraftstoff-Anteil je
+  Monat, Betriebskosten) und Erzeugung der zugehörigen Buchungen
+- `js/stromAutoDialog.js` – Erfassungsdialog "Strom Auto" (Quartale, Ladung je Monat)
 - `js/budgetTab.js`, `js/vermoegenTab.js` – CRUD-UI für Budget/Vermögen
 - `js/projection.js`, `js/projectionTab.js` – 30-Jahres-Projektion
 - `js/compare.js`, `js/compareTab.js` – Abweichungsanalyse & Sparpotenzial
