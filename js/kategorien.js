@@ -43,7 +43,9 @@ export function unterkategorienVonKategorie(state, kategorieId) {
 
 export function unterkategorieWirdVerwendet(state, unterkategorieId) {
   return state.realTransaktionen.some(function (t) { return t.unterkategorieId === unterkategorieId; }) ||
-    state.wiederkehrendeBuchungen.some(function (r) { return r.unterkategorieId === unterkategorieId; });
+    state.wiederkehrendeBuchungen.some(function (r) { return r.unterkategorieId === unterkategorieId; }) ||
+    state.stromAuto.unterkategorieKraftstoffId === unterkategorieId ||
+    state.stromAuto.unterkategorieBetriebskostenId === unterkategorieId;
 }
 
 export function kategorieWirdVerwendet(state, kategorieId) {

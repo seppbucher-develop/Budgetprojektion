@@ -1,8 +1,9 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=21";
-import { migriereTransaktionen } from "./transaktionen.js?v=21";
+import { migriereKategorien } from "./kategorien.js?v=23";
+import { migriereTransaktionen } from "./transaktionen.js?v=23";
+import { defaultStromAuto } from "./stromAuto.js?v=23";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
@@ -39,7 +40,11 @@ function defaultState() {
     // Vorlagen für automatisch zu erzeugende Buchungen (z. B. Miete, Abos),
     // siehe wiederkehrendeBuchungen.js. Erzeugte Buchungen landen als
     // normale, unabhängige Einträge in realTransaktionen.
-    wiederkehrendeBuchungen: []
+    wiederkehrendeBuchungen: [],
+    // Strom Auto: quartalsweise Stromrechnungen + monatliche Ladung ans
+    // Elektroauto, siehe stromAuto.js. Daraus erzeugte Buchungen landen
+    // (mit stromAutoQuartalId markiert) in realTransaktionen.
+    stromAuto: defaultStromAuto()
   };
 }
 

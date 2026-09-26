@@ -1,9 +1,10 @@
-import { getState, updateState, uid } from "./store.js?v=21";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=21";
-import { betragFormatter } from "./charts.js?v=21";
-import { unterkategorieName } from "./kategorien.js?v=21";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=21";
-import { holeWechselkurs } from "./fx.js?v=21";
+import { getState, updateState, uid } from "./store.js?v=23";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=23";
+import { betragFormatter } from "./charts.js?v=23";
+import { unterkategorieName } from "./kategorien.js?v=23";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=23";
+import { holeWechselkurs } from "./fx.js?v=23";
+import { openStromAutoQuartal } from "./stromAutoDialog.js?v=23";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -108,7 +109,7 @@ function renderRows(state) {
   rowsContainer.innerHTML = rows.map(function (t) {
     return '<div class="buchungen-liste-row" data-id="' + t.id + '">' +
       "<div>" + formatIsoDate(t.datum) + "</div>" +
-      "<div>" + escapeHtml(t.name) + "</div>" +
+      "<div>" + (t.stromAutoQuartalId ? "⚡ " : "") + escapeHtml(t.name) + "</div>" +
       "<div>" + escapeHtml(unterkategorieName(state, t.unterkategorieId)) + "</div>" +
       '<div class="' + (t.betragChf >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(t.betragChf) + "</div>" +
       '<div class="row-actions row-actions-icons">' +
@@ -182,6 +183,9 @@ function fillUnterkategorieSelect(selectedId) {
 }
 
 function openDialog(row) {
+  // Aus "Strom Auto" erzeugte Buchungen werden beim Speichern des Quartals
+  // neu berechnet -- darum dort bearbeiten statt im normalen Buchungsdialog.
+  if (row && row.stromAutoQuartalId) { openStromAutoQuartal(row.stromAutoQuartalId); return; }
   editId = row ? row.id : null;
   fillUnterkategorieSelect(row ? row.unterkategorieId : null);
   bezeichnungInput.value = row ? row.name : "";
