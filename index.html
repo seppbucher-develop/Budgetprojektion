@@ -627,6 +627,9 @@
 <dialog id="dialog-strom-auto-row">
   <form id="form-strom-auto-row" method="dialog">
     <h2 id="dialog-strom-auto-row-title">Stromrechnung erfassen</h2>
+    <!-- Schritt 1: Erfassung. Schritt 2 (strom-auto-bestaetigung): die
+         daraus entstehenden Buchungen zeigen, erst "Buchen" legt sie an. -->
+    <div id="strom-auto-erfassung">
     <div class="buchung-datum-zeile">
       <div class="field">
         <label for="strom-auto-jahr">Jahr</label>
@@ -677,11 +680,14 @@
       </div>
     </fieldset>
     <div id="strom-auto-vorschau" class="strom-auto-vorschau"></div>
+    </div>
+    <div id="strom-auto-bestaetigung" class="strom-auto-vorschau" hidden></div>
     <p id="strom-auto-fehler" class="hint strom-auto-fehler"></p>
     <div class="dialog-actions">
       <button type="button" id="dialog-strom-auto-row-delete" class="btn-danger" hidden>Löschen</button>
       <button type="button" id="dialog-strom-auto-row-cancel" class="btn-secondary">Abbrechen</button>
-      <button type="submit" class="btn-primary">Speichern</button>
+      <button type="button" id="dialog-strom-auto-row-zurueck" class="btn-secondary" hidden>‹ Zurück</button>
+      <button type="submit" id="dialog-strom-auto-row-submit" class="btn-primary">Speichern</button>
     </div>
   </form>
 </dialog>
@@ -707,7 +713,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=22"></script>
+<script type="module" src="js/app.js?v=23"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die

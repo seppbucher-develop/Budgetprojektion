@@ -1012,6 +1012,15 @@ body {
   white-space: nowrap;
 }
 
+.strom-auto-vorschau td {
+  vertical-align: top;
+}
+
+.strom-auto-total td {
+  font-weight: 600;
+  border-bottom: none;
+}
+
 .strom-auto-fehler {
   color: var(--color-negative);
   margin: 6px 0 0;

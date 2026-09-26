@@ -30,8 +30,9 @@ unter „Service“:
   Über „⚡ Strom Auto…“ werden pro Quartal die Stromrechnung (verrechnete
   kWh + Betrag, optional Zahlungsdatum als Valuta) und die an der
   Ladestation je Monat ans Elektroauto gelieferten kWh erfasst (ersetzt die
-  frühere Excel-Tabelle `Strom_Auto.xlsx`). Daraus entstehen automatisch
-  Buchungen: je Monat der Auto-Anteil (kWh × Preis/kWh der Rechnung) unter
+  frühere Excel-Tabelle `Strom_Auto.xlsx`). Mit „Weiter“ zeigt der Dialog
+  die daraus entstehenden Buchungen (Datum, Text, Unterkategorie, Betrag,
+  Total = Rechnung); erst „Buchen“ legt sie an. Die Buchungen: je Monat der Auto-Anteil (kWh × Preis/kWh der Rechnung) unter
   der gewählten Kraftstoff-Unterkategorie, Buchungsdatum letzter Tag des
   Monats; die Differenz zum Rechnungsbetrag als Betriebskosten,
   Buchungsdatum letzter Tag des abgerechneten Quartals (Rechnung trifft im

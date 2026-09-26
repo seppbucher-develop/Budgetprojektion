@@ -3,13 +3,14 @@
 // Auto gelieferten kWh. Beim Speichern eines Quartals werden dessen
 // Buchungen (Kraftstoff je Monat + Betriebskosten) neu erzeugt, siehe
 // stromAuto.js für die Berechnung.
-import { getState, updateState, uid } from "./store.js?v=22";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=22";
-import { betragFormatter } from "./charts.js?v=22";
+import { getState, updateState, uid } from "./store.js?v=23";
+import { unterkategorieName } from "./kategorien.js?v=23";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=23";
+import { betragFormatter } from "./charts.js?v=23";
 import {
-  berechneQuartal, ersetzeBuchungenFuerQuartal, monateVonQuartal, quartalLabel,
+  berechneQuartal, buchungenFuerQuartal, ersetzeBuchungenFuerQuartal, monateVonQuartal, quartalLabel,
   quartalVonDatum, vorherigesQuartal, findeUnterkategorieNachName
-} from "./stromAuto.js?v=22";
+} from "./stromAuto.js?v=23";
 
 const dialog = document.getElementById("dialog-strom-auto");
 const liste = document.getElementById("strom-auto-liste");
@@ -29,12 +30,19 @@ const ladungLabels = [0, 1, 2].map(function (i) { return document.getElementById
 const vorschau = document.getElementById("strom-auto-vorschau");
 const fehler = document.getElementById("strom-auto-fehler");
 const rowDeleteBtn = document.getElementById("dialog-strom-auto-row-delete");
+const erfassungTeil = document.getElementById("strom-auto-erfassung");
+const bestaetigungTeil = document.getElementById("strom-auto-bestaetigung");
+const zurueckBtn = document.getElementById("dialog-strom-auto-row-zurueck");
+const submitBtn = document.getElementById("dialog-strom-auto-row-submit");
 
 const MONATSNAMEN = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 const preisFormatter = new Intl.NumberFormat("de-CH", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 const kwhFormatter = new Intl.NumberFormat("de-CH", { maximumFractionDigits: 1 });
 
 let editId = null;
+// true = Schritt 2 (Bestätigung): Buchungen werden angezeigt, der nächste
+// Klick auf "Buchen" legt sie tatsächlich an.
+let bestaetigungAktiv = false;
 
 function escapeHtml(s) {
   const div = document.createElement("div");
@@ -169,18 +177,14 @@ function aktualisiereVorschau() {
   const q = quartalAusFormular();
   if (isNaN(q.jahr)) { vorschau.innerHTML = ""; return; }
   const r = berechneQuartal(q);
+  submitBtn.textContent = r ? "Weiter ›" : "Speichern";
   if (!r) {
     vorschau.innerHTML = '<p class="hint">Ohne Rechnung (kWh + Betrag) werden noch keine Buchungen erzeugt — die Ladung kann aber schon erfasst werden.</p>';
     return;
   }
-  const zeilen = r.monate.filter(function (m) { return m.betrag !== 0; }).map(function (m) {
-    return "<tr><td>" + formatIsoDate(m.datum) + "</td><td>Kraftstoff " + MONATSNAMEN[m.monat - 1] +
-      " (" + kwhFormatter.format(m.kwh) + " kWh)</td><td>" + betragFormatter.format(-m.betrag) + "</td></tr>";
-  });
-  zeilen.push("<tr><td>" + formatIsoDate(r.betriebskostenDatum) + "</td><td>Betriebskosten</td><td>" +
-    betragFormatter.format(-r.betriebskosten) + "</td></tr>");
-  vorschau.innerHTML = '<p class="hint" style="margin:0 0 4px">Preis ' + preisFormatter.format(r.preisProKwh) +
-    " CHF/kWh — erzeugte Buchungen:</p><table>" + zeilen.join("") + "</table>";
+  vorschau.innerHTML = '<p class="hint">Preis ' + preisFormatter.format(r.preisProKwh) + " CHF/kWh · Auto " +
+    betragFormatter.format(r.autoBetrag) + " · Betriebskosten " + betragFormatter.format(r.betriebskosten) +
+    " — mit „Weiter“ die Buchungen prüfen.</p>";
   if (r.autoKwh > q.rechnungKwh) {
     fehler.textContent = "Achtung: mehr ans Auto geladen (" + kwhFormatter.format(r.autoKwh) + " kWh) als verrechnet — Betriebskosten werden negativ.";
   }
@@ -189,6 +193,46 @@ function aktualisiereVorschau() {
 [jahrInput, quartalSelect, rechnungKwhInput, rechnungBetragInput].concat(ladungInputs).forEach(function (el) {
   el.addEventListener("input", aktualisiereVorschau);
 });
+
+// Schritt 1 (Erfassung) bzw. Schritt 2 (Bestätigung) anzeigen.
+function zeigeSchritt(bestaetigung) {
+  bestaetigungAktiv = bestaetigung;
+  erfassungTeil.hidden = bestaetigung;
+  bestaetigungTeil.hidden = !bestaetigung;
+  zurueckBtn.hidden = !bestaetigung;
+  rowDeleteBtn.hidden = bestaetigung || !editId;
+  fehler.textContent = "";
+  if (!bestaetigung) aktualisiereVorschau();
+  else submitBtn.textContent = "Buchen";
+}
+
+// Zeigt exakt die Buchungen, die "Buchen" anlegen wird (gleiche Funktion
+// wie beim Anlegen, siehe stromAuto.js), inkl. Hinweis, wie viele bisher
+// erzeugte Buchungen dieses Quartals dadurch ersetzt werden.
+function renderBestaetigung(data) {
+  const state = getState();
+  const buchungen = buchungenFuerQuartal(state, data, function () { return ""; });
+  const summe = buchungen.reduce(function (s, b) { return s + b.betragChf; }, 0);
+  const bisherige = editId
+    ? state.realTransaktionen.filter(function (t) { return t.stromAutoQuartalId === editId; }).length
+    : 0;
+  bestaetigungTeil.innerHTML =
+    '<p style="margin:0 0 6px"><strong>Folgende ' + buchungen.length + " Buchungen werden erstellt:</strong></p>" +
+    "<table>" +
+    buchungen.map(function (b) {
+      return "<tr><td>" + formatIsoDate(b.datum) + "</td><td>" + escapeHtml(b.name) +
+        '<br><span class="hint">' + escapeHtml(unterkategorieName(state, b.unterkategorieId)) +
+        (b.valutadatum !== b.datum ? " · Valuta " + formatIsoDate(b.valutadatum) : "") + "</span></td>" +
+        '<td class="' + (b.betragChf >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(b.betragChf) + "</td></tr>";
+    }).join("") +
+    '<tr class="strom-auto-total"><td></td><td>Total (= Rechnung)</td><td>' + betragFormatter.format(summe) + "</td></tr>" +
+    "</table>" +
+    (bisherige > 0
+      ? '<p class="hint">Ersetzt die ' + bisherige + " bisher für " + quartalLabel(data.jahr, data.quartal) + " erzeugten Buchungen.</p>"
+      : "");
+}
+
+zurueckBtn.addEventListener("click", function () { zeigeSchritt(false); });
 
 function formatZahl(x) {
   return x == null ? "" : String(x);
@@ -214,8 +258,7 @@ function openRowDialog(q) {
   document.getElementById("dialog-strom-auto-row-title").textContent = q
     ? "Stromrechnung " + quartalLabel(q.jahr, q.quartal)
     : "Stromrechnung erfassen";
-  rowDeleteBtn.hidden = !q;
-  aktualisiereVorschau();
+  zeigeSchritt(false);
   rowDialog.showModal();
 }
 
@@ -264,6 +307,13 @@ form.addEventListener("submit", function (e) {
   }
   if (berechneQuartal(data) && (!state.stromAuto.unterkategorieKraftstoffId || !state.stromAuto.unterkategorieBetriebskostenId)) {
     fehler.textContent = "Bitte zuerst im Strom-Auto-Dialog die Unterkategorien für Kraftstoff und Betriebskosten wählen.";
+    return;
+  }
+  // Mit Rechnung zuerst die Buchungen zur Bestätigung zeigen; erst der
+  // zweite Klick ("Buchen") speichert und bucht.
+  if (berechneQuartal(data) && !bestaetigungAktiv) {
+    renderBestaetigung(data);
+    zeigeSchritt(true);
     return;
   }
 
