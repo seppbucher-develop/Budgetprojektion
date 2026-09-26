@@ -1,9 +1,9 @@
-import { getState, updateState, uid } from "./store.js?v=20";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=20";
-import { betragFormatter } from "./charts.js?v=20";
-import { unterkategorieName } from "./kategorien.js?v=20";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=20";
-import { holeWechselkurs } from "./fx.js?v=20";
+import { getState, updateState, uid } from "./store.js?v=21";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=21";
+import { betragFormatter } from "./charts.js?v=21";
+import { unterkategorieName } from "./kategorien.js?v=21";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=21";
+import { holeWechselkurs } from "./fx.js?v=21";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -200,6 +200,11 @@ function openDialog(row) {
   dialogDeleteBtn.hidden = !row;
   vorlagenListe.hidden = true;
   dialog.showModal();
+  // <dialog> fokussiert ohne [autofocus] sich selbst statt eines Feldes --
+  // Bezeichnung ist im Regelfall das erste einzugebende Feld, daher direkt
+  // dorthin springen (select() erlaubt beim Bearbeiten sofortiges Überschreiben).
+  bezeichnungInput.focus();
+  bezeichnungInput.select();
 }
 
 // CHF: Betrag direkt editierbar (kein Kurs nötig, Fremdwährungsfeld
