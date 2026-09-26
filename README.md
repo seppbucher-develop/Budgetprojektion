@@ -38,7 +38,9 @@ unter „Service“:
   Folgequartal ein). Beträge sind auf Rappen gerundet, die Summe entspricht
   immer exakt dem Rechnungsbetrag. Die Buchungen werden bei jedem Speichern
   des Quartals neu erzeugt; ein Klick auf eine solche Buchung (⚡) öffnet
-  darum das Quartal statt des normalen Buchungsdialogs.
+  darum das Quartal statt des normalen Buchungsdialogs. Buchungstexte:
+  „Strom Jun 123.9x0.26“ (Monat, kWh × Preis/kWh) bzw. „Strom 2026q2“
+  (Betriebskosten).
 - **Budget** – Kosten und Erträge pro Jahr, pro Kategorie (z. B. Auto, Wohnen,
   AHV/PK, siehe „Kategorien verwalten“). Jeder Posten gilt entweder
   *wiederkehrend* ab einem Datum (bis zur nächsten Änderung derselben

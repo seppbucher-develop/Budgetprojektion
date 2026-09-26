@@ -1,18 +1,18 @@
-import { getState, updateState, onStateChanged } from "./store.js?v=21";
-import "./kategorienDialog.js?v=21";
-import "./wiederkehrendDialog.js?v=21";
-import "./stromAutoDialog.js?v=21";
-import "./collapsibleHints.js?v=21";
-import { renderBudgetTab } from "./budgetTab.js?v=21";
-import { renderVermoegenTab } from "./vermoegenTab.js?v=21";
-import { renderProjectionTab } from "./projectionTab.js?v=21";
-import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=21";
-import { renderCompareTab } from "./compareTab.js?v=21";
-import { renderIstkostenTab } from "./istkostenTab.js?v=21";
-import { renderRenditeTab } from "./renditeTab.js?v=21";
-import { renderBackupTab } from "./backupTab.js?v=21";
-import { ladeAppVersion } from "./version.js?v=21";
-import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=21";
+import { getState, updateState, onStateChanged } from "./store.js?v=22";
+import "./kategorienDialog.js?v=22";
+import "./wiederkehrendDialog.js?v=22";
+import "./stromAutoDialog.js?v=22";
+import "./collapsibleHints.js?v=22";
+import { renderBudgetTab } from "./budgetTab.js?v=22";
+import { renderVermoegenTab } from "./vermoegenTab.js?v=22";
+import { renderProjectionTab } from "./projectionTab.js?v=22";
+import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=22";
+import { renderCompareTab } from "./compareTab.js?v=22";
+import { renderIstkostenTab } from "./istkostenTab.js?v=22";
+import { renderRenditeTab } from "./renditeTab.js?v=22";
+import { renderBackupTab } from "./backupTab.js?v=22";
+import { ladeAppVersion } from "./version.js?v=22";
+import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=22";
 
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 

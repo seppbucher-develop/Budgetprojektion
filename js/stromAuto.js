@@ -27,6 +27,10 @@ function pad2(n) {
   return String(n).padStart(2, "0");
 }
 
+// Monatskürzel für die Buchungstexte (wie bisher manuell erfasst, z. B.
+// "Strom Mrz 99.5x0.35").
+const MONATSKUERZEL = ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+
 function runden2(x) {
   return Math.round(x * 100) / 100;
 }
@@ -130,12 +134,12 @@ export function buchungenFuerQuartal(state, q, uidFn) {
   r.monate.forEach(function (m) {
     if (m.betrag === 0) return;
     buchungen.push(buchung(
-      "Strom Auto " + q.jahr + "-" + pad2(m.monat) + " (" + m.kwh + " kWh)",
+      "Strom " + MONATSKUERZEL[m.monat - 1] + " " + m.kwh + "x" + r.preisProKwh.toFixed(2),
       m.betrag, sa.unterkategorieKraftstoffId, m.datum, "kraftstoff"));
   });
   if (r.betriebskosten !== 0) {
     buchungen.push(buchung(
-      "Strom Betriebskosten " + quartalLabel(q.jahr, q.quartal),
+      "Strom " + q.jahr + "q" + q.quartal,
       r.betriebskosten, sa.unterkategorieBetriebskostenId, r.betriebskostenDatum, "betriebskosten"));
   }
   return buchungen;

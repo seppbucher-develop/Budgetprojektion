@@ -9,7 +9,7 @@
 // hinzugefügt): CACHE_VERSION hochzählen, sonst verwenden bereits
 // installierte Service-Worker weiter ihren alten Cache unverändert.
 // scripts/bump-js-version.sh erledigt das automatisch mit.
-const CACHE_VERSION = "v21";
+const CACHE_VERSION = "v22";
 const CACHE_NAME = "budgetprojektion-cache-" + CACHE_VERSION;
 
 const CORE_ASSETS = [
