@@ -1,10 +1,10 @@
-import { getState, updateState, getBackupMeta } from "./store.js?v=20";
-import { formatTimestamp } from "./dateUtils.js?v=20";
+import { getState, updateState, getBackupMeta } from "./store.js?v=23";
+import { formatTimestamp } from "./dateUtils.js?v=23";
 import {
   exportBackup, importBackupFile, formatBytes,
   fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
   chooseBackupDirectory, clearBackupDirectory, listFolderBackups
-} from "./backup.js?v=20";
+} from "./backup.js?v=23";
 
 const btnExport = document.getElementById("btn-backup-export");
 const btnImport = document.getElementById("btn-backup-import");
