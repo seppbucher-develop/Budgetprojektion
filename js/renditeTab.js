@@ -1,7 +1,7 @@
-import { getState } from "./store.js?v=19";
-import { formatIsoDate } from "./dateUtils.js?v=19";
-import { currencyFormatter } from "./charts.js?v=19";
-import { berechneRendite } from "./renditeAnalyse.js?v=19";
+import { getState } from "./store.js?v=20";
+import { formatIsoDate } from "./dateUtils.js?v=20";
+import { currencyFormatter } from "./charts.js?v=20";
+import { berechneRendite } from "./renditeAnalyse.js?v=20";
 
 const emptyHint = document.getElementById("rendite-empty-hint");
 const inhalt = document.getElementById("rendite-inhalt");
@@ -72,7 +72,8 @@ function renderErgebnis() {
     statBlock("Vermögen " + formatIsoDate(bis), rendite.vermoegenEnde != null ? currencyFormatter.format(rendite.vermoegenEnde) : "–") +
     statBlock("Effektiver Cashflow", currencyFormatter.format(rendite.effektiverCashflow)) +
     statBlock("Rendite (CHF)", rendite.renditeChf != null ? currencyFormatter.format(rendite.renditeChf) : "–") +
-    statBlock("Rendite (%)", pctText(rendite.renditePct));
+    statBlock("Rendite (%)", pctText(rendite.renditePct)) +
+    statBlock("Rendite/Jahr", pctText(rendite.renditePctJahr));
 
   if (rendite.cashflowPosten.length === 0) {
     cashflowRows.innerHTML = "";
