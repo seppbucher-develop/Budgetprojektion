@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=22">
+<link rel="stylesheet" href="css/style.css?v=23">
 </head>
 <body>
 <div class="app">
@@ -113,15 +113,17 @@
     <div class="panel">
       <div class="panel-header">
         <h2>Buchungen</h2>
-        <div class="panel-actions">
-          <div class="field inline-select">
-            <label for="buchungen-jahr-select">Jahr</label>
-            <select id="buchungen-jahr-select"></select>
-          </div>
-          <button type="button" id="btn-open-wiederkehrend" class="btn-secondary">Wiederkehrend…</button>
-          <button type="button" id="btn-open-strom-auto" class="btn-secondary">⚡ Strom Auto…</button>
-          <button id="btn-add-buchung" class="btn-primary">+ Neue Buchung</button>
+      </div>
+      <div class="panel-actions panel-actions-nowrap">
+        <button id="btn-add-buchung" class="btn-primary">+ Neue Buchung</button>
+        <button type="button" id="btn-open-wiederkehrend" class="btn-secondary">Wiederkehrend…</button>
+      </div>
+      <div class="panel-actions panel-actions-nowrap">
+        <div class="field inline-select">
+          <label for="buchungen-jahr-select">Jahr</label>
+          <select id="buchungen-jahr-select"></select>
         </div>
+        <button type="button" id="btn-open-strom-auto" class="btn-secondary">⚡ Strom Auto…</button>
       </div>
       <input type="search" id="buchungen-suche" class="buchungen-suche-feld" placeholder="Suche Bezeichnung oder Betrag" aria-label="Suche Bezeichnung oder Betrag">
       <p class="hint" id="buchungen-empty-hint">Noch keine Buchungen erfasst.</p>
@@ -145,9 +147,9 @@
     <div class="panel">
       <div class="panel-header">
         <h2>Kosten &amp; Erträge pro Jahr</h2>
-        <div class="panel-actions">
-          <button id="btn-open-kategorien" class="btn-secondary">Kategorien verwalten…</button>
+        <div class="panel-actions panel-actions-nowrap">
           <button id="btn-add-budget-row" class="btn-primary">+ Neuer Posten</button>
+          <button id="btn-open-kategorien" class="btn-secondary">Kategorien…</button>
         </div>
       </div>
       <p class="hint" id="budget-empty-hint">Noch keine Budgetdaten vorhanden. Lege Posten manuell an.</p>
@@ -713,7 +715,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=23"></script>
+<script type="module" src="js/app.js?v=24"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die

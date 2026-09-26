@@ -248,6 +248,26 @@ body {
   margin-bottom: 0;
 }
 
+/* Erzwingt, dass die zwei Buttons/Felder einer Aktionszeile immer in einer
+   Zeile bleiben (z. B. Budget: "+ Neuer Posten"/"Kategorien verwalten…",
+   Buchungen: "+ Neue Buchung"/"Wiederkehrend…" bzw. Jahr/"Strom Auto…"),
+   statt bei schmalen Bildschirmen untereinander umzubrechen. */
+.panel-actions-nowrap {
+  flex-wrap: nowrap;
+}
+
+/* Steht .panel-actions nicht in der .panel-header-Kopfzeile (deren eigenes
+   margin-bottom sonst den Abstand liefert), sondern als eigene Zeile
+   darunter (Buchungen: zwei Aktionszeilen statt einer), braucht es den
+   Abstand selbst. */
+.panel-header + .panel-actions {
+  margin-bottom: 8px;
+}
+
+.panel-actions + .panel-actions {
+  margin-bottom: 12px;
+}
+
 .field {
   margin-bottom: 14px;
   display: flex;
@@ -300,6 +320,27 @@ body {
 
 .inline-select {
   min-width: 120px;
+}
+
+/* Analyse: "Von"/"Bis" sollen immer in einer Zeile bleiben statt bei
+   schmalen Bildschirmen untereinander umzubrechen -- die 180px-Mindestbreite
+   von .inline-form .field passt dafür nicht, die Felder müssen sich den
+   Platz teilen und bei Bedarf schrumpfen können. */
+#form-rendite-stichtage {
+  flex-wrap: nowrap;
+}
+
+#form-rendite-stichtage .field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Projektion: alle drei Annahme-Felder in einer Zeile -- gleiche Idee wie
+   oben, "Übernehmen" darf bei Bedarf in eine eigene Zeile darunter
+   umbrechen. */
+#form-projektion-einstellungen .field {
+  flex: 1;
+  min-width: 0;
 }
 
 .inline-add {
