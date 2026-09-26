@@ -3,7 +3,7 @@
 // Rendite (Zinsen/Dividenden/Kursgewinne) als Restgrösse. Der Cashflow kommt
 // aus dem Valutadatum jeder Buchung (nicht dem Buchungsdatum, das für
 // Budgetzwecke abweichen kann, siehe einnahmenAusgabenTab.js).
-import { unterkategorieName } from "./kategorien.js?v=19";
+import { unterkategorieName } from "./kategorien.js?v=20";
 
 function vermoegenSummeAmStichtag(state, datum) {
   const eintrag = state.vermoegenEintraege.find(function (e) { return e.datum === datum; });
@@ -22,6 +22,18 @@ export function cashflowPostenImZeitraum(state, stichtagVon, stichtagBis) {
     .sort(function (a, b) { return a.datum < b.datum ? -1 : a.datum > b.datum ? 1 : 0; });
 }
 
+// Hochrechnung der Perioden-Rendite auf ein Jahr (geometrisch, wie ein
+// Zinseszins-Satz -- nicht einfach linear mit 365/Tage multipliziert). Bei
+// sehr kurzen Perioden ist das Ergebnis entsprechend instabil/extrem, bleibt
+// aber die korrekte Fortschreibung des tatsächlichen Periodensatzes.
+function renditePctProJahr(renditePct, tage) {
+  if (renditePct == null || !tage || tage <= 0) return null;
+  const faktor = 1 + renditePct / 100;
+  if (faktor <= 0) return null; // Totalverlust oder mehr -- Wurzel nicht definiert
+  const jahre = tage / 365;
+  return (Math.pow(faktor, 1 / jahre) - 1) * 100;
+}
+
 export function berechneRendite(state, stichtagVon, stichtagBis) {
   const vermoegenStart = vermoegenSummeAmStichtag(state, stichtagVon);
   const vermoegenEnde = vermoegenSummeAmStichtag(state, stichtagBis);
@@ -34,6 +46,8 @@ export function berechneRendite(state, stichtagVon, stichtagBis) {
   const renditePct = (renditeChf != null && vermoegenStart)
     ? (renditeChf / Math.abs(vermoegenStart)) * 100
     : null;
+  const tage = (new Date(stichtagBis) - new Date(stichtagVon)) / 86400000;
+  const renditePctJahr = renditePctProJahr(renditePct, tage);
 
   return {
     stichtagVon: stichtagVon,
@@ -43,6 +57,7 @@ export function berechneRendite(state, stichtagVon, stichtagBis) {
     effektiverCashflow: effektiverCashflow,
     renditeChf: renditeChf,
     renditePct: renditePct,
+    renditePctJahr: renditePctJahr,
     cashflowPosten: cashflowPosten
   };
 }
