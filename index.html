@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/style.css?v=25">
 </head>
 <body>
 <div class="app">
@@ -444,7 +444,13 @@
 <!-- Dialog: Vermögens-Stichtag anlegen/bearbeiten -->
 <dialog id="dialog-vermoegen-row">
   <form id="form-vermoegen-row" method="dialog">
-    <h2 id="dialog-vermoegen-row-title">Neuer Vermögens-Stichtag</h2>
+    <div class="dialog-head">
+      <h2 id="dialog-vermoegen-row-title">Neuer Vermögens-Stichtag</h2>
+      <div class="dialog-head-actions">
+        <button type="button" id="dialog-vermoegen-row-cancel" class="btn-icon" title="Abbrechen" aria-label="Abbrechen">✕</button>
+        <button type="submit" class="btn-icon btn-icon-primary" title="Speichern" aria-label="Speichern">✓</button>
+      </div>
+    </div>
     <div class="field">
       <label for="vermoegen-datum">Stichtag</label>
       <input type="date" id="vermoegen-datum" name="datum" required>
@@ -464,19 +470,15 @@
         <button type="button" id="btn-add-konto" class="btn-secondary">Hinzufügen</button>
       </div>
     </div>
-    <div class="dialog-actions">
-      <button type="button" id="dialog-vermoegen-row-cancel" class="btn-secondary">Abbrechen</button>
-      <button type="submit" class="btn-primary">Speichern</button>
-    </div>
   </form>
 </dialog>
 
 <!-- Dialog: Buchung (Einnahme/Ausgabe) anlegen/bearbeiten -->
 <dialog id="dialog-buchung">
   <form id="form-buchung" method="dialog">
-    <div class="dialog-buchung-head">
+    <div class="dialog-head">
       <h2 id="dialog-buchung-title">Neue Buchung</h2>
-      <div class="dialog-buchung-head-actions">
+      <div class="dialog-head-actions">
         <button type="button" id="dialog-buchung-delete" class="btn-icon btn-icon-danger" hidden title="Löschen" aria-label="Löschen">🗑</button>
         <button type="button" id="dialog-buchung-cancel" class="btn-icon" title="Abbrechen" aria-label="Abbrechen">✕</button>
         <button type="submit" class="btn-icon btn-icon-primary" title="Speichern" aria-label="Speichern">✓</button>
