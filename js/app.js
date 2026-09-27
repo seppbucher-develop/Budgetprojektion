@@ -1,18 +1,19 @@
-import { getState, updateState, onStateChanged } from "./store.js?v=24";
-import "./kategorienDialog.js?v=24";
-import "./wiederkehrendDialog.js?v=24";
-import "./stromAutoDialog.js?v=24";
-import "./collapsibleHints.js?v=24";
-import { renderBudgetTab } from "./budgetTab.js?v=24";
-import { renderVermoegenTab } from "./vermoegenTab.js?v=24";
-import { renderProjectionTab } from "./projectionTab.js?v=24";
-import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=24";
-import { renderCompareTab } from "./compareTab.js?v=24";
-import { renderIstkostenTab } from "./istkostenTab.js?v=24";
-import { renderRenditeTab } from "./renditeTab.js?v=24";
-import { renderBackupTab } from "./backupTab.js?v=24";
-import { ladeAppVersion } from "./version.js?v=24";
-import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=24";
+import { getState, updateState, onStateChanged } from "./store.js?v=25";
+import "./kategorienDialog.js?v=25";
+import "./wiederkehrendDialog.js?v=25";
+import "./stromAutoDialog.js?v=25";
+import "./collapsibleHints.js?v=25";
+import { renderBudgetTab } from "./budgetTab.js?v=25";
+import { renderVermoegenTab } from "./vermoegenTab.js?v=25";
+import { renderProjectionTab } from "./projectionTab.js?v=25";
+import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=25";
+import { renderCompareTab } from "./compareTab.js?v=25";
+import { renderIstkostenTab } from "./istkostenTab.js?v=25";
+import { renderRenditeTab } from "./renditeTab.js?v=25";
+import { renderBackupTab } from "./backupTab.js?v=25";
+import { ladeAppVersion } from "./version.js?v=25";
+import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=25";
+import { aktualisiereFremdwaehrungVermoegen } from "./vermoegen.js?v=25";
 
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 
@@ -44,6 +45,10 @@ onStateChanged(renderAll);
 renderAll();
 ladeAppVersion();
 pruefeWiederkehrendeBuchungenBeimStart();
+// Fremdwährungskonten im Vermögen (z. B. Euro, USD) auf den aktuellen Kurs
+// bringen -- läuft im Hintergrund weiter, state-changed löst danach
+// automatisch ein renderAll() aus, siehe vermoegen.js.
+aktualisiereFremdwaehrungVermoegen(getState, updateState);
 
 // Beim App-Start prüfen, ob wiederkehrende Buchungen (Miete, Abos, ...)
 // fällig sind und daraus automatisch echte Buchungen erzeugen, siehe
