@@ -282,6 +282,16 @@ form.valutadatum.addEventListener("change", ladeKursVorschlag);
 fremdwaehrungBetragInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
 kursInput.addEventListener("input", aktualisiereBetragAusFremdwaehrung);
 
+// Klick ins Betragsfeld wählt den bestehenden Betrag aus, damit er sich
+// direkt überschreiben lässt (ohne preventDefault auf mouseup würde der
+// Klick die Auswahl sofort wieder aufheben und nur den Cursor setzen).
+function selectAlleBeiFokus(input) {
+  input.addEventListener("focus", function () { input.select(); });
+  input.addEventListener("mouseup", function (e) { e.preventDefault(); });
+}
+selectAlleBeiFokus(betragInput);
+selectAlleBeiFokus(fremdwaehrungBetragInput);
+
 function deleteBuchung(id) {
   if (!confirm("Diese Buchung wirklich löschen?")) return false;
   updateState(function (s) {
