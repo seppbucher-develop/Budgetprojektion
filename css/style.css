@@ -346,10 +346,15 @@ body {
 .inline-add {
   display: flex;
   gap: 8px;
+  /* Neues Konto (Name + Währung + Button) hat auf schmalen Bildschirmen
+     mehr Inhalt, als in eine Zeile passt -- der Button darf dann umbrechen
+     statt über den Dialogrand hinauszuragen. */
+  flex-wrap: wrap;
 }
 
 .inline-add input {
   flex: 1;
+  min-width: 120px;
 }
 
 .amount-with-sign {

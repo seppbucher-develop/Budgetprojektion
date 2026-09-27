@@ -9,7 +9,7 @@
 // hinzugefügt): CACHE_VERSION hochzählen, sonst verwenden bereits
 // installierte Service-Worker weiter ihren alten Cache unverändert.
 // scripts/bump-js-version.sh erledigt das automatisch mit.
-const CACHE_VERSION = "v24";
+const CACHE_VERSION = "v25";
 const CACHE_NAME = "budgetprojektion-cache-" + CACHE_VERSION;
 
 const CORE_ASSETS = [
@@ -51,6 +51,7 @@ const CORE_ASSETS = [
   "js/stromAuto.js",
   "js/stromAutoDialog.js",
   "js/transaktionen.js",
+  "js/vermoegen.js",
   "js/vermoegenTab.js",
   "js/version.js",
   "js/wiederkehrendDialog.js",
