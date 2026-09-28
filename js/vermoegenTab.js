@@ -1,7 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=25";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=25";
-import { currencyFormatter } from "./charts.js?v=25";
-import { aktualisiereFremdwaehrungVermoegen } from "./vermoegen.js?v=25";
+import { getState, updateState, uid } from "./store.js?v=26";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=26";
+import { currencyFormatter } from "./charts.js?v=26";
+import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege } from "./vermoegen.js?v=26";
 
 const tbody = document.querySelector("#vermoegen-table tbody");
 const thead = document.querySelector("#vermoegen-table thead tr");
@@ -36,7 +36,13 @@ export function renderVermoegenTab() {
       "<td>" + formatIsoDate(row.datum) + "</td>" +
       konten.map(function (k) { return '<td class="num">' + currencyFormatter.format(row.werte[k.name] || 0) + "</td>"; }).join("") +
       '<td class="num total">' + currencyFormatter.format(summe) + "</td>" +
-      '<td class="row-actions"><button data-action="edit">Bearbeiten</button><button data-action="delete" class="btn-danger-text">Löschen</button></td>';
+      '<td class="row-actions row-actions-icons">' +
+        (hatFremdwaehrungsBetraege(state, row) ? '<button data-action="recalc" title="Währung neu berechnen" aria-label="Währung neu berechnen">🔄</button>' : "") +
+        '<button data-action="edit" title="Bearbeiten" aria-label="Bearbeiten">✎</button>' +
+        '<button data-action="delete" class="btn-danger-text" title="Löschen" aria-label="Löschen">🗑</button>' +
+      "</td>";
+    const recalcBtn = tr.querySelector('[data-action="recalc"]');
+    if (recalcBtn) recalcBtn.addEventListener("click", function () { berechneFremdwaehrungEintragNeu(getState, updateState, row.id); });
     tr.querySelector('[data-action="edit"]').addEventListener("click", function () { openDialog(row); });
     tr.querySelector('[data-action="delete"]').addEventListener("click", function () { deleteRow(row.id); });
     tbody.appendChild(tr);
@@ -72,8 +78,12 @@ function buildKontenFields(werte, fremdbetraege) {
 
 function openDialog(row) {
   editId = row ? row.id : null;
+  // Beim Anlegen eines neuen Stichtags dienen die Werte des zuletzt
+  // erfassten Stichtags als Vorlage (meist ändern sich nur wenige Konten),
+  // das Datum bleibt aber auf heute -- nicht auf das des Vorlage-Stichtags.
+  const vorlage = row || sortedEintraege()[0] || null;
   form.datum.value = row ? row.datum : todayIso();
-  buildKontenFields(row ? row.werte : null, row ? row.fremdbetraege : null);
+  buildKontenFields(vorlage ? vorlage.werte : null, vorlage ? vorlage.fremdbetraege : null);
   document.getElementById("dialog-vermoegen-row-title").textContent = row ? "Vermögens-Stichtag bearbeiten" : "Neuer Vermögens-Stichtag";
   neuesKontoInput.value = "";
   neuesKontoWaehrungSelect.value = "CHF";
@@ -104,7 +114,7 @@ document.getElementById("btn-add-konto").addEventListener("click", function () {
   neuesKontoWaehrungSelect.value = "CHF";
 });
 
-form.addEventListener("submit", function (e) {
+form.addEventListener("submit", async function (e) {
   e.preventDefault();
   if (!form.datum.value) return;
   const bestehendeWerte = editId
@@ -119,13 +129,19 @@ form.addEventListener("submit", function (e) {
       werte[name] = wert;
     } else {
       fremdbetraege[name] = wert;
-      // Vorläufig den zuletzt bekannten CHF-Betrag übernehmen, bis
-      // aktualisiereFremdwaehrungVermoegen() ihn gleich im Anschluss mit
-      // dem aktuellen Kurs neu berechnet -- sonst würde die Summe für
-      // einen kurzen Moment auf 0 fallen.
+      // Fallback, falls die Kursabfrage gleich unten fehlschlägt (kein
+      // Netz o. Ä.) -- dann bleibt der zuletzt bekannte CHF-Betrag stehen,
+      // statt auf 0 zu fallen.
       werte[name] = bestehendeWerte[name] != null ? bestehendeWerte[name] : 0;
     }
   });
+
+  // Die Umrechnung der Fremdwährungsbeträge erfolgt einmalig hier beim
+  // Erfassen/Speichern mit dem dann aktuellen Kurs -- nicht mehr laufend im
+  // Hintergrund (App-Start, andere Stichtage). Der damalige Kurs bleibt so
+  // nachvollziehbar erhalten, bis er gezielt über "Währung neu berechnen"
+  // aufgefrischt wird.
+  await berechneFremdwaehrungBetraege(getState(), fremdbetraege, werte);
 
   updateState(function (s) {
     if (editId) {
@@ -138,5 +154,4 @@ form.addEventListener("submit", function (e) {
     }
   });
   dialog.close();
-  aktualisiereFremdwaehrungVermoegen(getState, updateState);
 });
