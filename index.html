@@ -456,7 +456,7 @@
       <input type="date" id="vermoegen-datum" name="datum" required>
     </div>
     <div id="vermoegen-konten-fields"></div>
-    <p class="hint">Bei Fremdwährungskonten (Euro, USD, …) wird der Betrag in der jeweiligen Währung erfasst. Der CHF-Gegenwert für die Summe wird beim Öffnen der App und beim Speichern mit dem aktuellen Kurs neu berechnet.</p>
+    <p class="hint">Bei Fremdwährungskonten (Euro, USD, …) wird der Betrag in der jeweiligen Währung erfasst. Der CHF-Gegenwert für die Summe wird beim Speichern einmalig mit dem dann aktuellen Kurs berechnet und bleibt danach stehen; über 🔄 in der Tabelle lässt er sich später auf den aktuellen Kurs auffrischen.</p>
     <div class="field add-konto-row">
       <label for="neues-konto-name">Neues Konto</label>
       <div class="inline-add">
@@ -724,7 +724,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=25"></script>
+<script type="module" src="js/app.js?v=26"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
