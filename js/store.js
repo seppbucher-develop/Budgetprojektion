@@ -1,10 +1,10 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=26";
-import { migriereTransaktionen } from "./transaktionen.js?v=26";
-import { defaultStromAuto } from "./stromAuto.js?v=26";
-import { migriereVermoegenKonten } from "./vermoegen.js?v=26";
+import { migriereKategorien } from "./kategorien.js?v=27";
+import { migriereTransaktionen } from "./transaktionen.js?v=27";
+import { defaultStromAuto } from "./stromAuto.js?v=27";
+import { migriereVermoegenKonten } from "./vermoegen.js?v=27";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
@@ -143,6 +143,17 @@ export function replaceState(newState) {
   state = Object.assign(defaultState(), newState);
   persist();
 }
+
+// Ändert eine andere App/ein anderer Tab desselben Origins den State im
+// localStorage (z. B. das Flugbuch schreibt ein korrigiertes Buchungsdatum
+// zurück), wird er hier neu eingelesen — sonst würde die nächste eigene
+// Änderung die fremde per persist() wieder überschreiben. Das "storage"-
+// Event feuert nur in ANDEREN Dokumenten, nie im schreibenden selbst.
+window.addEventListener("storage", function (e) {
+  if (e.key !== STORAGE_KEY) return;
+  state = load();
+  document.dispatchEvent(new CustomEvent("state-changed"));
+});
 
 export function onStateChanged(handler) {
   document.addEventListener("state-changed", handler);
