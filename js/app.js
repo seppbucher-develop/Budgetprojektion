@@ -1,18 +1,19 @@
-import { getState, updateState, onStateChanged } from "./store.js?v=26";
-import "./kategorienDialog.js?v=26";
-import "./wiederkehrendDialog.js?v=26";
-import "./stromAutoDialog.js?v=26";
-import "./collapsibleHints.js?v=26";
-import { renderBudgetTab } from "./budgetTab.js?v=26";
-import { renderVermoegenTab } from "./vermoegenTab.js?v=26";
-import { renderProjectionTab } from "./projectionTab.js?v=26";
-import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=26";
-import { renderCompareTab } from "./compareTab.js?v=26";
-import { renderIstkostenTab } from "./istkostenTab.js?v=26";
-import { renderRenditeTab } from "./renditeTab.js?v=26";
-import { renderBackupTab } from "./backupTab.js?v=26";
-import { ladeAppVersion } from "./version.js?v=26";
-import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=26";
+import { getState, updateState, onStateChanged } from "./store.js?v=27";
+import "./kategorienDialog.js?v=27";
+import "./wiederkehrendDialog.js?v=27";
+import "./stromAutoDialog.js?v=27";
+import { initReisezuordnung } from "./reisezuordnungDialog.js?v=27";
+import "./collapsibleHints.js?v=27";
+import { renderBudgetTab } from "./budgetTab.js?v=27";
+import { renderVermoegenTab } from "./vermoegenTab.js?v=27";
+import { renderProjectionTab } from "./projectionTab.js?v=27";
+import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=27";
+import { renderCompareTab } from "./compareTab.js?v=27";
+import { renderIstkostenTab } from "./istkostenTab.js?v=27";
+import { renderRenditeTab } from "./renditeTab.js?v=27";
+import { renderBackupTab } from "./backupTab.js?v=27";
+import { ladeAppVersion } from "./version.js?v=27";
+import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=27";
 
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 
@@ -44,6 +45,7 @@ onStateChanged(renderAll);
 renderAll();
 ladeAppVersion();
 pruefeWiederkehrendeBuchungenBeimStart();
+initReisezuordnung();
 
 // Beim App-Start prüfen, ob wiederkehrende Buchungen (Miete, Abos, ...)
 // fällig sind und daraus automatisch echte Buchungen erzeugen, siehe

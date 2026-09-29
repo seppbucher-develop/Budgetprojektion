@@ -1,10 +1,10 @@
-import { getState, updateState, uid } from "./store.js?v=26";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=26";
-import { betragFormatter } from "./charts.js?v=26";
-import { unterkategorieName } from "./kategorien.js?v=26";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=26";
-import { holeWechselkurs } from "./fx.js?v=26";
-import { openStromAutoQuartal } from "./stromAutoDialog.js?v=26";
+import { getState, updateState, uid } from "./store.js?v=27";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=27";
+import { betragFormatter } from "./charts.js?v=27";
+import { unterkategorieName } from "./kategorien.js?v=27";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=27";
+import { holeWechselkurs } from "./fx.js?v=27";
+import { openStromAutoQuartal } from "./stromAutoDialog.js?v=27";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -404,6 +404,9 @@ form.addEventListener("submit", function (e) {
   updateState(function (s) {
     if (editId) {
       const row = s.realTransaktionen.find(function (t) { return t.id === editId; });
+      // Buchungsdatum geändert → bisherige Reisezuordnung ungültig (wird
+      // beim nächsten Start bzw. im Zuordnungsdialog neu bestimmt).
+      if (row.datum !== data.datum) delete row.reiseId;
       Object.assign(row, data);
     } else {
       s.realTransaktionen.push(Object.assign({ id: uid(), erfasstAm: new Date().toISOString() }, data));
