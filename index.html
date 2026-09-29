@@ -125,9 +125,6 @@
         </div>
         <button type="button" id="btn-open-strom-auto" class="btn-secondary">⚡ Strom Auto…</button>
       </div>
-      <div class="panel-actions panel-actions-nowrap">
-        <button type="button" id="btn-open-reisezuordnung" class="btn-secondary">✈ Flugreisen zuordnen…</button>
-      </div>
       <input type="search" id="buchungen-suche" class="buchungen-suche-feld" placeholder="Suche Bezeichnung oder Betrag" aria-label="Suche Bezeichnung oder Betrag">
       <p class="hint" id="buchungen-empty-hint">Noch keine Buchungen erfasst.</p>
       <div id="buchungen-liste-table">
@@ -723,28 +720,11 @@
   </div>
 </dialog>
 
-<!-- Dialog: Flugreisekosten den Reisen der Flugbuch-Reiseanalyse zuordnen -->
-<dialog id="dialog-reisezuordnung" class="dialog-wide">
-  <div class="buchungen-head">
-    <h2 id="dialog-reisezuordnung-title">Flugreisekosten zuordnen</h2>
-    <button type="button" id="dialog-reisezuordnung-close" class="btn-close-icon" aria-label="Schliessen">✕</button>
-  </div>
-  <p class="hint">Offen sind Buchungen der Unterkategorie „Flugreisen“, die nicht innerhalb einer Reise liegen (Pufferzeit davor/danach, mehrdeutig oder ausserhalb). Wählt man eine Reise und/oder ändert das Buchungsdatum, gilt das direkt für die Buchung.</p>
-  <div class="reise-puffer">
-    <label>Puffer vor Reise (Tage) <input type="number" id="reise-puffer-vor" min="0" step="1" inputmode="numeric"></label>
-    <label>nach Reise (Tage) <input type="number" id="reise-puffer-nach" min="0" step="1" inputmode="numeric"></label>
-  </div>
-  <p class="warning" id="reisezuordnung-hinweis" hidden></p>
-  <div class="buchungen-scroll" id="reisezuordnung-scroll">
-    <div id="reisezuordnung-liste"></div>
-  </div>
-</dialog>
-
 <!-- ?v= hochzählen, wenn sich EIN js/*.js ändert (hier UND in jedem
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=27"></script>
+<script type="module" src="js/app.js?v=26"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
