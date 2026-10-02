@@ -2,11 +2,11 @@
 // CRUD für Regeln, aus denen beim App-Start automatisch echte Buchungen
 // erzeugt werden (siehe wiederkehrendeBuchungen.js für die Erzeugungslogik,
 // app.js für den Aufruf beim Start).
-import { getState, updateState, uid } from "./store.js?v=28";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=28";
-import { betragFormatter } from "./charts.js?v=28";
-import { holeWechselkurs } from "./fx.js?v=28";
-import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=28";
+import { getState, updateState, uid } from "./store.js?v=30";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=30";
+import { betragFormatter } from "./charts.js?v=30";
+import { holeWechselkurs } from "./fx.js?v=30";
+import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=30";
 
 const dialog = document.getElementById("dialog-wiederkehrend");
 const liste = document.getElementById("wiederkehrend-liste");
@@ -25,7 +25,14 @@ const kursInput = document.getElementById("wiederkehrend-kurs");
 const rhythmusSelect = document.getElementById("wiederkehrend-rhythmus");
 const werktagSelect = document.getElementById("wiederkehrend-werktag");
 const abInput = document.getElementById("wiederkehrend-ab");
+const bisInput = document.getElementById("wiederkehrend-bis");
 const aktivCheckbox = document.getElementById("wiederkehrend-aktiv");
+const folgeBtn = document.getElementById("dialog-wiederkehrend-row-folge");
+const folgeDialog = document.getElementById("dialog-wiederkehrend-folge");
+const folgeForm = document.getElementById("form-wiederkehrend-folge");
+const folgeBisInput = document.getElementById("wiederkehrend-folge-bis");
+const folgeAbInput = document.getElementById("wiederkehrend-folge-ab");
+const folgeBetragInput = document.getElementById("wiederkehrend-folge-betrag");
 const rowDeleteBtn = document.getElementById("dialog-wiederkehrend-row-delete");
 
 let editId = null;
@@ -59,7 +66,7 @@ function render() {
     return '<div class="wiederkehrend-row' + (r.aktiv ? "" : " wiederkehrend-inaktiv") + '" data-id="' + r.id + '">' +
       '<div class="wiederkehrend-row-info">' +
         '<div class="wiederkehrend-name">' + escapeHtml(r.name) + (r.aktiv ? "" : " (pausiert)") + "</div>" +
-        '<div class="wiederkehrend-sub">' + RHYTHMUS_LABEL[r.rhythmus] + ", ab " + formatIsoDate(r.ab) + "</div>" +
+        '<div class="wiederkehrend-sub">' + RHYTHMUS_LABEL[r.rhythmus] + ", ab " + formatIsoDate(r.ab) + (r.bis ? " bis " + formatIsoDate(r.bis) : "") + "</div>" +
       "</div>" +
       '<div class="wiederkehrend-betrag ' + (betragChf >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(betragChf) + "</div>" +
       '<div class="row-actions row-actions-icons">' +
@@ -159,10 +166,12 @@ function openRowDialog(regel) {
   rhythmusSelect.value = regel ? regel.rhythmus : "monatlich";
   werktagSelect.value = regel && regel.werktagModus ? regel.werktagModus : STANDARD_WERKTAG_MODUS;
   abInput.value = regel ? regel.ab : todayIso();
+  bisInput.value = regel && regel.bis ? regel.bis : "";
   aktivCheckbox.checked = regel ? regel.aktiv : true;
   aktualisiereWaehrungsFelder();
   document.getElementById("dialog-wiederkehrend-row-title").textContent = regel ? "Wiederkehrende Buchung bearbeiten" : "Neue wiederkehrende Buchung";
   rowDeleteBtn.hidden = !regel;
+  folgeBtn.hidden = !regel;
   rowDialog.showModal();
 }
 
@@ -199,9 +208,14 @@ form.addEventListener("submit", function (e) {
     rhythmus: rhythmusSelect.value,
     werktagModus: werktagSelect.value,
     ab: abInput.value,
+    bis: bisInput.value || null,
     aktiv: aktivCheckbox.checked
   };
   if (!data.name || isNaN(betrag) || isNaN(kurs) || !data.unterkategorieId || !data.ab) return;
+  if (data.bis && data.bis < data.ab) {
+    alert("Das Bis-Datum darf nicht vor dem Ab-Datum liegen.");
+    return;
+  }
 
   updateState(function (s) {
     if (editId) {
@@ -211,6 +225,43 @@ form.addEventListener("submit", function (e) {
       s.wiederkehrendeBuchungen.push(Object.assign({ id: uid(), letzteErzeugung: null }, data));
     }
   });
+  rowDialog.close();
+  render();
+});
+
+// Folgebuchung: beendet die bearbeitete Regel ("bis") und legt eine Kopie mit
+// neuem Startdatum und neuem Betrag an (Betrag in der Währung der Regel).
+folgeBtn.addEventListener("click", function () {
+  const regel = getState().wiederkehrendeBuchungen.find(function (r) { return r.id === editId; });
+  if (!regel) return;
+  folgeBisInput.value = "";
+  folgeAbInput.value = "";
+  folgeBetragInput.value = String(regel.betrag);
+  document.getElementById("wiederkehrend-folge-betrag-label").textContent = "Neuer Betrag (" + regel.waehrung + ")";
+  folgeDialog.showModal();
+});
+
+document.getElementById("dialog-wiederkehrend-folge-cancel").addEventListener("click", function () { folgeDialog.close(); });
+
+folgeForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+  const bis = folgeBisInput.value;
+  const ab = folgeAbInput.value;
+  const betrag = Math.abs(parseDezimal(folgeBetragInput.value));
+  if (!bis || !ab || isNaN(betrag)) return;
+  if (bis >= ab) {
+    alert("Die Folgebuchung muss nach dem Ende der aktuellen Buchung beginnen.");
+    return;
+  }
+  updateState(function (s) {
+    const regel = s.wiederkehrendeBuchungen.find(function (r) { return r.id === editId; });
+    if (!regel) return;
+    // Ein bereits gesetztes Ende der Regel wird von der Folgebuchung geerbt.
+    const folge = Object.assign({}, regel, { id: uid(), ab: ab, betrag: betrag, letzteErzeugung: null });
+    regel.bis = bis;
+    s.wiederkehrendeBuchungen.push(folge);
+  });
+  folgeDialog.close();
   rowDialog.close();
   render();
 });
