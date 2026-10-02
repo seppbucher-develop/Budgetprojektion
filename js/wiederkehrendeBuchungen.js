@@ -4,10 +4,10 @@
 // beim Start. Einmal erzeugte Buchungen sind danach normale, unabhängige
 // Buchungen — Bearbeiten/Löschen einer Regel wirkt sich nur auf künftige
 // Erzeugungen aus, nie auf bereits erzeugte Buchungen.
-import { todayIso } from "./dateUtils.js?v=28";
-import { holeWechselkurs } from "./fx.js?v=28";
-import { uid } from "./store.js?v=28";
-import { werktagAnpassen } from "./feiertage.js?v=28";
+import { todayIso } from "./dateUtils.js?v=29";
+import { holeWechselkurs } from "./fx.js?v=29";
+import { uid } from "./store.js?v=29";
+import { werktagAnpassen } from "./feiertage.js?v=29";
 
 export const RHYTHMEN = ["woechentlich", "monatlich", "quartalsweise", "halbjaehrlich", "jaehrlich"];
 
@@ -59,16 +59,21 @@ export function naechsterTermin(datum, rhythmus) {
  * buchungsdatumFuerTermin) erreicht ist.
  * `limit` begrenzt die Anzahl in einem Durchgang (Sicherheitsnetz, falls
  * "ab" weit in der Vergangenheit liegt) — `weitereVorhanden` zeigt an, ob
- * danach noch mehr fällig wären.
+ * danach noch mehr fällig wären. Regeln mit "bis"-Datum erzeugen keine
+ * Termine nach diesem Datum.
  */
 export function faelligeTermine(regel, bisDatum, limit) {
   const termine = [];
   let naechster = regel.letzteErzeugung ? naechsterTermin(regel.letzteErzeugung, regel.rhythmus) : regel.ab;
-  while (buchungsdatumFuerTermin(regel, naechster) <= bisDatum && termine.length < limit) {
+  // Optionales Enddatum ("bis", inklusive): Termine danach entfallen.
+  const istFaellig = function (termin) {
+    return (!regel.bis || termin <= regel.bis) && buchungsdatumFuerTermin(regel, termin) <= bisDatum;
+  };
+  while (istFaellig(naechster) && termine.length < limit) {
     termine.push(naechster);
     naechster = naechsterTermin(naechster, regel.rhythmus);
   }
-  return { termine: termine, weitereVorhanden: buchungsdatumFuerTermin(regel, naechster) <= bisDatum };
+  return { termine: termine, weitereVorhanden: istFaellig(naechster) };
 }
 
 /**

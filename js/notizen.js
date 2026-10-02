@@ -2,7 +2,7 @@
 // wahlweise normaler Text oder ein Todo mit Checkbox ist. Gespeichert wird
 // als Liste von Zeilen { id, todo, erledigt, text } in state.notizen — damit
 // landen die Notizen automatisch im Backup (siehe store.js/backup.js).
-import { getState, updateState, onStateChanged, uid } from "./store.js?v=28";
+import { getState, updateState, onStateChanged, uid } from "./store.js?v=29";
 
 const container = document.getElementById("notizen-editor");
 const todoBtn = document.getElementById("notizen-btn-todo");

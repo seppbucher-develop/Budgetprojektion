@@ -2,11 +2,11 @@
 // CRUD für Regeln, aus denen beim App-Start automatisch echte Buchungen
 // erzeugt werden (siehe wiederkehrendeBuchungen.js für die Erzeugungslogik,
 // app.js für den Aufruf beim Start).
-import { getState, updateState, uid } from "./store.js?v=28";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=28";
-import { betragFormatter } from "./charts.js?v=28";
-import { holeWechselkurs } from "./fx.js?v=28";
-import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=28";
+import { getState, updateState, uid } from "./store.js?v=29";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=29";
+import { betragFormatter } from "./charts.js?v=29";
+import { holeWechselkurs } from "./fx.js?v=29";
+import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=29";
 
 const dialog = document.getElementById("dialog-wiederkehrend");
 const liste = document.getElementById("wiederkehrend-liste");
@@ -25,6 +25,7 @@ const kursInput = document.getElementById("wiederkehrend-kurs");
 const rhythmusSelect = document.getElementById("wiederkehrend-rhythmus");
 const werktagSelect = document.getElementById("wiederkehrend-werktag");
 const abInput = document.getElementById("wiederkehrend-ab");
+const bisInput = document.getElementById("wiederkehrend-bis");
 const aktivCheckbox = document.getElementById("wiederkehrend-aktiv");
 const rowDeleteBtn = document.getElementById("dialog-wiederkehrend-row-delete");
 
@@ -59,7 +60,7 @@ function render() {
     return '<div class="wiederkehrend-row' + (r.aktiv ? "" : " wiederkehrend-inaktiv") + '" data-id="' + r.id + '">' +
       '<div class="wiederkehrend-row-info">' +
         '<div class="wiederkehrend-name">' + escapeHtml(r.name) + (r.aktiv ? "" : " (pausiert)") + "</div>" +
-        '<div class="wiederkehrend-sub">' + RHYTHMUS_LABEL[r.rhythmus] + ", ab " + formatIsoDate(r.ab) + "</div>" +
+        '<div class="wiederkehrend-sub">' + RHYTHMUS_LABEL[r.rhythmus] + ", ab " + formatIsoDate(r.ab) + (r.bis ? " bis " + formatIsoDate(r.bis) : "") + "</div>" +
       "</div>" +
       '<div class="wiederkehrend-betrag ' + (betragChf >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(betragChf) + "</div>" +
       '<div class="row-actions row-actions-icons">' +
@@ -159,6 +160,7 @@ function openRowDialog(regel) {
   rhythmusSelect.value = regel ? regel.rhythmus : "monatlich";
   werktagSelect.value = regel && regel.werktagModus ? regel.werktagModus : STANDARD_WERKTAG_MODUS;
   abInput.value = regel ? regel.ab : todayIso();
+  bisInput.value = regel && regel.bis ? regel.bis : "";
   aktivCheckbox.checked = regel ? regel.aktiv : true;
   aktualisiereWaehrungsFelder();
   document.getElementById("dialog-wiederkehrend-row-title").textContent = regel ? "Wiederkehrende Buchung bearbeiten" : "Neue wiederkehrende Buchung";
@@ -199,9 +201,14 @@ form.addEventListener("submit", function (e) {
     rhythmus: rhythmusSelect.value,
     werktagModus: werktagSelect.value,
     ab: abInput.value,
+    bis: bisInput.value || null,
     aktiv: aktivCheckbox.checked
   };
   if (!data.name || isNaN(betrag) || isNaN(kurs) || !data.unterkategorieId || !data.ab) return;
+  if (data.bis && data.bis < data.ab) {
+    alert("Das Bis-Datum darf nicht vor dem Ab-Datum liegen.");
+    return;
+  }
 
   updateState(function (s) {
     if (editId) {

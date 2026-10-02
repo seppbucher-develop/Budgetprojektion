@@ -624,6 +624,10 @@
       <label for="wiederkehrend-ab">Ab</label>
       <input type="date" id="wiederkehrend-ab" name="ab" required>
     </div>
+    <div class="field">
+      <label for="wiederkehrend-bis">Bis (optional, leer = unbefristet)</label>
+      <input type="date" id="wiederkehrend-bis" name="bis">
+    </div>
     <label class="checkbox-feld">
       <input type="checkbox" id="wiederkehrend-aktiv">
       Aktiv
@@ -750,7 +754,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=28"></script>
+<script type="module" src="js/app.js?v=29"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
