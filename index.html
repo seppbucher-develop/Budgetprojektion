@@ -633,10 +633,10 @@
       Aktiv
     </label>
     <div class="dialog-actions">
-      <button type="button" id="dialog-wiederkehrend-row-delete" class="btn-danger" hidden>Löschen</button>
-      <button type="button" id="dialog-wiederkehrend-row-folge" class="btn-secondary" title="Folgebuchung" aria-label="Folgebuchung" hidden>⏹ → ▶</button>
-      <button type="button" id="dialog-wiederkehrend-row-cancel" class="btn-secondary">Abbrechen</button>
-      <button type="submit" class="btn-primary">Speichern</button>
+      <button type="button" id="dialog-wiederkehrend-row-delete" class="btn-icon btn-icon-danger" hidden title="Löschen" aria-label="Löschen">🗑</button>
+      <button type="button" id="dialog-wiederkehrend-row-folge" class="btn-icon" hidden title="Folgebuchung" aria-label="Folgebuchung">⏭</button>
+      <button type="button" id="dialog-wiederkehrend-row-cancel" class="btn-icon" title="Abbrechen" aria-label="Abbrechen">✕</button>
+      <button type="submit" class="btn-icon btn-icon-primary" title="Speichern" aria-label="Speichern">✓</button>
     </div>
   </form>
 </dialog>
@@ -655,8 +655,8 @@
       <input type="text" inputmode="decimal" id="wiederkehrend-folge-betrag" required>
     </div>
     <div class="dialog-actions">
-      <button type="button" id="dialog-wiederkehrend-folge-cancel" class="btn-secondary">Abbrechen</button>
-      <button type="submit" class="btn-primary">Anlegen</button>
+      <button type="button" id="dialog-wiederkehrend-folge-cancel" class="btn-icon" title="Abbrechen" aria-label="Abbrechen">✕</button>
+      <button type="submit" class="btn-icon btn-icon-primary" title="Folgebuchung anlegen" aria-label="Folgebuchung anlegen">✓</button>
     </div>
   </form>
 </dialog>
@@ -775,7 +775,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=31"></script>
+<script type="module" src="js/app.js?v=32"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
