@@ -26,7 +26,11 @@ unter „Service“:
   und legt dafür je eine normale, unabhängige Buchung an — auch rückwirkend
   für mehrere verpasste Termine, falls die App länger nicht geöffnet war.
   Bearbeiten oder Löschen einer Regel wirkt sich nur auf künftige
-  Erzeugungen aus, nie auf bereits erzeugte Buchungen.
+  Erzeugungen aus, nie auf bereits erzeugte Buchungen. Fällt ein Termin auf
+  ein Wochenende oder einen gesamtschweizerischen Feiertag (Neujahr,
+  Karfreitag, Ostermontag, Auffahrt, Pfingstmontag, 1. August, Weihnachten,
+  Stephanstag), wird er je Regel auf den nächsten Werktag (Standard), den
+  vorhergehenden Werktag verschoben oder exakt gebucht (`js/feiertage.js`).
   Über „⚡ Strom Auto…“ werden pro Quartal die Stromrechnung (verrechnete
   kWh + Betrag, optional Zahlungsdatum als Valuta) und die an der
   Ladestation je Monat ans Elektroauto gelieferten kWh erfasst (ersetzt die
@@ -57,6 +61,9 @@ unter „Service“:
   Zwischenzeit). Der Cashflow kommt aus dem Valutadatum jeder Buchung, nicht
   aus dem Buchungsdatum (das für den Budgetvergleich massgeblich ist, aber
   vom tatsächlichen Zahlungszeitpunkt abweichen kann).
+
+Unter „Service“ gibt es zudem einen Notizen-Editor (Textzeilen, wahlweise
+als Todo mit Checkbox), der mit dem Backup gesichert wird.
 
 ## Nutzung
 

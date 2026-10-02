@@ -1,5 +1,5 @@
-import { isoYear } from "./dateUtils.js?v=27";
-import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=27";
+import { isoYear } from "./dateUtils.js?v=28";
+import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=28";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 
@@ -166,4 +166,39 @@ export function berechneSparpotenzial(state) {
     ueberschreitungen: ueberschreitungen,
     reserven: reserven
   };
+}
+
+/**
+ * Einsparpotenzial auf Ebene der Unterkategorien (das Budget kennt nur
+ * Kategorien, daher kein Budgetvergleich): Kosten einer Unterkategorie im
+ * Jahr `jahr` gegenüber dem Durchschnitt der bis zu drei vorangehenden Jahre
+ * mit Buchungen in dieser Kategorie. Liegen die Kosten um mehr als
+ * SCHWELLE_CHF darüber, gilt die Differenz als Potenzial (Rückkehr auf das
+ * frühere Niveau). Nur Kostenkategorien; Kosten werden als positive Beträge
+ * geführt (Rückerstattungen mindern sie).
+ */
+export function berechneSparpotenzialUnterkategorien(state, jahr) {
+  const kosten = {}; // unterkategorieId -> { kategorieId, proJahr: { jahr: summe } }
+  state.realTransaktionen.forEach(function (t) {
+    if (!t.unterkategorieId || !t.kategorieId || kategorieTyp(state, t.kategorieId) !== "kosten") return;
+    const eintrag = kosten[t.unterkategorieId] || (kosten[t.unterkategorieId] = { kategorieId: t.kategorieId, proJahr: {} });
+    const j = isoYear(t.datum);
+    eintrag.proJahr[j] = (eintrag.proJahr[j] || 0) - t.betragChf;
+  });
+
+  const vorherigeJahre = distinctSorted(state.realTransaktionen.map(function (t) { return isoYear(t.datum); }))
+    .filter(function (j) { return j < jahr; })
+    .slice(-3);
+
+  const zeilen = Object.keys(kosten).map(function (unterkategorieId) {
+    const e = kosten[unterkategorieId];
+    const istKosten = e.proJahr[jahr] || 0;
+    const referenz = vorherigeJahre.length
+      ? vorherigeJahre.reduce(function (s, j) { return s + (e.proJahr[j] || 0); }, 0) / vorherigeJahre.length
+      : 0;
+    return { unterkategorieId: unterkategorieId, kategorieId: e.kategorieId, kosten: istKosten, referenz: referenz, potenzial: istKosten - referenz };
+  }).filter(function (z) { return vorherigeJahre.length > 0 && z.potenzial > SCHWELLE_CHF; })
+    .sort(function (a, b) { return b.potenzial - a.potenzial; });
+
+  return { jahr: jahr, referenzJahre: vorherigeJahre, schwelle: SCHWELLE_CHF, zeilen: zeilen };
 }

@@ -4,13 +4,26 @@
 // beim Start. Einmal erzeugte Buchungen sind danach normale, unabhängige
 // Buchungen — Bearbeiten/Löschen einer Regel wirkt sich nur auf künftige
 // Erzeugungen aus, nie auf bereits erzeugte Buchungen.
-import { todayIso } from "./dateUtils.js?v=27";
-import { holeWechselkurs } from "./fx.js?v=27";
-import { uid } from "./store.js?v=27";
+import { todayIso } from "./dateUtils.js?v=28";
+import { holeWechselkurs } from "./fx.js?v=28";
+import { uid } from "./store.js?v=28";
+import { werktagAnpassen } from "./feiertage.js?v=28";
 
 export const RHYTHMEN = ["woechentlich", "monatlich", "quartalsweise", "halbjaehrlich", "jaehrlich"];
 
+// Verhalten, wenn ein Termin auf ein Wochenende oder einen CH-Feiertag
+// fällt: exakt belassen, auf den nächsten (Standard) oder den vorhergehenden
+// Werktag verschieben, siehe feiertage.js. Regeln ohne dieses Feld (aus
+// früheren Versionen) verhalten sich wie der Standard.
+export const WERKTAG_MODI = ["exakt", "naechster", "vorheriger"];
+export const STANDARD_WERKTAG_MODUS = "naechster";
+
 const STANDARD_LIMIT = 60;
+
+/** Buchungsdatum eines Termins der Regel (Termin ggf. auf einen Werktag verschoben). */
+export function buchungsdatumFuerTermin(regel, termin) {
+  return werktagAnpassen(termin, regel.werktagModus || STANDARD_WERKTAG_MODUS);
+}
 
 /**
  * Nächster Termin nach `datum` im gegebenen Rhythmus. Bei monatsbasierten
@@ -40,6 +53,10 @@ export function naechsterTermin(datum, rhythmus) {
 /**
  * Fällige Termine einer Regel bis `bisDatum` (inklusive), beginnend nach
  * der letzten Erzeugung (oder ab deren Startdatum, falls noch nie erzeugt).
+ * Die Termine selbst sind die rechnerischen Termine (ohne Werktags-
+ * Verschiebung, damit z. B. der 31. nicht durch eine Verschiebung driftet);
+ * fällig ist ein Termin, sobald sein Buchungsdatum (siehe
+ * buchungsdatumFuerTermin) erreicht ist.
  * `limit` begrenzt die Anzahl in einem Durchgang (Sicherheitsnetz, falls
  * "ab" weit in der Vergangenheit liegt) — `weitereVorhanden` zeigt an, ob
  * danach noch mehr fällig wären.
@@ -47,11 +64,11 @@ export function naechsterTermin(datum, rhythmus) {
 export function faelligeTermine(regel, bisDatum, limit) {
   const termine = [];
   let naechster = regel.letzteErzeugung ? naechsterTermin(regel.letzteErzeugung, regel.rhythmus) : regel.ab;
-  while (naechster <= bisDatum && termine.length < limit) {
+  while (buchungsdatumFuerTermin(regel, naechster) <= bisDatum && termine.length < limit) {
     termine.push(naechster);
     naechster = naechsterTermin(naechster, regel.rhythmus);
   }
-  return { termine: termine, weitereVorhanden: naechster <= bisDatum };
+  return { termine: termine, weitereVorhanden: buchungsdatumFuerTermin(regel, naechster) <= bisDatum };
 }
 
 /**
@@ -77,9 +94,10 @@ export async function ermittleFaelligeBuchungen(state, optionen) {
     if (ergebnis.termine.length === 0) continue;
 
     for (const termin of ergebnis.termine) {
+      const buchungsdatum = buchungsdatumFuerTermin(regel, termin);
       let kurs = regel.kurs;
       if (regel.waehrung !== "CHF") {
-        const kursErgebnis = await holeWechselkurs(termin, regel.waehrung);
+        const kursErgebnis = await holeWechselkurs(buchungsdatum, regel.waehrung);
         if (kursErgebnis.kurs != null) kurs = kursErgebnis.kurs;
       }
       const betragChf = regel.betrag * kurs;
@@ -92,8 +110,8 @@ export async function ermittleFaelligeBuchungen(state, optionen) {
         betragChf: regel.vorzeichen === "ausgabe" ? -betragChf : betragChf,
         unterkategorieId: regel.unterkategorieId,
         kategorieId: regel.kategorieId,
-        datum: termin,
-        valutadatum: termin,
+        datum: buchungsdatum,
+        valutadatum: buchungsdatum,
         erfasstAm: new Date().toISOString(),
         wiederkehrendId: regel.id
       });

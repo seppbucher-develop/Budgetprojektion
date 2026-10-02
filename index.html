@@ -265,6 +265,14 @@
         <ul id="sparpotenzial-ueberschreitungen" class="insight-list"></ul>
         <h3>Budgetreserven (deutlich unter Budget)</h3>
         <ul id="sparpotenzial-reserven" class="insight-list"></ul>
+        <h3>Einsparpotenzial nach Unterkategorie</h3>
+        <p class="hint" id="sparpotenzial-uk-hinweis"></p>
+        <div class="table-scroll">
+          <table class="data-table" id="sparpotenzial-uk-table">
+            <thead><tr><th>Unterkategorie</th><th>Vorjahre</th><th>Gewähltes Jahr</th><th>Potenzial</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
@@ -338,6 +346,16 @@
       <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
       <h1 class="page-title">🛠️ Service</h1>
     </div>
+    <div class="panel">
+      <h2>📝 Notizen</h2>
+      <p class="hint collapsible">Freie Notizen, Zeile für Zeile. „☑ Todo“ macht die aktuelle Zeile zu einem Todo mit Checkbox (nochmals klicken = wieder normaler Text). Enter = neue Zeile, Rückschritt in leerer Zeile = Zeile entfernen. Wird mit dem Backup gesichert.</p>
+      <div class="panel-actions">
+        <button type="button" id="notizen-btn-todo" class="btn-secondary">☑ Todo</button>
+        <button type="button" id="notizen-btn-aufraeumen" class="btn-secondary">Erledigte entfernen</button>
+      </div>
+      <div id="notizen-editor" class="notizen-editor"></div>
+    </div>
+
     <div class="panel">
       <h2>🔄 Updates &amp; Offline-Cache</h2>
       <p class="hint collapsible">Die App speichert ihre eigenen Seiten für die Offline-Nutzung zwischen. Standardmässig wird beim Öffnen immer sofort die zuletzt gespeicherte Version angezeigt (auch offline oder bei schwachem Netz sofort da) — ein Update wird dadurch erst beim übernächsten Öffnen sichtbar. Mit dieser Einstellung lädt die App stattdessen bei jedem Öffnen zuerst die neueste Version übers Netz; Updates sind dann sofort sichtbar, aber bei schwachem Empfang kann das Laden dadurch spürbar länger dauern.</p>
@@ -595,6 +613,14 @@
       </select>
     </div>
     <div class="field">
+      <label for="wiederkehrend-werktag">Fällt der Termin auf Wochenende/CH-Feiertag</label>
+      <select id="wiederkehrend-werktag" name="werktagModus">
+        <option value="naechster">Auf nächsten Werktag verschieben</option>
+        <option value="vorheriger">Auf vorhergehenden Werktag verschieben</option>
+        <option value="exakt">Exakt am Termin buchen</option>
+      </select>
+    </div>
+    <div class="field">
       <label for="wiederkehrend-ab">Ab</label>
       <input type="date" id="wiederkehrend-ab" name="ab" required>
     </div>
@@ -724,7 +750,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=27"></script>
+<script type="module" src="js/app.js?v=28"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
