@@ -1,10 +1,10 @@
-import { getState, updateState, uid } from "./store.js?v=30";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=30";
-import { betragFormatter } from "./charts.js?v=30";
-import { unterkategorieName } from "./kategorien.js?v=30";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=30";
-import { holeWechselkurs } from "./fx.js?v=30";
-import { openStromAutoQuartal } from "./stromAutoDialog.js?v=30";
+import { getState, updateState, uid } from "./store.js?v=31";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=31";
+import { betragFormatter } from "./charts.js?v=31";
+import { unterkategorieName } from "./kategorien.js?v=31";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=31";
+import { holeWechselkurs } from "./fx.js?v=31";
+import { openStromAutoQuartal } from "./stromAutoDialog.js?v=31";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");

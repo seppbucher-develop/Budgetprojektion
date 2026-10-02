@@ -2,11 +2,11 @@
 // CRUD für Regeln, aus denen beim App-Start automatisch echte Buchungen
 // erzeugt werden (siehe wiederkehrendeBuchungen.js für die Erzeugungslogik,
 // app.js für den Aufruf beim Start).
-import { getState, updateState, uid } from "./store.js?v=30";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=30";
-import { betragFormatter } from "./charts.js?v=30";
-import { holeWechselkurs } from "./fx.js?v=30";
-import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=30";
+import { getState, updateState, uid } from "./store.js?v=31";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=31";
+import { betragFormatter } from "./charts.js?v=31";
+import { holeWechselkurs } from "./fx.js?v=31";
+import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=31";
 
 const dialog = document.getElementById("dialog-wiederkehrend");
 const liste = document.getElementById("wiederkehrend-liste");
@@ -30,7 +30,6 @@ const aktivCheckbox = document.getElementById("wiederkehrend-aktiv");
 const folgeBtn = document.getElementById("dialog-wiederkehrend-row-folge");
 const folgeDialog = document.getElementById("dialog-wiederkehrend-folge");
 const folgeForm = document.getElementById("form-wiederkehrend-folge");
-const folgeBisInput = document.getElementById("wiederkehrend-folge-bis");
 const folgeAbInput = document.getElementById("wiederkehrend-folge-ab");
 const folgeBetragInput = document.getElementById("wiederkehrend-folge-betrag");
 const rowDeleteBtn = document.getElementById("dialog-wiederkehrend-row-delete");
@@ -234,7 +233,6 @@ form.addEventListener("submit", function (e) {
 folgeBtn.addEventListener("click", function () {
   const regel = getState().wiederkehrendeBuchungen.find(function (r) { return r.id === editId; });
   if (!regel) return;
-  folgeBisInput.value = "";
   folgeAbInput.value = "";
   folgeBetragInput.value = String(regel.betrag);
   document.getElementById("wiederkehrend-folge-betrag-label").textContent = "Neuer Betrag (" + regel.waehrung + ")";
@@ -245,14 +243,17 @@ document.getElementById("dialog-wiederkehrend-folge-cancel").addEventListener("c
 
 folgeForm.addEventListener("submit", function (e) {
   e.preventDefault();
-  const bis = folgeBisInput.value;
   const ab = folgeAbInput.value;
   const betrag = Math.abs(parseDezimal(folgeBetragInput.value));
-  if (!bis || !ab || isNaN(betrag)) return;
-  if (bis >= ab) {
-    alert("Die Folgebuchung muss nach dem Ende der aktuellen Buchung beginnen.");
+  if (!ab || isNaN(betrag)) return;
+  const aktuell = getState().wiederkehrendeBuchungen.find(function (r) { return r.id === editId; });
+  if (aktuell && ab <= aktuell.ab) {
+    alert("Die Folgebuchung muss nach dem Startdatum der aktuellen Buchung beginnen.");
     return;
   }
+  const d = new Date(ab + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() - 1);
+  const bis = d.toISOString().slice(0, 10);
   updateState(function (s) {
     const regel = s.wiederkehrendeBuchungen.find(function (r) { return r.id === editId; });
     if (!regel) return;
