@@ -1361,3 +1361,39 @@ dialog h2 {
     align-items: flex-start;
   }
 }
+
+/* Notizen (Service) */
+.notizen-editor {
+  margin-top: 10px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.notizen-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notizen-text {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 5px 2px;
+  outline: none;
+}
+
+.notizen-check {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.notizen-erledigt .notizen-text {
+  text-decoration: line-through;
+  opacity: 0.6;
+}

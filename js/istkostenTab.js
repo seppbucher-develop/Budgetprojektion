@@ -1,8 +1,8 @@
-import { getState } from "./store.js?v=27";
-import { berechneAbweichungen, berechneIstkosten } from "./compare.js?v=27";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=27";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=27";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=27";
+import { getState } from "./store.js?v=28";
+import { berechneAbweichungen, berechneIstkosten } from "./compare.js?v=28";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=28";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=28";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=28";
 
 const emptyHint = document.getElementById("istkosten-empty-hint");
 const inhalt = document.getElementById("istkosten-inhalt");
@@ -29,9 +29,9 @@ export function renderIstkostenTab() {
   const verfuegbareJahre = berechneAbweichungen(state).jahre;
   if (ausgewaehltesJahr === null || verfuegbareJahre.indexOf(ausgewaehltesJahr) === -1) {
     const heuteJahr = new Date().getFullYear();
-    const vollstaendigeJahre = verfuegbareJahre.filter(function (j) { return j < heuteJahr; });
-    ausgewaehltesJahr = vollstaendigeJahre.length
-      ? vollstaendigeJahre[vollstaendigeJahre.length - 1]
+    // Default: laufendes Jahr, sofern es Buchungen gibt, sonst das jüngste Jahr.
+    ausgewaehltesJahr = verfuegbareJahre.indexOf(heuteJahr) !== -1
+      ? heuteJahr
       : verfuegbareJahre[verfuegbareJahre.length - 1];
   }
 

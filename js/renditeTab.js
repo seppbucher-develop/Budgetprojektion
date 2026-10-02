@@ -1,7 +1,7 @@
-import { getState } from "./store.js?v=27";
-import { formatIsoDate } from "./dateUtils.js?v=27";
-import { currencyFormatter } from "./charts.js?v=27";
-import { berechneRendite } from "./renditeAnalyse.js?v=27";
+import { getState } from "./store.js?v=28";
+import { formatIsoDate } from "./dateUtils.js?v=28";
+import { currencyFormatter, betragFormatter } from "./charts.js?v=28";
+import { berechneRendite } from "./renditeAnalyse.js?v=28";
 
 const emptyHint = document.getElementById("rendite-empty-hint");
 const inhalt = document.getElementById("rendite-inhalt");
@@ -86,7 +86,7 @@ function renderErgebnis() {
       return '<div class="rendite-cashflow-row">' +
         "<div>" + formatIsoDate(p.datum) + "</div>" +
         "<div>" + escapeHtml(p.bezeichnung) + "</div>" +
-        '<div class="' + (p.betrag >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(p.betrag) + "</div>" +
+        '<div class="' + (p.betrag >= 0 ? "positive" : "negative") + '">' + betragFormatter.format(p.betrag) + "</div>" +
         "</div>";
     }).join("");
   }

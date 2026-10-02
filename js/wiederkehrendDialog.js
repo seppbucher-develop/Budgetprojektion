@@ -2,10 +2,11 @@
 // CRUD für Regeln, aus denen beim App-Start automatisch echte Buchungen
 // erzeugt werden (siehe wiederkehrendeBuchungen.js für die Erzeugungslogik,
 // app.js für den Aufruf beim Start).
-import { getState, updateState, uid } from "./store.js?v=27";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=27";
-import { betragFormatter } from "./charts.js?v=27";
-import { holeWechselkurs } from "./fx.js?v=27";
+import { getState, updateState, uid } from "./store.js?v=28";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=28";
+import { betragFormatter } from "./charts.js?v=28";
+import { holeWechselkurs } from "./fx.js?v=28";
+import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=28";
 
 const dialog = document.getElementById("dialog-wiederkehrend");
 const liste = document.getElementById("wiederkehrend-liste");
@@ -22,6 +23,7 @@ const fremdwaehrungBetragInput = document.getElementById("wiederkehrend-fremdwae
 const kursFeld = document.getElementById("wiederkehrend-kurs-feld");
 const kursInput = document.getElementById("wiederkehrend-kurs");
 const rhythmusSelect = document.getElementById("wiederkehrend-rhythmus");
+const werktagSelect = document.getElementById("wiederkehrend-werktag");
 const abInput = document.getElementById("wiederkehrend-ab");
 const aktivCheckbox = document.getElementById("wiederkehrend-aktiv");
 const rowDeleteBtn = document.getElementById("dialog-wiederkehrend-row-delete");
@@ -155,6 +157,7 @@ function openRowDialog(regel) {
     ? (regel.waehrung === "CHF" ? regel.betrag : (regel.betrag * regel.kurs).toFixed(2))
     : "";
   rhythmusSelect.value = regel ? regel.rhythmus : "monatlich";
+  werktagSelect.value = regel && regel.werktagModus ? regel.werktagModus : STANDARD_WERKTAG_MODUS;
   abInput.value = regel ? regel.ab : todayIso();
   aktivCheckbox.checked = regel ? regel.aktiv : true;
   aktualisiereWaehrungsFelder();
@@ -194,6 +197,7 @@ form.addEventListener("submit", function (e) {
     unterkategorieId: unterkategorie ? unterkategorie.id : null,
     kategorieId: unterkategorie ? unterkategorie.kategorieId : null,
     rhythmus: rhythmusSelect.value,
+    werktagModus: werktagSelect.value,
     ab: abInput.value,
     aktiv: aktivCheckbox.checked
   };

@@ -1,8 +1,8 @@
-import { getState } from "./store.js?v=27";
-import { berechneAbweichungen, berechneSparpotenzial } from "./compare.js?v=27";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=27";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=27";
-import { kategorieName } from "./kategorien.js?v=27";
+import { getState } from "./store.js?v=28";
+import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien } from "./compare.js?v=28";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=28";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=28";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=28";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -13,6 +13,9 @@ const tbody = document.querySelector("#vergleich-table tbody");
 const totalRow = document.getElementById("vergleich-table-total");
 const ueberschreitungenEl = document.getElementById("sparpotenzial-ueberschreitungen");
 const reservenEl = document.getElementById("sparpotenzial-reserven");
+const ukHinweisEl = document.getElementById("sparpotenzial-uk-hinweis");
+const ukTabelle = document.getElementById("sparpotenzial-uk-table");
+const ukTbody = ukTabelle.querySelector("tbody");
 
 let ausgewaehltesJahr = null;
 
@@ -101,6 +104,52 @@ function renderSparpotenzial(sp) {
   liste(reservenEl, sp.reserven, "reserve");
 }
 
+function escapeHtml(t) {
+  const div = document.createElement("div");
+  div.textContent = t || "";
+  return div.innerHTML;
+}
+
+// Einsparpotenzial auf Unterkategorie-Ebene für das im Realvergleich
+// gewählte Jahr (das Budget gibt es nur je Kategorie, daher der Vergleich
+// mit den eigenen Vorjahren, siehe berechneSparpotenzialUnterkategorien).
+function renderSparpotenzialUnterkategorien() {
+  const state = getState();
+  const sp = berechneSparpotenzialUnterkategorien(state, ausgewaehltesJahr);
+  ukTbody.innerHTML = "";
+
+  if (sp.referenzJahre.length === 0) {
+    ukHinweisEl.textContent = "Für " + ausgewaehltesJahr + " gibt es keine früheren Jahre mit Buchungen zum Vergleich.";
+    ukTabelle.style.display = "none";
+    return;
+  }
+  const vergleich = sp.referenzJahre.length === 1
+    ? String(sp.referenzJahre[0])
+    : "Ø " + sp.referenzJahre[0] + "–" + sp.referenzJahre[sp.referenzJahre.length - 1];
+  ukHinweisEl.textContent = "Kosten " + ausgewaehltesJahr + " im Vergleich zu " + vergleich +
+    " (nur Unterkategorien, die mehr als " + currencyFormatter.format(sp.schwelle) + " teurer sind)." +
+    (ausgewaehltesJahr >= new Date().getFullYear() ? " Das gewählte Jahr ist noch nicht abgeschlossen." : "");
+
+  ukTabelle.style.display = sp.zeilen.length ? "table" : "none";
+  if (sp.zeilen.length === 0) {
+    ukHinweisEl.textContent += " Keine auffälligen Unterkategorien gefunden.";
+    return;
+  }
+  sp.zeilen.forEach(function (z) {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      "<td>" + escapeHtml(unterkategorieName(state, z.unterkategorieId)) +
+        '<div class="hint">' + escapeHtml(kategorieName(state, z.kategorieId)) + "</div></td>" +
+      '<td class="num">' + currencyFormatter.format(z.referenz) + "</td>" +
+      '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(z.kosten) + "</button></td>" +
+      '<td class="num negative">+' + currencyFormatter.format(z.potenzial) + "</td>";
+    tr.querySelector('[data-action="buchungen"]').addEventListener("click", function () {
+      openBuchungenDialog(ausgewaehltesJahr, z.kategorieId, z.unterkategorieId);
+    });
+    ukTbody.appendChild(tr);
+  });
+}
+
 export function renderCompareTab() {
   const state = getState();
   const hatDaten = state.realTransaktionen.length > 0;
@@ -110,10 +159,9 @@ export function renderCompareTab() {
 
   const abw = berechneAbweichungen(state);
   if (ausgewaehltesJahr === null || abw.jahre.indexOf(ausgewaehltesJahr) === -1) {
-    const vollstaendigeJahre = abw.jahre.filter(function (j) { return j < new Date().getFullYear(); });
-    ausgewaehltesJahr = vollstaendigeJahre.length
-      ? vollstaendigeJahre[vollstaendigeJahre.length - 1]
-      : abw.jahre[abw.jahre.length - 1];
+    // Default: laufendes Jahr, sofern es Buchungen gibt, sonst das jüngste Jahr.
+    const heuteJahr = new Date().getFullYear();
+    ausgewaehltesJahr = abw.jahre.indexOf(heuteJahr) !== -1 ? heuteJahr : abw.jahre[abw.jahre.length - 1];
   }
 
   jahrSelect.innerHTML = abw.jahre.map(function (j) {
@@ -123,11 +171,13 @@ export function renderCompareTab() {
   renderJahrTabelleUndChart(abw);
   renderTrendChart(abw);
   renderSparpotenzial(berechneSparpotenzial(state));
+  renderSparpotenzialUnterkategorien();
 }
 
 jahrSelect.addEventListener("change", function () {
   ausgewaehltesJahr = parseInt(jahrSelect.value, 10);
   renderJahrTabelleUndChart(berechneAbweichungen(getState()));
+  renderSparpotenzialUnterkategorien();
 });
 
 window.addEventListener("resize", function () {
