@@ -4,10 +4,10 @@
 // beim Start. Einmal erzeugte Buchungen sind danach normale, unabhängige
 // Buchungen — Bearbeiten/Löschen einer Regel wirkt sich nur auf künftige
 // Erzeugungen aus, nie auf bereits erzeugte Buchungen.
-import { todayIso } from "./dateUtils.js?v=29";
-import { holeWechselkurs } from "./fx.js?v=29";
-import { uid } from "./store.js?v=29";
-import { werktagAnpassen } from "./feiertage.js?v=29";
+import { todayIso } from "./dateUtils.js?v=30";
+import { holeWechselkurs } from "./fx.js?v=30";
+import { uid } from "./store.js?v=30";
+import { werktagAnpassen } from "./feiertage.js?v=30";
 
 export const RHYTHMEN = ["woechentlich", "monatlich", "quartalsweise", "halbjaehrlich", "jaehrlich"];
 

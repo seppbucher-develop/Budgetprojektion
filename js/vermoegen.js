@@ -8,7 +8,7 @@
 // dann aktuellen Kurs berechnet wird -- der damalige Kurs bleibt danach
 // stehen (nachvollziehbarer historischer Gegenwert), bis er über den Button
 // "Währung neu berechnen" (siehe vermoegenTab.js) gezielt aufgefrischt wird.
-import { holeWechselkurs } from "./fx.js?v=29";
+import { holeWechselkurs } from "./fx.js?v=30";
 
 /**
  * Einmalige, idempotente Migration: vermoegenKonten waren ursprünglich ein

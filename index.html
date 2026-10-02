@@ -634,8 +634,33 @@
     </label>
     <div class="dialog-actions">
       <button type="button" id="dialog-wiederkehrend-row-delete" class="btn-danger" hidden>Löschen</button>
+      <button type="button" id="dialog-wiederkehrend-row-folge" class="btn-secondary" hidden>Folgebuchung…</button>
       <button type="button" id="dialog-wiederkehrend-row-cancel" class="btn-secondary">Abbrechen</button>
       <button type="submit" class="btn-primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: Folgebuchung zu einer wiederkehrenden Buchung -->
+<dialog id="dialog-wiederkehrend-folge">
+  <form id="form-wiederkehrend-folge" method="dialog">
+    <h2>Folgebuchung</h2>
+    <p class="hint">Beendet die aktuelle wiederkehrende Buchung und legt eine neue mit angepasstem Betrag an.</p>
+    <div class="field">
+      <label for="wiederkehrend-folge-bis">Aktuelle Buchung gilt bis</label>
+      <input type="date" id="wiederkehrend-folge-bis" required>
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-folge-ab">Neue Buchung gilt ab</label>
+      <input type="date" id="wiederkehrend-folge-ab" required>
+    </div>
+    <div class="field">
+      <label for="wiederkehrend-folge-betrag" id="wiederkehrend-folge-betrag-label">Neuer Betrag</label>
+      <input type="text" inputmode="decimal" id="wiederkehrend-folge-betrag" required>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="dialog-wiederkehrend-folge-cancel" class="btn-secondary">Abbrechen</button>
+      <button type="submit" class="btn-primary">Anlegen</button>
     </div>
   </form>
 </dialog>
@@ -754,7 +779,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=29"></script>
+<script type="module" src="js/app.js?v=30"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
