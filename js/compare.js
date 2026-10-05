@@ -225,13 +225,11 @@ export function standardVerzichtStufe(state, unterkategorieId) {
   const u = state.unterkategorien.find(function (u) { return u.id === unterkategorieId; });
   if (!u) return "flexibel";
   if (VERZICHT_STUFEN[u.verzichtStufe]) return u.verzichtStufe;
-  const k = state.kategorien.find(function (k) { return k.id === u.kategorieId; });
-  // Der Name der Unterkategorie entscheidet; die Kategorie nur als Ersatz.
-  const texte = [(u.name || "").toLowerCase(), (k ? k.name : "").toLowerCase()];
-  for (const text of texte) {
-    for (const eintrag of VERZICHT_STICHWOERTER) {
-      if (eintrag[1].some(function (w) { return text.indexOf(w) !== -1; })) return eintrag[0];
-    }
+  // Nur der Name der Unterkategorie entscheidet (der Kategoriename ist zu
+  // grob, z. B. "Kleider" unter "Freizeit").
+  const text = (u.name || "").toLowerCase();
+  for (const eintrag of VERZICHT_STICHWOERTER) {
+    if (eintrag[1].some(function (w) { return text.indexOf(w) !== -1; })) return eintrag[0];
   }
   return "flexibel";
 }
