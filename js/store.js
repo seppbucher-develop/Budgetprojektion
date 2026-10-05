@@ -1,10 +1,10 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=32";
-import { migriereTransaktionen } from "./transaktionen.js?v=32";
-import { defaultStromAuto } from "./stromAuto.js?v=32";
-import { migriereVermoegenKonten } from "./vermoegen.js?v=32";
+import { migriereKategorien } from "./kategorien.js?v=34";
+import { migriereTransaktionen } from "./transaktionen.js?v=34";
+import { defaultStromAuto } from "./stromAuto.js?v=34";
+import { migriereVermoegenKonten } from "./vermoegen.js?v=34";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,

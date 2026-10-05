@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=25">
+<link rel="stylesheet" href="css/style.css?v=27">
 </head>
 <body>
 <div class="app">
@@ -271,6 +271,19 @@
           <table class="data-table" id="sparpotenzial-uk-table">
             <thead><tr><th>Unterkategorie</th><th>Vorjahre</th><th>Gewähltes Jahr</th><th>Potenzial</th></tr></thead>
             <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>C) Verzichtsanalyse nach Unterkategorie</h2>
+        <p class="hint">Einstufung nach dem Zweck der Unterkategorie: <strong>Notwendig</strong> (0&nbsp;%, Existenz und Pflichtausgaben), <strong>Flexibel</strong> (ca. 15&nbsp;% bewusster ausgeben), <strong>Verzichtbar</strong> (ca. 50&nbsp;%, im Notfall ganz streichbar). Die Einstufung ist ein Vorschlag aus dem Namen und kann pro Zeile angepasst werden.</p>
+        <p class="hint" id="verzicht-hinweis"></p>
+        <div class="table-scroll">
+          <table class="data-table" id="verzicht-table">
+            <thead><tr><th>Unterkategorie</th><th>Einstufung</th><th>Kosten</th><th>Reduktion</th><th>Einsparung</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr id="verzicht-table-total"></tr></tfoot>
           </table>
         </div>
       </div>
@@ -775,7 +788,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=32"></script>
+<script type="module" src="js/app.js?v=34"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
