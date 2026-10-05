@@ -1385,6 +1385,11 @@ dialog h2 {
   font: inherit;
   padding: 5px 2px;
   outline: none;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 .notizen-check {

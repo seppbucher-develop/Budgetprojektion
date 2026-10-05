@@ -42,6 +42,13 @@ function aendere(mutator) {
   });
 }
 
+// Textfeld wächst mit dem Inhalt (lange Notizen brechen um statt abzuschneiden).
+function passeHoeheAn(el) {
+  if (!el.scrollHeight) return; // Bereich gerade ausgeblendet
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
 function fokussiere(id, ende) {
   const input = container.querySelector('[data-id="' + id + '"] .notizen-text');
   if (!input) return;
@@ -70,13 +77,14 @@ function render() {
       row.appendChild(cb);
     }
 
-    const input = document.createElement("input");
-    input.type = "text";
+    const input = document.createElement("textarea");
+    input.rows = 1;
     input.className = "notizen-text";
     input.value = z.text;
     input.placeholder = liste.length <= 1 ? "Notiz schreiben …" : "";
     input.addEventListener("focus", function () { aktiveId = z.id; });
     input.addEventListener("input", function () {
+      passeHoeheAn(input);
       aendere(function (l) {
         const ziel = l.find(function (x) { return x.id === z.id; });
         if (ziel) ziel.text = input.value;
@@ -86,7 +94,15 @@ function render() {
     input.addEventListener("paste", function (e) { einfuegen(e, z, input); });
     row.appendChild(input);
     container.appendChild(row);
+    passeHoeheAn(input);
   });
+}
+
+// Höhe neu berechnen, wenn der Bereich eingeblendet wird oder sich die Breite ändert.
+if (window.ResizeObserver) {
+  new ResizeObserver(function () {
+    container.querySelectorAll(".notizen-text").forEach(passeHoeheAn);
+  }).observe(container);
 }
 
 // Enter: neue Zeile darunter (Todos bleiben Todos); Backspace in leerer
