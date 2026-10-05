@@ -1,5 +1,5 @@
-import { isoYear } from "./dateUtils.js?v=33";
-import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=33";
+import { isoYear } from "./dateUtils.js?v=34";
+import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=34";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 
@@ -217,8 +217,8 @@ export const VERZICHT_STUFEN = {
 // Stichwörter (Kleinbuchstaben) auf Unter- und Kategoriename; Reihenfolge
 // = Priorität: zuerst verzichtbar, dann notwendig, sonst flexibel.
 const VERZICHT_STICHWOERTER = [
-  ["verzichtbar", ["restaurant", "café", "cafe", "take", "ausgang", "bar", "kino", "konzert", "streaming", "netflix", "spotify", "abo", "zeitschrift", "zeitung", "ferien", "urlaub", "reise", "flug", "hotel", "unterhaltung", "spiel", "game", "gadget", "elektronik", "alkohol", "tabak", "kiosk", "lotto", "luxus", "hobby", "freizeit", "schmuck", "wellness", "genuss"]],
-  ["notwendig", ["miete", "hypothek", "zins", "nebenkosten", "strom", "heizung", "wasser", "energie", "krankenkasse", "krankenversicherung", "arzt", "zahn", "medikament", "apotheke", "gesundheit", "versicherung", "steuer", "abgabe", "gebühr", "serafe", "lebensmittel", "supermarkt", "grundbedarf", "telefon", "internet", "handy", "kinder", "betreuung", "schule", "ausbildung", "alimente", "unterhalt", "reparatur", "öv", "ga "]]
+  ["verzichtbar", ["restaurant", "essen gehen", "café", "cafe", "take", "ausgang", "bar", "kino", "konzert", "streaming", "netflix", "spotify", "abo", "zeitschrift", "zeitung", "ferien", "urlaub", "reise", "flug", "hotel", "unterhaltung", "spiel", "game", "gadget", "elektronik", "alkohol", "tabak", "kiosk", "lotto", "luxus", "hobby", "freizeit", "schmuck", "wellness", "genuss"]],
+  ["notwendig", ["miete", "betriebskosten", "amortisation", "medizin", "bahn", "hypothek", "zins", "nebenkosten", "strom", "heizung", "wasser", "energie", "krankenkasse", "krankenversicherung", "arzt", "zahn", "medikament", "apotheke", "gesundheit", "versicherung", "steuer", "abgabe", "gebühr", "serafe", "lebensmittel", "supermarkt", "grundbedarf", "telefon", "internet", "handy", "kinder", "betreuung", "schule", "ausbildung", "alimente", "unterhalt", "reparatur", "öv", "ga "]]
 ];
 
 export function standardVerzichtStufe(state, unterkategorieId) {

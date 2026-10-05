@@ -2,11 +2,11 @@
 // CRUD für Regeln, aus denen beim App-Start automatisch echte Buchungen
 // erzeugt werden (siehe wiederkehrendeBuchungen.js für die Erzeugungslogik,
 // app.js für den Aufruf beim Start).
-import { getState, updateState, uid } from "./store.js?v=33";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=33";
-import { betragFormatter } from "./charts.js?v=33";
-import { holeWechselkurs } from "./fx.js?v=33";
-import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=33";
+import { getState, updateState, uid } from "./store.js?v=34";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=34";
+import { betragFormatter } from "./charts.js?v=34";
+import { holeWechselkurs } from "./fx.js?v=34";
+import { STANDARD_WERKTAG_MODUS } from "./wiederkehrendeBuchungen.js?v=34";
 
 const dialog = document.getElementById("dialog-wiederkehrend");
 const liste = document.getElementById("wiederkehrend-liste");
