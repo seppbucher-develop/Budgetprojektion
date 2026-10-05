@@ -11,6 +11,7 @@
   --color-warning-bg: #fef3c7;
   --color-warning-text: #92400e;
   --radius: 10px;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,7 +27,17 @@
     --color-negative: #f87171;
     --color-warning-bg: #451a03;
     --color-warning-text: #fcd34d;
+    color-scheme: dark;
   }
+}
+
+/* Kalender-Symbol der Datumsfelder: gut sichtbar, auch im Dark Mode */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+  padding: 4px;
+  width: 1.1em;
+  height: 1.1em;
 }
 
 * {
