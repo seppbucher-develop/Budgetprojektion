@@ -1,8 +1,8 @@
-import { getState } from "./store.js?v=32";
-import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien } from "./compare.js?v=32";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=32";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=32";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=32";
+import { getState, updateState } from "./store.js?v=33";
+import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=33";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=33";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=33";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=33";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -150,6 +150,51 @@ function renderSparpotenzialUnterkategorien() {
   });
 }
 
+const verzichtTbody = document.querySelector("#verzicht-table tbody");
+const verzichtTotal = document.getElementById("verzicht-table-total");
+const verzichtHinweis = document.getElementById("verzicht-hinweis");
+
+// Verzichtsanalyse (Abschnitt C): Einstufung nach Zweck der Unterkategorie
+// mit sinnvoller Reduktion, siehe berechneVerzichtsanalyse in compare.js.
+function renderVerzichtsanalyse() {
+  const state = getState();
+  const va = berechneVerzichtsanalyse(state, ausgewaehltesJahr);
+  verzichtTbody.innerHTML = "";
+  verzichtHinweis.textContent = "Kosten " + ausgewaehltesJahr + "." +
+    (ausgewaehltesJahr >= new Date().getFullYear() ? " Das Jahr ist noch nicht abgeschlossen, die Werte sind unvollständig." : "");
+  va.zeilen.forEach(function (z) {
+    const tr = document.createElement("tr");
+    const optionen = Object.keys(VERZICHT_STUFEN).map(function (key) {
+      return '<option value="' + key + '"' + (key === z.stufe ? " selected" : "") + ">" + VERZICHT_STUFEN[key].label + "</option>";
+    }).join("");
+    tr.innerHTML =
+      "<td>" + escapeHtml(unterkategorieName(state, z.unterkategorieId)) +
+        '<div class="hint">' + escapeHtml(kategorieName(state, z.kategorieId)) + "</div></td>" +
+      '<td><select aria-label="Einstufung">' + optionen + "</select></td>" +
+      '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(z.kosten) + "</button></td>" +
+      '<td class="num">' + z.reduktionPct + " %</td>" +
+      '<td class="num ' + (z.einsparung > 0 ? "positive" : "") + '">' + currencyFormatter.format(z.einsparung) + "</td>";
+    tr.querySelector("select").addEventListener("change", function (e) {
+      updateState(function (s) {
+        const u = s.unterkategorien.find(function (u) { return u.id === z.unterkategorieId; });
+        if (u) u.verzichtStufe = e.target.value;
+      });
+    });
+    tr.querySelector('[data-action="buchungen"]').addEventListener("click", function () {
+      openBuchungenDialog(ausgewaehltesJahr, z.kategorieId, z.unterkategorieId);
+    });
+    verzichtTbody.appendChild(tr);
+  });
+  const kostenSumme = va.zeilen.reduce(function (s, z) { return s + z.kosten; }, 0);
+  const einsparungSumme = va.zeilen.reduce(function (s, z) { return s + z.einsparung; }, 0);
+  verzichtTotal.innerHTML = va.zeilen.length
+    ? "<td>Total</td><td></td>" +
+      '<td class="num total">' + currencyFormatter.format(kostenSumme) + "</td>" +
+      '<td class="num total">' + (kostenSumme ? (einsparungSumme / kostenSumme * 100).toFixed(0) : 0) + " %</td>" +
+      '<td class="num total positive">' + currencyFormatter.format(einsparungSumme) + "</td>"
+    : '<td colspan="5" class="hint">Keine Kosten in diesem Jahr.</td>';
+}
+
 export function renderCompareTab() {
   const state = getState();
   const hatDaten = state.realTransaktionen.length > 0;
@@ -172,12 +217,14 @@ export function renderCompareTab() {
   renderTrendChart(abw);
   renderSparpotenzial(berechneSparpotenzial(state));
   renderSparpotenzialUnterkategorien();
+  renderVerzichtsanalyse();
 }
 
 jahrSelect.addEventListener("change", function () {
   ausgewaehltesJahr = parseInt(jahrSelect.value, 10);
   renderJahrTabelleUndChart(berechneAbweichungen(getState()));
   renderSparpotenzialUnterkategorien();
+  renderVerzichtsanalyse();
 });
 
 window.addEventListener("resize", function () {

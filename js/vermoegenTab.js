@@ -1,7 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=32";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=32";
-import { currencyFormatter } from "./charts.js?v=32";
-import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege } from "./vermoegen.js?v=32";
+import { getState, updateState, uid } from "./store.js?v=33";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=33";
+import { currencyFormatter } from "./charts.js?v=33";
+import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege } from "./vermoegen.js?v=33";
 
 const tbody = document.querySelector("#vermoegen-table tbody");
 const thead = document.querySelector("#vermoegen-table thead tr");

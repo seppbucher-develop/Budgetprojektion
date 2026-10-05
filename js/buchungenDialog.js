@@ -2,11 +2,11 @@
 // realen Buchungen hinter einem Real-Kosten-Wert. Wird sowohl vom
 // Realvergleich als auch vom Istkostenvergleich verwendet, daher als
 // eigenständiges Modul.
-import { getState } from "./store.js?v=32";
-import { buchungenFuerJahrKategorie } from "./compare.js?v=32";
-import { betragFormatter } from "./charts.js?v=32";
-import { formatIsoDate } from "./dateUtils.js?v=32";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=32";
+import { getState } from "./store.js?v=33";
+import { buchungenFuerJahrKategorie } from "./compare.js?v=33";
+import { betragFormatter } from "./charts.js?v=33";
+import { formatIsoDate } from "./dateUtils.js?v=33";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=33";
 
 const buchungenDialog = document.getElementById("dialog-buchungen");
 const buchungenTitle = document.getElementById("dialog-buchungen-title");

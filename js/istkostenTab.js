@@ -1,8 +1,8 @@
-import { getState } from "./store.js?v=32";
-import { berechneAbweichungen, berechneIstkosten } from "./compare.js?v=32";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=32";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=32";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=32";
+import { getState } from "./store.js?v=33";
+import { berechneAbweichungen, berechneIstkosten } from "./compare.js?v=33";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=33";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=33";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=33";
 
 const emptyHint = document.getElementById("istkosten-empty-hint");
 const inhalt = document.getElementById("istkosten-inhalt");

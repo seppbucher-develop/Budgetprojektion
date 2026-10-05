@@ -1,5 +1,5 @@
-import { isoYear } from "./dateUtils.js?v=32";
-import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=32";
+import { isoYear } from "./dateUtils.js?v=33";
+import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=33";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 
@@ -201,4 +201,66 @@ export function berechneSparpotenzialUnterkategorien(state, jahr) {
     .sort(function (a, b) { return b.potenzial - a.potenzial; });
 
   return { jahr: jahr, referenzJahre: vorherigeJahre, schwelle: SCHWELLE_CHF, zeilen: zeilen };
+}
+
+// Verzichtsanalyse: Einstufung der Unterkategorien nach ihrem Zweck.
+// Jede Stufe hat eine sinnvolle Reduktion (in % der Jahreskosten):
+//  - notwendig:  Existenz, Verträge, Pflichtausgaben -> nicht reduzierbar
+//  - flexibel:   nützlich/Komfort, Spielraum durch bewussteres Ausgeben
+//  - verzichtbar: Luxus/Freizeit, im Notfall ganz streichbar (hier: 50 %)
+export const VERZICHT_STUFEN = {
+  notwendig: { label: "Notwendig", reduktionPct: 0 },
+  flexibel: { label: "Flexibel", reduktionPct: 15 },
+  verzichtbar: { label: "Verzichtbar", reduktionPct: 50 }
+};
+
+// Stichwörter (Kleinbuchstaben) auf Unter- und Kategoriename; Reihenfolge
+// = Priorität: zuerst verzichtbar, dann notwendig, sonst flexibel.
+const VERZICHT_STICHWOERTER = [
+  ["verzichtbar", ["restaurant", "café", "cafe", "take", "ausgang", "bar", "kino", "konzert", "streaming", "netflix", "spotify", "abo", "zeitschrift", "zeitung", "ferien", "urlaub", "reise", "flug", "hotel", "unterhaltung", "spiel", "game", "gadget", "elektronik", "alkohol", "tabak", "kiosk", "lotto", "luxus", "hobby", "freizeit", "schmuck", "wellness", "genuss"]],
+  ["notwendig", ["miete", "hypothek", "zins", "nebenkosten", "strom", "heizung", "wasser", "energie", "krankenkasse", "krankenversicherung", "arzt", "zahn", "medikament", "apotheke", "gesundheit", "versicherung", "steuer", "abgabe", "gebühr", "serafe", "lebensmittel", "supermarkt", "grundbedarf", "telefon", "internet", "handy", "kinder", "betreuung", "schule", "ausbildung", "alimente", "unterhalt", "reparatur", "öv", "ga "]]
+];
+
+export function standardVerzichtStufe(state, unterkategorieId) {
+  const u = state.unterkategorien.find(function (u) { return u.id === unterkategorieId; });
+  if (!u) return "flexibel";
+  if (VERZICHT_STUFEN[u.verzichtStufe]) return u.verzichtStufe;
+  const k = state.kategorien.find(function (k) { return k.id === u.kategorieId; });
+  // Der Name der Unterkategorie entscheidet; die Kategorie nur als Ersatz.
+  const texte = [(u.name || "").toLowerCase(), (k ? k.name : "").toLowerCase()];
+  for (const text of texte) {
+    for (const eintrag of VERZICHT_STICHWOERTER) {
+      if (eintrag[1].some(function (w) { return text.indexOf(w) !== -1; })) return eintrag[0];
+    }
+  }
+  return "flexibel";
+}
+
+/**
+ * Pro Unterkategorie mit Kosten im Jahr `jahr`: Einstufung, Jahreskosten,
+ * sinnvolle Reduktion (%) und daraus folgende Einsparung (CHF). Nur
+ * Kostenkategorien; Rückerstattungen mindern die Kosten.
+ */
+export function berechneVerzichtsanalyse(state, jahr) {
+  const kosten = {};
+  state.realTransaktionen.forEach(function (t) {
+    if (!t.unterkategorieId || !t.kategorieId || isoYear(t.datum) !== jahr) return;
+    if (kategorieTyp(state, t.kategorieId) !== "kosten") return;
+    const e = kosten[t.unterkategorieId] || (kosten[t.unterkategorieId] = { kategorieId: t.kategorieId, kosten: 0 });
+    e.kosten -= t.betragChf;
+  });
+  const zeilen = Object.keys(kosten).map(function (id) {
+    const stufe = standardVerzichtStufe(state, id);
+    const pct = VERZICHT_STUFEN[stufe].reduktionPct;
+    return {
+      unterkategorieId: id,
+      kategorieId: kosten[id].kategorieId,
+      stufe: stufe,
+      kosten: kosten[id].kosten,
+      reduktionPct: pct,
+      einsparung: Math.max(kosten[id].kosten, 0) * pct / 100
+    };
+  }).filter(function (z) { return z.kosten > 0; })
+    .sort(function (a, b) { return b.einsparung - a.einsparung || b.kosten - a.kosten; });
+  return { jahr: jahr, zeilen: zeilen };
 }
