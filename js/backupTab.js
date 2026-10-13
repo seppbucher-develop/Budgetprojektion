@@ -96,7 +96,20 @@ async function refreshFolderList() {
         '<div class="folder-file-name">' + f.name + '</div>' +
         '<div class="folder-file-meta">' + formatTimestamp(f.lastModified) + ' · ' + formatBytes(f.size) + '</div>' +
       '</div>' +
-      '<button class="btn-secondary" data-action="restore">Wiederherstellen</button>';
+      '<div class="folder-file-actions">' +
+        '<button class="btn-secondary" data-action="restore">Wiederherstellen</button>' +
+        '<button class="btn-danger-text" data-action="delete" title="Backup-Datei löschen" aria-label="Backup-Datei löschen">🗑</button>' +
+      '</div>';
+    row.querySelector('[data-action="delete"]').addEventListener("click", async function () {
+      if (!confirm("Backup-Datei „" + f.name + "“ endgültig löschen?")) return;
+      try {
+        await handle.removeEntry(f.name);
+        zeigeMeldung("ok", "✓ Gelöscht: " + f.name);
+      } catch (e) {
+        zeigeMeldung("error", "Löschen fehlgeschlagen: " + (e.message || String(e)));
+      }
+      refreshFolderList();
+    });
     row.querySelector('[data-action="restore"]').addEventListener("click", async function () {
       if (!confirmRestore()) return;
       const file = await f.handle.getFile();
