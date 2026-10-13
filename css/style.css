@@ -640,6 +640,13 @@ body {
   border-radius: 8px;
 }
 
+.folder-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .folder-file-info {
   min-width: 0;
 }

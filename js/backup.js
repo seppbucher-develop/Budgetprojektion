@@ -20,6 +20,30 @@ export function fsapiSupported() {
   return typeof window !== "undefined" && !!window.showDirectoryPicker;
 }
 
+// Handy (Chrome Android hat keine Ordnerauswahl): Kopien im App-eigenen
+// Speicher (OPFS) — nur dort darf die App Dateien auch wieder löschen.
+export function opfsSupported() {
+  return !fsapiSupported() && typeof navigator !== "undefined" && !!(navigator.storage && navigator.storage.getDirectory);
+}
+
+export async function getOpfsDir() {
+  const root = await navigator.storage.getDirectory();
+  return root.getDirectoryHandle("backups", { create: true });
+}
+
+async function saveOpfsCopy(blob, filename) {
+  if (!opfsSupported()) return;
+  try {
+    const dir = await getOpfsDir();
+    const fh = await dir.getFileHandle(filename, { create: true });
+    const w = await fh.createWritable();
+    await w.write(blob);
+    await w.close();
+  } catch (e) {
+    console.error("Kopie im App-Speicher fehlgeschlagen:", e);
+  }
+}
+
 export function getCachedDirHandle() {
   return cachedDirHandle;
 }
@@ -141,6 +165,8 @@ export async function exportBackup() {
     blob = new Blob([json], { type: "application/json" });
     filename = `budgetprojektion-backup-${versionTag}-${dateStamp}.json`;
   }
+
+  await saveOpfsCopy(blob, filename);
 
   if (writeHandle) {
     try {

@@ -3,7 +3,8 @@ import { formatTimestamp } from "./dateUtils.js?v=34";
 import {
   exportBackup, importBackupFile, formatBytes,
   fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
-  chooseBackupDirectory, clearBackupDirectory, listFolderBackups
+  chooseBackupDirectory, clearBackupDirectory, listFolderBackups,
+  opfsSupported, getOpfsDir
 } from "./backup.js?v=34";
 
 const btnExport = document.getElementById("btn-backup-export");
@@ -58,6 +59,7 @@ btnExport.addEventListener("click", async function () {
     const result = await exportBackup();
     zeigeMeldung("ok", (result.ordner ? "✓ Automatisch gespeichert in „" + result.ordner + "“: " : "✓ Backup gesichert: ") + result.filename + " (" + result.count + " Einträge).");
     if (result.ordner) refreshFolderList();
+    refreshOpfsList();
   } catch (e) {
     if (e && e.name !== "AbortError") zeigeMeldung("error", "Fehler beim Sichern: " + (e.message || String(e)));
   } finally {
@@ -75,6 +77,36 @@ fileInput.addEventListener("change", function () {
   restoreFromFile(file);
 });
 
+function buildFileRow(f, handle, refresh) {
+  const row = document.createElement("div");
+  row.className = "folder-file-row";
+  row.innerHTML =
+    '<div class="folder-file-info">' +
+      '<div class="folder-file-name">' + f.name + '</div>' +
+      '<div class="folder-file-meta">' + formatTimestamp(f.lastModified) + ' · ' + formatBytes(f.size) + '</div>' +
+    '</div>' +
+    '<div class="folder-file-actions">' +
+      '<button class="btn-secondary" data-action="restore">Wiederherstellen</button>' +
+      '<button class="btn-danger-text" data-action="delete" title="Backup-Datei löschen" aria-label="Backup-Datei löschen">🗑</button>' +
+    '</div>';
+  row.querySelector('[data-action="delete"]').addEventListener("click", async function () {
+    if (!confirm("Backup-Datei „" + f.name + "“ endgültig löschen?")) return;
+    try {
+      await handle.removeEntry(f.name);
+      zeigeMeldung("ok", "✓ Gelöscht: " + f.name);
+    } catch (e) {
+      zeigeMeldung("error", "Löschen fehlgeschlagen: " + (e.message || String(e)));
+    }
+    refresh();
+  });
+  row.querySelector('[data-action="restore"]').addEventListener("click", async function () {
+    if (!confirmRestore()) return;
+    const file = await f.handle.getFile();
+    restoreFromFile(file);
+  });
+  return row;
+}
+
 async function refreshFolderList() {
   const handle = getCachedDirHandle();
   if (!handle) { folderFilesEl.innerHTML = ""; return; }
@@ -88,22 +120,23 @@ async function refreshFolderList() {
     return;
   }
   folderFilesEl.innerHTML = "";
-  files.forEach(function (f) {
-    const row = document.createElement("div");
-    row.className = "folder-file-row";
-    row.innerHTML =
-      '<div class="folder-file-info">' +
-        '<div class="folder-file-name">' + f.name + '</div>' +
-        '<div class="folder-file-meta">' + formatTimestamp(f.lastModified) + ' · ' + formatBytes(f.size) + '</div>' +
-      '</div>' +
-      '<button class="btn-secondary" data-action="restore">Wiederherstellen</button>';
-    row.querySelector('[data-action="restore"]').addEventListener("click", async function () {
-      if (!confirmRestore()) return;
-      const file = await f.handle.getFile();
-      restoreFromFile(file);
-    });
-    folderFilesEl.appendChild(row);
-  });
+  files.forEach(function (f) { folderFilesEl.appendChild(buildFileRow(f, handle, refreshFolderList)); });
+}
+
+async function refreshOpfsList() {
+  const panel = document.getElementById("backup-opfs-panel");
+  const listEl = document.getElementById("backup-opfs-files");
+  if (!opfsSupported()) { panel.style.display = "none"; return; }
+  panel.style.display = "block";
+  let dir;
+  try { dir = await getOpfsDir(); } catch (e) { panel.style.display = "none"; return; }
+  const files = await listFolderBackups(dir);
+  if (files.length === 0) {
+    listEl.innerHTML = '<div class="hint">Noch keine Backup-Dateien hier.</div>';
+    return;
+  }
+  listEl.innerHTML = "";
+  files.forEach(function (f) { listEl.appendChild(buildFileRow(f, dir, refreshOpfsList)); });
 }
 
 function renderFolderState() {
@@ -147,6 +180,7 @@ btnClearFolder.addEventListener("click", async function () {
 });
 
 setupFolderUi();
+refreshOpfsList();
 
 // Cache-Strategie des Service Workers (siehe sw.js für die ausführliche
 // Erklärung). Die Auswahl wird in state.einstellungen persistiert (übersteht
