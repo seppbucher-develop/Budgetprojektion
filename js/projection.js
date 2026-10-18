@@ -107,16 +107,20 @@ export function berechneProjektion(state) {
     const ertrag = budget.ertrag;
     const inflationFaktor = Math.pow(1 + inflationPct / 100, Math.max(0, jahr - heuteJahr));
     const kosten = budget.kosten * inflationFaktor;
+    const inflationChf = kosten - budget.kosten;
     const netto = ertrag + kosten;
 
     const vermoegenStart = vermoegen;
-    vermoegen = vermoegenStart * renditeFaktor + netto;
+    const renditeChf = vermoegenStart * (renditeFaktor - 1);
+    vermoegen = vermoegenStart + renditeChf + netto;
 
     jahre.push({
       jahr: jahr,
       ertrag: ertrag,
       kosten: kosten,
       netto: netto,
+      renditeChf: renditeChf,
+      inflationChf: inflationChf,
       vermoegenStart: vermoegenStart,
       vermoegenEnde: vermoegen
     });

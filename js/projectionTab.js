@@ -50,6 +50,8 @@ export function renderProjectionTab() {
       '<div class="positive">' + currencyFormatter.format(j.ertrag) + "</div>" +
       '<div class="negative">' + currencyFormatter.format(j.kosten) + "</div>" +
       '<div class="' + (j.netto >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.netto) + "</div>" +
+      '<div class="' + (j.renditeChf >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.renditeChf) + "</div>" +
+      '<div class="' + (j.inflationChf >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.inflationChf) + "</div>" +
       '<div class="' + (j.vermoegenEnde >= 0 ? "" : "negative") + '">' + currencyFormatter.format(j.vermoegenEnde) + "</div>";
     rowsContainer.appendChild(rowEl);
   });
