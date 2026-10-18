@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=28">
 </head>
 <body>
 <div class="app">
@@ -125,7 +125,29 @@
         </div>
         <button type="button" id="btn-open-strom-auto" class="btn-secondary">⚡ Strom Auto…</button>
       </div>
-      <input type="search" id="buchungen-suche" class="buchungen-suche-feld" placeholder="Suche Bezeichnung oder Betrag" aria-label="Suche Bezeichnung oder Betrag">
+      <input type="search" id="buchungen-suche" class="buchungen-suche-feld" placeholder="Suche Bezeichnung, Kategorie oder Betrag" aria-label="Suche Bezeichnung, Kategorie oder Betrag">
+      <details id="buchungen-filter" class="buchungen-filter">
+        <summary>Filter <span id="buchungen-filter-badge" class="buchungen-filter-badge" hidden></span></summary>
+        <div class="buchungen-filter-grid">
+          <div class="field"><label for="filter-kategorie">Kategorie</label><select id="filter-kategorie"></select></div>
+          <div class="field"><label for="filter-unterkategorie">Unterkategorie</label><select id="filter-unterkategorie"></select></div>
+          <div class="field"><label for="filter-art">Art</label>
+            <select id="filter-art"><option value="">Einnahmen &amp; Ausgaben</option><option value="einnahme">Nur Einnahmen</option><option value="ausgabe">Nur Ausgaben</option></select>
+          </div>
+          <div class="field"><label for="filter-monat">Monat</label>
+            <select id="filter-monat"><option value="">Alle Monate</option><option value="1">Januar</option><option value="2">Februar</option><option value="3">März</option><option value="4">April</option><option value="5">Mai</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">August</option><option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option></select>
+          </div>
+          <div class="field"><label for="filter-datum-von">Datum von</label><input type="date" id="filter-datum-von"></div>
+          <div class="field"><label for="filter-datum-bis">Datum bis</label><input type="date" id="filter-datum-bis"></div>
+          <div class="field"><label for="filter-betrag-op">Betrag (ohne Vorzeichen)</label>
+            <select id="filter-betrag-op"><option value="">Kein Betragsfilter</option><option value="=">= gleich</option><option value="!=">≠ ungleich</option><option value="&gt;">&gt; grösser als</option><option value="&gt;=">≥ mindestens</option><option value="&lt;">&lt; kleiner als</option><option value="&lt;=">≤ höchstens</option></select>
+          </div>
+          <div class="field"><label for="filter-betrag-wert">Betrag (CHF)</label><input type="text" inputmode="decimal" id="filter-betrag-wert" placeholder="z. B. 100"></div>
+        </div>
+        <div class="panel-actions"><button type="button" id="btn-filter-reset" class="btn-secondary">Filter zurücksetzen</button></div>
+        <p class="hint">Das Jahr oben wirkt ebenfalls als Filter („Alle Jahre“ hebt es auf). Eine Suche durchsucht automatisch alle Jahre.</p>
+      </details>
+      <p class="hint" id="buchungen-treffer-hint"></p>
       <p class="hint" id="buchungen-empty-hint">Noch keine Buchungen erfasst.</p>
       <div id="buchungen-liste-table">
         <div class="buchungen-liste-row grid-headrow buchungen-liste-headrow">
@@ -794,7 +816,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=34"></script>
+<script type="module" src="js/app.js?v=35"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die

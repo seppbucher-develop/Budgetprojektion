@@ -1420,3 +1420,40 @@ dialog h2 {
   text-decoration: line-through;
   opacity: 0.6;
 }
+
+/* Einnahmen/Ausgaben: Filterbereich */
+.buchungen-filter {
+  margin: 8px 0;
+}
+
+.buchungen-filter > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 6px 0;
+}
+
+.buchungen-filter-badge {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.buchungen-filter-badge[hidden] {
+  display: none;
+}
+
+.buchungen-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.buchungen-filter-grid .field {
+  margin-bottom: 0;
+}

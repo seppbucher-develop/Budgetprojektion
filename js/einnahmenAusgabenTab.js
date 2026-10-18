@@ -1,10 +1,10 @@
-import { getState, updateState, uid } from "./store.js?v=34";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=34";
-import { betragFormatter } from "./charts.js?v=34";
-import { unterkategorieName } from "./kategorien.js?v=34";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=34";
-import { holeWechselkurs } from "./fx.js?v=34";
-import { openStromAutoQuartal } from "./stromAutoDialog.js?v=34";
+import { getState, updateState, uid } from "./store.js?v=35";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=35";
+import { betragFormatter } from "./charts.js?v=35";
+import { unterkategorieName, kategorieName } from "./kategorien.js?v=35";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=35";
+import { holeWechselkurs } from "./fx.js?v=35";
+import { openStromAutoQuartal } from "./stromAutoDialog.js?v=35";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -13,6 +13,22 @@ const jahrSelect = document.getElementById("buchungen-jahr-select");
 const sucheInput = document.getElementById("buchungen-suche");
 const listeHeadrow = document.querySelector("#buchungen-liste-table .buchungen-liste-headrow");
 const listeScroll = document.querySelector("#buchungen-liste-table .buchungen-liste-scroll");
+
+const filterEl = {
+  box: document.getElementById("buchungen-filter"),
+  badge: document.getElementById("buchungen-filter-badge"),
+  kategorie: document.getElementById("filter-kategorie"),
+  unterkategorie: document.getElementById("filter-unterkategorie"),
+  art: document.getElementById("filter-art"),
+  monat: document.getElementById("filter-monat"),
+  von: document.getElementById("filter-datum-von"),
+  bis: document.getElementById("filter-datum-bis"),
+  op: document.getElementById("filter-betrag-op"),
+  wert: document.getElementById("filter-betrag-wert"),
+  reset: document.getElementById("btn-filter-reset")
+};
+const trefferHint = document.getElementById("buchungen-treffer-hint");
+const ALLE_JAHRE = "alle";
 
 const dialog = document.getElementById("dialog-buchung");
 const form = document.getElementById("form-buchung");
@@ -62,26 +78,92 @@ function zeilenFuerJahr(state, jahr) {
     });
 }
 
-// Volltextsuche über Bezeichnung und Betrag (mehrere Zahlendarstellungen,
-// damit sowohl "2000" als auch "2000.50" als Suchtext funktionieren). Eine
-// aktive Suche durchsucht bewusst alle Jahre statt nur das gewählte, damit
-// eine Buchung gefunden werden kann, ohne ihr Jahr zu kennen.
-function zeilenGesucht(state, text) {
-  const q = text.trim().toLowerCase();
-  return state.realTransaktionen
-    .filter(function (t) {
-      const heuhaufen = [t.name || "", String(t.betrag), String(t.betragChf), betragFormatter.format(t.betrag), betragFormatter.format(t.betragChf)]
-        .join(" ").toLowerCase();
-      return heuhaufen.indexOf(q) !== -1;
-    })
-    .sort(function (a, b) {
-      if (a.datum !== b.datum) return a.datum < b.datum ? 1 : -1;
-      return a.erfasstAm < b.erfasstAm ? 1 : -1;
-    });
+function sortiere(rows) {
+  return rows.sort(function (a, b) {
+    if (a.datum !== b.datum) return a.datum < b.datum ? 1 : -1;
+    return a.erfasstAm < b.erfasstAm ? 1 : -1;
+  });
 }
 
+function betragVergleich(op, ist, soll) {
+  // Auf Rappen gerundet vergleichen, damit z. B. "= 10.10" nicht an
+  // Gleitkomma-Ungenauigkeiten scheitert.
+  const a = Math.round(ist * 100);
+  const b = Math.round(soll * 100);
+  switch (op) {
+    case "=": return a === b;
+    case "!=": return a !== b;
+    case ">": return a > b;
+    case ">=": return a >= b;
+    case "<": return a < b;
+    case "<=": return a <= b;
+    default: return true;
+  }
+}
+
+function betragFilterWert() {
+  const wert = parseDezimal(filterEl.wert.value);
+  return isNaN(wert) ? null : Math.abs(wert);
+}
+
+function anzahlAktiveFilter() {
+  let n = 0;
+  if (filterEl.kategorie.value) n++;
+  if (filterEl.unterkategorie.value) n++;
+  if (filterEl.art.value) n++;
+  if (filterEl.monat.value) n++;
+  if (filterEl.von.value) n++;
+  if (filterEl.bis.value) n++;
+  if (filterEl.op.value && betragFilterWert() !== null) n++;
+  return n;
+}
+
+// Volltextsuche über Bezeichnung, Kategorie, Unterkategorie und Betrag
+// (mehrere Zahlendarstellungen, damit sowohl "2000" als auch "2000.50" als
+// Suchtext funktionieren), kombiniert mit den Filtern (UND-verknüpft). Das
+// Jahr gilt als Filter, ausser es steht auf "Alle Jahre" -- eine neu
+// begonnene Suche schaltet darum automatisch auf alle Jahre um, damit eine
+// Buchung gefunden werden kann, ohne ihr Jahr zu kennen.
 function zeilenGefiltert(state) {
-  return suchtext ? zeilenGesucht(state, suchtext) : zeilenFuerJahr(state, ausgewaehltesJahr);
+  const q = suchtext.trim().toLowerCase();
+  const monat = filterEl.monat.value ? parseInt(filterEl.monat.value, 10) : null;
+  const betragWert = filterEl.op.value ? betragFilterWert() : null;
+  return sortiere(state.realTransaktionen.filter(function (t) {
+    if (ausgewaehltesJahr !== ALLE_JAHRE && isoYear(t.datum) !== ausgewaehltesJahr) return false;
+    if (filterEl.unterkategorie.value && t.unterkategorieId !== filterEl.unterkategorie.value) return false;
+    if (filterEl.kategorie.value && t.kategorieId !== filterEl.kategorie.value) return false;
+    if (filterEl.art.value === "einnahme" && t.betragChf < 0) return false;
+    if (filterEl.art.value === "ausgabe" && t.betragChf >= 0) return false;
+    if (monat !== null && parseInt(String(t.datum).slice(5, 7), 10) !== monat) return false;
+    if (filterEl.von.value && t.datum < filterEl.von.value) return false;
+    if (filterEl.bis.value && t.datum > filterEl.bis.value) return false;
+    if (betragWert !== null && !betragVergleich(filterEl.op.value, Math.abs(t.betragChf), betragWert)) return false;
+    if (q) {
+      const heuhaufen = [t.name || "", kategorieName(state, t.kategorieId) || "", unterkategorieName(state, t.unterkategorieId) || "",
+        String(t.betrag), String(t.betragChf), betragFormatter.format(t.betrag), betragFormatter.format(t.betragChf)]
+        .join(" ").toLowerCase();
+      if (heuhaufen.indexOf(q) === -1) return false;
+    }
+    return true;
+  }));
+}
+
+function fillFilterSelects(state) {
+  const katAlt = filterEl.kategorie.value;
+  const ukAlt = filterEl.unterkategorie.value;
+  const kategorien = state.kategorien.slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+  filterEl.kategorie.innerHTML = '<option value="">Alle Kategorien</option>' + kategorien.map(function (k) {
+    return '<option value="' + k.id + '">' + escapeHtml(k.name) + "</option>";
+  }).join("");
+  if (kategorien.some(function (k) { return k.id === katAlt; })) filterEl.kategorie.value = katAlt;
+
+  const unterkategorien = state.unterkategorien
+    .filter(function (u) { return !filterEl.kategorie.value || u.kategorieId === filterEl.kategorie.value; })
+    .sort(function (a, b) { return a.name.localeCompare(b.name); });
+  filterEl.unterkategorie.innerHTML = '<option value="">Alle Unterkategorien</option>' + unterkategorien.map(function (u) {
+    return '<option value="' + u.id + '">' + escapeHtml(u.name) + "</option>";
+  }).join("");
+  if (unterkategorien.some(function (u) { return u.id === ukAlt; })) filterEl.unterkategorie.value = ukAlt;
 }
 
 export function renderEinnahmenAusgabenTab() {
@@ -90,22 +172,33 @@ export function renderEinnahmenAusgabenTab() {
   emptyHint.style.display = hatDaten ? "none" : "block";
   table.style.display = hatDaten ? "block" : "none";
   sucheInput.style.display = hatDaten ? "block" : "none";
-  if (!hatDaten) { jahrSelect.innerHTML = ""; rowsContainer.innerHTML = ""; return; }
+  filterEl.box.style.display = hatDaten ? "block" : "none";
+  if (!hatDaten) { jahrSelect.innerHTML = ""; rowsContainer.innerHTML = ""; trefferHint.textContent = ""; return; }
 
   const jahre = distinctSorted(state.realTransaktionen.map(function (t) { return isoYear(t.datum); })).reverse();
-  if (ausgewaehltesJahr === null || jahre.indexOf(ausgewaehltesJahr) === -1) {
+  if (ausgewaehltesJahr === null || (ausgewaehltesJahr !== ALLE_JAHRE && jahre.indexOf(ausgewaehltesJahr) === -1)) {
     const heuteJahr = new Date().getFullYear();
     ausgewaehltesJahr = jahre.indexOf(heuteJahr) !== -1 ? heuteJahr : jahre[0];
   }
-  jahrSelect.innerHTML = jahre.map(function (j) {
-    return '<option value="' + j + '"' + (j === ausgewaehltesJahr ? " selected" : "") + ">" + j + "</option>";
-  }).join("");
+  jahrSelect.innerHTML = '<option value="' + ALLE_JAHRE + '"' + (ausgewaehltesJahr === ALLE_JAHRE ? " selected" : "") + ">Alle Jahre</option>" +
+    jahre.map(function (j) {
+      return '<option value="' + j + '"' + (j === ausgewaehltesJahr ? " selected" : "") + ">" + j + "</option>";
+    }).join("");
 
+  fillFilterSelects(state);
   renderRows(state);
 }
 
 function renderRows(state) {
   const rows = zeilenGefiltert(state);
+  const aktiv = anzahlAktiveFilter();
+  filterEl.badge.hidden = aktiv === 0;
+  filterEl.badge.textContent = aktiv;
+  const gefiltert = aktiv > 0 || suchtext.trim() !== "";
+  const summe = rows.reduce(function (acc, t) { return acc + t.betragChf; }, 0);
+  trefferHint.textContent = gefiltert
+    ? rows.length + (rows.length === 1 ? " Treffer" : " Treffer") + (rows.length ? " · Summe " + betragFormatter.format(summe) : "")
+    : "";
   rowsContainer.innerHTML = rows.map(function (t) {
     return '<div class="buchungen-liste-row" data-id="' + t.id + '">' +
       "<div>" + formatIsoDate(t.datum) + "</div>" +
@@ -139,12 +232,33 @@ function renderRows(state) {
 }
 
 jahrSelect.addEventListener("change", function () {
-  ausgewaehltesJahr = parseInt(jahrSelect.value, 10);
+  ausgewaehltesJahr = jahrSelect.value === ALLE_JAHRE ? ALLE_JAHRE : parseInt(jahrSelect.value, 10);
   renderRows(getState());
 });
 
 sucheInput.addEventListener("input", function () {
+  const warLeer = suchtext.trim() === "";
   suchtext = sucheInput.value;
+  if (warLeer && suchtext.trim() !== "" && ausgewaehltesJahr !== ALLE_JAHRE) {
+    ausgewaehltesJahr = ALLE_JAHRE;
+    jahrSelect.value = ALLE_JAHRE;
+  }
+  renderRows(getState());
+});
+
+filterEl.kategorie.addEventListener("change", function () {
+  filterEl.unterkategorie.value = "";
+  fillFilterSelects(getState());
+  renderRows(getState());
+});
+[filterEl.unterkategorie, filterEl.art, filterEl.monat, filterEl.von, filterEl.bis, filterEl.op].forEach(function (el) {
+  el.addEventListener("change", function () { renderRows(getState()); });
+});
+filterEl.wert.addEventListener("input", function () { renderRows(getState()); });
+filterEl.reset.addEventListener("click", function () {
+  [filterEl.kategorie, filterEl.unterkategorie, filterEl.art, filterEl.monat, filterEl.von, filterEl.bis, filterEl.op, filterEl.wert]
+    .forEach(function (el) { el.value = ""; });
+  fillFilterSelects(getState());
   renderRows(getState());
 });
 
