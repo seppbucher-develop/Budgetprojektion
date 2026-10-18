@@ -1,4 +1,4 @@
-import { isoYear } from "./dateUtils.js?v=36";
+import { isoYear } from "./dateUtils.js?v=37";
 
 function monatsIndex(iso) {
   return isoYear(iso) * 12 + parseInt(String(iso).slice(5, 7), 10);
@@ -107,8 +107,10 @@ export function berechneProjektion(state) {
     const ertrag = budget.ertrag;
     const inflationFaktor = Math.pow(1 + inflationPct / 100, Math.max(0, jahr - heuteJahr));
     const kosten = budget.kosten * inflationFaktor;
-    // Nur der Preisanstieg dieses einen Jahres (nicht kumuliert seit heute).
-    const inflationChf = jahr > heuteJahr ? kosten - kosten / (1 + inflationPct / 100) : 0;
+    // Mehrkosten dieses Jahres gegenüber dem heutigen Preisniveau (die
+    // Inflation der Vorjahre bleibt im Preisniveau enthalten, daher wächst
+    // der Wert von Jahr zu Jahr).
+    const inflationChf = kosten - budget.kosten;
     const netto = ertrag + kosten;
 
     const vermoegenStart = vermoegen;
