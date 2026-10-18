@@ -751,7 +751,7 @@ body {
 }
 
 .projektion-row {
-  grid-template-columns: 55px 90px 90px 90px 95px;
+  grid-template-columns: 55px 90px 90px 90px 90px 90px 95px;
 }
 
 .budget-row > div,
@@ -765,7 +765,9 @@ body {
 .projektion-row > div:nth-child(2),
 .projektion-row > div:nth-child(3),
 .projektion-row > div:nth-child(4),
-.projektion-row > div:nth-child(5) {
+.projektion-row > div:nth-child(5),
+.projektion-row > div:nth-child(6),
+.projektion-row > div:nth-child(7) {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
