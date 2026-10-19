@@ -1,8 +1,8 @@
-import { getState } from "./store.js?v=38";
-import { berechneAbweichungen, berechneIstkosten } from "./compare.js?v=38";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=38";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=38";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=38";
+import { getState } from "./store.js?v=39";
+import { berechneAbweichungen, berechneIstkosten } from "./compare.js?v=39";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=39";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=39";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=39";
 
 const emptyHint = document.getElementById("istkosten-empty-hint");
 const inhalt = document.getElementById("istkosten-inhalt");
@@ -19,7 +19,7 @@ let ausgewaehltesJahr = null;
 // Welche Kategorien aktuell aufgeklappt sind (zeigt ihre Unterkategorien
 // mit eigener Summenaufschlüsselung darunter an).
 const aufgeklappt = new Set();
-// Wahlweise statt nach Kategorien flach nach Unterkategorien gruppieren.
+// Wahlweise bei allen Kategorien die Unterkategorien einblenden.
 let nachUnterkategorien = false;
 let letzteDaten = null;
 
@@ -69,58 +69,15 @@ function bindeDrilldownButtons(rowEl) {
   });
 }
 
-// Flache Zeilenliste je Unterkategorie (Kategorie als Zusatz); Buchungen
-// ohne Unterkategorie erscheinen als Rest der jeweiligen Kategorie.
-function unterkategorieZeilen(state, daten) {
-  const zeilen = [];
-  daten.zeilen.forEach(function (z) {
-    z.unterzeilen.forEach(function (u) {
-      zeilen.push({ kategorieId: z.kategorieId, unterkategorieId: u.unterkategorieId, werte: u.werte,
-        name: unterkategorieName(state, u.unterkategorieId) });
-    });
-    const rest = z.werte.map(function (w, i) {
-      return w - z.unterzeilen.reduce(function (s, u) { return s + u.werte[i]; }, 0);
-    });
-    if (rest.some(function (w) { return Math.abs(w) > 0.005; })) {
-      zeilen.push({ kategorieId: z.kategorieId, unterkategorieId: null, werte: rest, name: "(ohne Unterkategorie)" });
-    }
-  });
-  return zeilen.sort(function (a, b) { return a.name.localeCompare(b.name, "de"); });
-}
-
-function renderNachUnterkategorien(daten) {
-  const state = getState();
-  const zeilen = unterkategorieZeilen(state, daten);
-  headrow.innerHTML = "<div>Unterkategorie</div>" + daten.jahre.map(function (j) { return "<div>" + j + "</div>"; }).join("");
-  rowsContainer.innerHTML = "";
-  zeilen.forEach(function (z) {
-    const rowEl = document.createElement("div");
-    rowEl.className = "istkosten-row";
-    rowEl.innerHTML =
-      "<div>" + escapeHtml(z.name) + ' <span class="hint">' + escapeHtml(kategorieName(state, z.kategorieId)) + "</span></div>" +
-      werteZellen(daten.jahre, z.werte, z.kategorieId, z.unterkategorieId);
-    bindeDrilldownButtons(rowEl);
-    rowsContainer.appendChild(rowEl);
-  });
-  totalRow.innerHTML = "<div>Total</div>" +
-    daten.summenProJahr.map(function (s) { return "<div>" + currencyFormatter.format(s) + "</div>"; }).join("");
-  drawGroupedBarChart(chart, zeilen.map(function (z) { return z.name; }),
-    daten.jahre.map(function (jahr, i) {
-      return { name: String(jahr), color: JAHR_FARBEN[i], values: zeilen.map(function (z) { return Math.abs(z.werte[i]); }) };
-    })
-  );
-}
-
 function renderTabelleUndChart(daten) {
   letzteDaten = daten;
-  if (nachUnterkategorien) { renderNachUnterkategorien(daten); return; }
   const state = getState();
   headrow.innerHTML = "<div>Kategorie</div>" + daten.jahre.map(function (j) { return "<div>" + j + "</div>"; }).join("");
 
   rowsContainer.innerHTML = "";
   daten.zeilen.forEach(function (z) {
     const hatUnterkategorien = z.unterzeilen.length > 0;
-    const offen = aufgeklappt.has(z.kategorieId);
+    const offen = nachUnterkategorien || aufgeklappt.has(z.kategorieId);
 
     const rowEl = document.createElement("div");
     rowEl.className = "istkosten-row";
@@ -151,6 +108,17 @@ function renderTabelleUndChart(daten) {
         bindeDrilldownButtons(subRowEl);
         rowsContainer.appendChild(subRowEl);
       });
+      // Buchungen ohne Unterkategorie, damit die Summen aufgehen.
+      const rest = z.werte.map(function (w, i) {
+        return w - z.unterzeilen.reduce(function (s, u) { return s + u.werte[i]; }, 0);
+      });
+      if (rest.some(function (w) { return Math.abs(w) > 0.005; })) {
+        const restEl = document.createElement("div");
+        restEl.className = "istkosten-row istkosten-subrow";
+        restEl.innerHTML = "<div>(ohne Unterkategorie)</div>" + werteZellen(daten.jahre, rest, z.kategorieId, null);
+        bindeDrilldownButtons(restEl);
+        rowsContainer.appendChild(restEl);
+      }
     }
   });
 
