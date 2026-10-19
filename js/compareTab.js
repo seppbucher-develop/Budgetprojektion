@@ -1,9 +1,9 @@
-import { getState, updateState } from "./store.js?v=38";
-import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=38";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=38";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=38";
-import { isoYear } from "./dateUtils.js?v=38";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=38";
+import { getState, updateState } from "./store.js?v=39";
+import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=39";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=39";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=39";
+import { isoYear } from "./dateUtils.js?v=39";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=39";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
