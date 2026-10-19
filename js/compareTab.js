@@ -1,8 +1,9 @@
-import { getState, updateState } from "./store.js?v=37";
-import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=37";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=37";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=37";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=37";
+import { getState, updateState } from "./store.js?v=38";
+import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=38";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=38";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=38";
+import { isoYear } from "./dateUtils.js?v=38";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=38";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -17,11 +18,39 @@ const ukHinweisEl = document.getElementById("sparpotenzial-uk-hinweis");
 const ukTabelle = document.getElementById("sparpotenzial-uk-table");
 const ukTbody = ukTabelle.querySelector("tbody");
 
+const ukToggle = document.getElementById("vergleich-uk-toggle");
+
 let ausgewaehltesJahr = null;
+// Wahlweise unter jeder Kategorie die Unterkategorien (nur reale Werte,
+// das Budget gibt es nur je Kategorie) einblenden.
+let nachUnterkategorien = false;
 
 function pctText(v) {
   if (v == null) return "–";
   return (v >= 0 ? "+" : "") + v.toFixed(0) + " %";
+}
+
+function renderUnterzeilen(state, jahr, kategorieId) {
+  const summen = {};
+  state.realTransaktionen.forEach(function (t) {
+    if (t.kategorieId !== kategorieId || isoYear(t.datum) !== jahr) return;
+    const key = t.unterkategorieId || "";
+    summen[key] = (summen[key] || 0) + t.betragChf;
+  });
+  Object.keys(summen).filter(function (k) { return Math.abs(summen[k]) > 0.005; }).map(function (k) {
+    return { id: k, name: k ? unterkategorieName(state, k) : "(ohne Unterkategorie)", real: summen[k] };
+  }).sort(function (a, b) { return a.name.localeCompare(b.name, "de"); }).forEach(function (u) {
+    const tr = document.createElement("tr");
+    tr.className = "subrow";
+    tr.innerHTML =
+      "<td>" + escapeHtml(u.name) + "</td><td></td>" +
+      '<td class="num"><button type="button" class="clickable-value" data-action="buchungen">' + currencyFormatter.format(u.real) + "</button></td>" +
+      "<td></td><td></td>";
+    tr.querySelector('[data-action="buchungen"]').addEventListener("click", function () {
+      openBuchungenDialog(jahr, kategorieId, u.id || null);
+    });
+    tbody.appendChild(tr);
+  });
 }
 
 function renderJahrTabelleUndChart(abw) {
@@ -47,6 +76,7 @@ function renderJahrTabelleUndChart(abw) {
       openBuchungenDialog(jahr, z.kategorieId);
     });
     tbody.appendChild(tr);
+    if (nachUnterkategorien) renderUnterzeilen(state, jahr, z.kategorieId);
   });
 
   const budgetSumme = zeilen.reduce(function (s, z) { return s + z.budget; }, 0);
@@ -219,6 +249,13 @@ export function renderCompareTab() {
   renderSparpotenzialUnterkategorien();
   renderVerzichtsanalyse();
 }
+
+ukToggle.addEventListener("click", function () {
+  nachUnterkategorien = !nachUnterkategorien;
+  ukToggle.setAttribute("aria-pressed", String(nachUnterkategorien));
+  ukToggle.classList.toggle("active", nachUnterkategorien);
+  renderJahrTabelleUndChart(berechneAbweichungen(getState()));
+});
 
 jahrSelect.addEventListener("change", function () {
   ausgewaehltesJahr = parseInt(jahrSelect.value, 10);

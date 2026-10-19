@@ -1,4 +1,4 @@
-import { isoYear } from "./dateUtils.js?v=37";
+import { isoYear } from "./dateUtils.js?v=38";
 
 function monatsIndex(iso) {
   return isoYear(iso) * 12 + parseInt(String(iso).slice(5, 7), 10);
