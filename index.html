@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=28">
+<link rel="stylesheet" href="css/style.css?v=29">
 </head>
 <body>
 <div class="app">
@@ -265,6 +265,7 @@
             <label for="vergleich-jahr-select">Jahr</label>
             <select id="vergleich-jahr-select"></select>
           </div>
+<button type="button" class="btn-group-uk" id="vergleich-uk-toggle" aria-pressed="false" title="Nach Unterkategorien gruppieren" aria-label="Nach Unterkategorien gruppieren">🗂️</button>
         </div>
         <p class="warning" id="vergleich-jahr-unvollstaendig" style="display:none">Dieses Jahr ist noch nicht abgeschlossen – die Werte sind unvollständig und nicht direkt mit vollen Jahren vergleichbar.</p>
         <div class="chart-wrap"><canvas id="vergleich-jahr-chart"></canvas></div>
@@ -325,6 +326,7 @@
           <label for="istkosten-jahr-select">Jahr</label>
           <select id="istkosten-jahr-select"></select>
         </div>
+<button type="button" class="btn-group-uk" id="istkosten-uk-toggle" aria-pressed="false" title="Nach Unterkategorien gruppieren" aria-label="Nach Unterkategorien gruppieren">🗂️</button>
       </div>
       <p class="hint collapsible">Reale Buchungen pro Kategorie über drei Jahre, ohne Budget-Bezug.</p>
       <p class="hint" id="istkosten-empty-hint">Noch keine Buchungen erfasst. Erfasse Einnahmen/Ausgaben im gleichnamigen Bereich.</p>
@@ -816,7 +818,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=37"></script>
+<script type="module" src="js/app.js?v=38"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
