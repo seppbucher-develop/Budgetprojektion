@@ -1,7 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=42";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=42";
-import { currencyFormatter } from "./charts.js?v=42";
-import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege, vermoegenSpalten, anlageSpaltenName, offeneEinmalPaare, berechneEinmalMigration } from "./vermoegen.js?v=42";
+import { getState, updateState, uid } from "./store.js?v=43";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=43";
+import { currencyFormatter } from "./charts.js?v=43";
+import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege, vermoegenSpalten, anlageSpaltenName } from "./vermoegen.js?v=43";
 
 const tbody = document.querySelector("#vermoegen-table tbody");
 const thead = document.querySelector("#vermoegen-table thead tr");
@@ -23,11 +23,6 @@ export function renderVermoegenTab() {
   const state = getState();
   const konten = vermoegenSpalten(state);
   const eintraege = sortedEintraege();
-
-  // TEMPORÄR: Button nur zeigen, solange noch Paare offen sind.
-  const einmalPaare = offeneEinmalPaare(state);
-  document.getElementById("einmal-migration").hidden = einmalPaare.length === 0;
-  document.getElementById("einmal-migration-info").textContent = einmalPaare.map(function (p) { return p.konto + " + " + p.anlagen; }).join("; ");
 
   emptyHint.style.display = eintraege.length === 0 ? "block" : "none";
   document.getElementById("vermoegen-table").style.display = eintraege.length === 0 ? "none" : "table";
@@ -238,16 +233,4 @@ form.addEventListener("submit", async function (e) {
     }
   });
   dialog.close();
-});
-
-// TEMPORÄR / EINMALIG -- siehe vermoegen.js
-document.getElementById("btn-einmal-migration").addEventListener("click", function () {
-  let ergebnis;
-  try { ergebnis = berechneEinmalMigration(getState()); } catch (e) { alert(e.message); return; }
-  const text = ergebnis.paare.map(function (p) { return p.anlagen + " → Spalte \"" + anlageSpaltenName(p.konto) + "\""; }).join("\n");
-  if (!confirm("Folgende Konten werden zusammengeführt (Summen aller Stichtage bleiben gleich):\n\n" + text + "\n\nTipp: vorher ein Backup erstellen. Fortfahren?")) return;
-  updateState(function (s) {
-    s.vermoegenKonten = ergebnis.konten;
-    s.vermoegenEintraege = ergebnis.eintraege;
-  });
 });

@@ -1,7 +1,7 @@
-import { getState } from "./store.js?v=42";
-import { formatIsoDate } from "./dateUtils.js?v=42";
-import { currencyFormatter, betragFormatter } from "./charts.js?v=42";
-import { berechneRendite } from "./renditeAnalyse.js?v=42";
+import { getState } from "./store.js?v=43";
+import { formatIsoDate } from "./dateUtils.js?v=43";
+import { currencyFormatter, betragFormatter } from "./charts.js?v=43";
+import { berechneRendite } from "./renditeAnalyse.js?v=43";
 
 const emptyHint = document.getElementById("rendite-empty-hint");
 const inhalt = document.getElementById("rendite-inhalt");
