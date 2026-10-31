@@ -530,7 +530,9 @@
         </select>
         <button type="button" id="btn-add-konto" class="btn-secondary">Hinzufügen</button>
       </div>
+      <label class="checkbox-row"><input type="checkbox" id="neues-konto-anlage"> mit Anlagevermögen (Gesamt + Anlage erfassen)</label>
     </div>
+    <p class="hint">Bei Konten „mit Anlagevermögen“ erfasst du Gesamt- und Anlagevermögen; das Einzelkonto ergibt sich als Gesamt − Anlage und wird zusammen mit der Spalte „&lt;Name&gt; Anlage“ gespeichert. Die Option lässt sich pro Konto jederzeit ein- oder ausschalten; ältere Stichtage gelten dann als reines Einzelkonto (Anlage = 0).</p>
   </form>
 </dialog>
 
@@ -818,7 +820,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=40"></script>
+<script type="module" src="js/app.js?v=41"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die

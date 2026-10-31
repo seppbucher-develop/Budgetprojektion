@@ -8,7 +8,7 @@
 // dann aktuellen Kurs berechnet wird -- der damalige Kurs bleibt danach
 // stehen (nachvollziehbarer historischer Gegenwert), bis er über den Button
 // "Währung neu berechnen" (siehe vermoegenTab.js) gezielt aufgefrischt wird.
-import { holeWechselkurs } from "./fx.js?v=40";
+import { holeWechselkurs } from "./fx.js?v=41";
 
 /**
  * Einmalige, idempotente Migration: vermoegenKonten waren ursprünglich ein
@@ -27,8 +27,29 @@ export function migriereVermoegenKonten(state) {
   return geaendert;
 }
 
+export function anlageSpaltenName(kontoName) {
+  return kontoName + " Anlage";
+}
+
+/**
+ * Alle Wert-Spalten der Vermögenstabelle: pro Konto eine Spalte; Konten mit
+ * mitAnlage haben zusätzlich die abgeleitete Spalte "<Name> Anlage". In
+ * eintrag.werte (und eintrag.fremdbetraege) steht bei solchen Konten unter
+ * "<Name>" das Einzelkonto (= Gesamtvermögen - Anlagevermögen) und unter
+ * "<Name> Anlage" das Anlagevermögen -- ihre Summe ist das Gesamtvermögen
+ * des Instituts, so dass Summe/Rendite/Projektion unverändert funktionieren.
+ */
+export function vermoegenSpalten(state) {
+  const spalten = [];
+  state.vermoegenKonten.forEach(function (k) {
+    spalten.push(k);
+    if (k.mitAnlage) spalten.push({ name: anlageSpaltenName(k.name), waehrung: k.waehrung, anlageVon: k.name });
+  });
+  return spalten;
+}
+
 function fremdwaehrungsKonten(state) {
-  return state.vermoegenKonten.filter(function (k) { return k.waehrung !== "CHF"; });
+  return vermoegenSpalten(state).filter(function (k) { return k.waehrung !== "CHF"; });
 }
 
 /**
