@@ -8,7 +8,7 @@
 // dann aktuellen Kurs berechnet wird -- der damalige Kurs bleibt danach
 // stehen (nachvollziehbarer historischer Gegenwert), bis er über den Button
 // "Währung neu berechnen" (siehe vermoegenTab.js) gezielt aufgefrischt wird.
-import { holeWechselkurs } from "./fx.js?v=42";
+import { holeWechselkurs } from "./fx.js?v=43";
 
 /**
  * Einmalige, idempotente Migration: vermoegenKonten waren ursprünglich ein
@@ -93,51 +93,4 @@ export async function berechneFremdwaehrungEintragNeu(getState, updateState, ein
 export function hatFremdwaehrungsBetraege(state, row) {
   if (!row.fremdbetraege) return false;
   return fremdwaehrungsKonten(state).some(function (k) { return row.fremdbetraege[k.name] != null; });
-}
-
-// ---------------------------------------------------------------------
-// TEMPORÄR / EINMALIG: bestehende Paare "<X> Konto" + "<X> Anlagen" in je ein
-// Konto "mit Anlagevermögen" überführen. Nach erfolgter Migration samt
-// Button (index.html, vermoegenTab.js) wieder entfernen.
-// ---------------------------------------------------------------------
-export const EINMAL_PAARE = [
-  { konto: "yuh Konto", anlagen: "yuh Anlagen" },
-  { konto: "EKI Konto", anlagen: "EKI Anlagen" }
-];
-
-export function offeneEinmalPaare(state) {
-  return EINMAL_PAARE.filter(function (p) {
-    const k = state.vermoegenKonten.find(function (x) { return x.name === p.konto; });
-    const a = state.vermoegenKonten.find(function (x) { return x.name === p.anlagen; });
-    return k && a && k.waehrung === a.waehrung;
-  });
-}
-
-/**
- * Wendet die Migration auf Kopien an und liefert {konten, eintraege} --
- * oder wirft, wenn sich die Summe eines Stichtags ändern würde. Der Aufrufer
- * übernimmt das Ergebnis erst dann in den State.
- */
-export function berechneEinmalMigration(state) {
-  const paare = offeneEinmalPaare(state);
-  const konten = JSON.parse(JSON.stringify(state.vermoegenKonten));
-  const eintraege = JSON.parse(JSON.stringify(state.vermoegenEintraege));
-  const summe = function (m) { return Object.values(m || {}).reduce(function (s, v) { return s + (Number(v) || 0); }, 0); };
-  const vorher = state.vermoegenEintraege.map(function (r) { return summe(r.werte); });
-  paare.forEach(function (p) {
-    const k = konten.find(function (x) { return x.name === p.konto; });
-    k.mitAnlage = true;
-    const ziel = anlageSpaltenName(p.konto);
-    eintraege.forEach(function (r) {
-      [r.werte, r.fremdbetraege].forEach(function (m) {
-        if (m && m[p.anlagen] != null) { m[ziel] = (m[ziel] || 0) + m[p.anlagen]; }
-        if (m) delete m[p.anlagen];
-      });
-    });
-    konten.splice(konten.findIndex(function (x) { return x.name === p.anlagen; }), 1);
-  });
-  eintraege.forEach(function (r, i) {
-    if (Math.abs(summe(r.werte) - vorher[i]) > 0.005) throw new Error("Summe von Stichtag " + r.datum + " würde sich ändern -- abgebrochen.");
-  });
-  return { konten: konten, eintraege: eintraege, paare: paare };
 }
