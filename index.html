@@ -198,6 +198,11 @@
         </div>
       </div>
       <p class="hint" id="vermoegen-empty-hint">Noch keine Vermögensdaten vorhanden. Lege einen Stichtag manuell an.</p>
+      <!-- TEMPORÄR (einmalig): yuh/EKI auf "mit Anlagevermögen" umstellen. Nach der Migration verschwindet der Block von selbst; danach samt Code in vermoegen.js/vermoegenTab.js entfernen. -->
+      <div id="einmal-migration" class="hint" hidden>
+        <button type="button" id="btn-einmal-migration" class="btn-secondary">Einmalig: yuh &amp; EKI auf „mit Anlagevermögen“ umstellen</button>
+        <span id="einmal-migration-info"></span>
+      </div>
       <div class="table-scroll">
         <table class="data-table" id="vermoegen-table">
           <thead><tr></tr></thead>
@@ -820,7 +825,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=41"></script>
+<script type="module" src="js/app.js?v=42"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
