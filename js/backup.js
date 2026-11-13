@@ -116,10 +116,9 @@ export async function listFolderBackups(handle) {
   return found;
 }
 
-// Gerätekennung für den Backup-Dateinamen. Browser kennen den echten
-// Gerätenamen nicht → frei wählbarer Name (bewusst OHNE STORAGE_PREFIX, damit
-// er nicht ins Backup wandert und beim Restore ein anderes Gerät überschreibt),
-// sonst automatisch erkannt aus Plattform + Browser.
+// Gerätename für den Backup-Dateinamen: frei wählbar, nur lokal gespeichert
+// (bewusst OHNE STORAGE_PREFIX, damit er nicht ins Backup wandert und beim
+// Restore ein anderes Gerät überschreibt). Leer = kein Gerätename im Dateinamen.
 const DEVICE_NAME_KEY = "budgetprojektion-geraetename";
 
 export function getCustomDeviceName() {
@@ -134,31 +133,8 @@ export function setCustomDeviceName(name) {
   } catch (e) { /* ignorieren */ }
 }
 
-export function detectDeviceName() {
-  const ua = navigator.userAgent || "";
-  const uad = navigator.userAgentData;
-  let os = (uad && uad.platform) || "";
-  if (!os) {
-    if (/Android/i.test(ua)) os = "Android";
-    else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS";
-    else if (/Windows/i.test(ua)) os = "Windows";
-    else if (/Mac OS X|Macintosh/i.test(ua)) os = "Mac";
-    else if (/CrOS/i.test(ua)) os = "ChromeOS";
-    else if (/Linux/i.test(ua)) os = "Linux";
-  }
-  let browser = "";
-  if (/Edg\//.test(ua)) browser = "Edge";
-  else if (/OPR\/|Opera/.test(ua)) browser = "Opera";
-  else if (/Firefox\//.test(ua)) browser = "Firefox";
-  else if (/Chrome\/|CriOS/.test(ua)) browser = "Chrome";
-  else if (/Safari\//.test(ua)) browser = "Safari";
-  return [os, browser].filter(Boolean).join("-") || "Geraet";
-}
-
-export function getDeviceTag() {
-  const raw = getCustomDeviceName() || detectDeviceName();
-  // Hinweis: Dateiname-Regex (BACKUP_FILE_REGEX) matcht weiterhin per ".*".
-  return raw.replace(/[\\/:*?"<>|\s]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40) || "Geraet";
+function getDeviceTag() {
+  return getCustomDeviceName().replace(/[\\/:*?"<>|\s]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
 }
 
 function formatBytes(n) {
@@ -202,14 +178,14 @@ export async function exportBackup() {
     if (typeof CompressionStream !== "undefined") {
       const gzStream = new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"));
       blob = await new Response(gzStream).blob();
-      filename = `budgetprojektion-backup-${versionTag}-${deviceTag}-${dateStamp}.json.gz`;
+      filename = `budgetprojektion-backup-${versionTag}${deviceTag ? "-" + deviceTag : ""}-${dateStamp}.json.gz`;
     }
   } catch (e) {
     console.error("Backup: gzip-Kompression fehlgeschlagen, weiche auf reines JSON aus:", e);
   }
   if (!blob) {
     blob = new Blob([json], { type: "application/json" });
-    filename = `budgetprojektion-backup-${versionTag}-${deviceTag}-${dateStamp}.json`;
+    filename = `budgetprojektion-backup-${versionTag}${deviceTag ? "-" + deviceTag : ""}-${dateStamp}.json`;
   }
 
   await saveOpfsCopy(blob, filename);
