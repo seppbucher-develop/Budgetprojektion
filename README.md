@@ -145,8 +145,10 @@ Einnahmen/Ausgaben, Einstellungen) als Datei sichern und wieder
 einspielen — z. B. vor grösseren Änderungen oder zum Übertragen auf ein
 anderes Gerät. Das Backup sichert generisch jeden `localStorage`-Schlüssel
 der App (Präfix `budgetprojektion.`), neue Daten werden also automatisch
-mitgesichert. Der Dateiname enthält App-Version und Datum
-(`budgetprojektion-backup-v0.1.0-2026-09-22.json.gz`, bei fehlender
+mitgesichert. Der Dateiname enthält App-Version, Gerätekennung und Datum
+(`budgetprojektion-backup-v0.1.0-Android-Chrome-2026-09-22.json.gz`; die Kennung
+wird automatisch aus Plattform/Browser erkannt oder im Feld „Gerätename“ frei
+gewählt; bei fehlender
 gzip-Unterstützung unkomprimiert als `.json`). Ein roter Punkt am Tab zeigt
 ungesicherte Änderungen seit dem letzten Backup an.
 
