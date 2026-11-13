@@ -1,12 +1,12 @@
-import { getState, updateState, getBackupMeta } from "./store.js?v=43";
-import { formatTimestamp } from "./dateUtils.js?v=43";
+import { getState, updateState, getBackupMeta } from "./store.js?v=44";
+import { formatTimestamp } from "./dateUtils.js?v=44";
 import {
   exportBackup, importBackupFile, formatBytes,
   fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
   chooseBackupDirectory, clearBackupDirectory, listFolderBackups,
   opfsSupported, getOpfsDir,
   getCustomDeviceName, setCustomDeviceName
-} from "./backup.js?v=43";
+} from "./backup.js?v=44";
 
 const deviceNameInput = document.getElementById("backup-device-name");
 if (deviceNameInput) {
