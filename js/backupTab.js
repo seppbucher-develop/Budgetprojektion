@@ -4,8 +4,18 @@ import {
   exportBackup, importBackupFile, formatBytes,
   fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
   chooseBackupDirectory, clearBackupDirectory, listFolderBackups,
-  opfsSupported, getOpfsDir
+  opfsSupported, getOpfsDir,
+  getCustomDeviceName, setCustomDeviceName
 } from "./backup.js?v=43";
+
+const deviceNameInput = document.getElementById("backup-device-name");
+if (deviceNameInput) {
+  deviceNameInput.value = getCustomDeviceName();
+  deviceNameInput.placeholder = "z. B. Sepp-Handy";
+  deviceNameInput.addEventListener("change", function () {
+    setCustomDeviceName(deviceNameInput.value);
+  });
+}
 
 const btnExport = document.getElementById("btn-backup-export");
 const btnImport = document.getElementById("btn-backup-import");

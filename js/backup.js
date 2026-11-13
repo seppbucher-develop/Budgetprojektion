@@ -116,6 +116,27 @@ export async function listFolderBackups(handle) {
   return found;
 }
 
+// Gerätename für den Backup-Dateinamen: frei wählbar, nur lokal gespeichert
+// (bewusst OHNE STORAGE_PREFIX, damit er nicht ins Backup wandert und beim
+// Restore ein anderes Gerät überschreibt). Leer = kein Gerätename im Dateinamen.
+const DEVICE_NAME_KEY = "budgetprojektion-geraetename";
+
+export function getCustomDeviceName() {
+  try { return localStorage.getItem(DEVICE_NAME_KEY) || ""; } catch (e) { return ""; }
+}
+
+export function setCustomDeviceName(name) {
+  try {
+    const v = (name || "").trim();
+    if (v) localStorage.setItem(DEVICE_NAME_KEY, v);
+    else localStorage.removeItem(DEVICE_NAME_KEY);
+  } catch (e) { /* ignorieren */ }
+}
+
+function getDeviceTag() {
+  return getCustomDeviceName().replace(/[\\/:*?"<>|\s]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
+}
+
 function formatBytes(n) {
   if (n < 1024) return n + " B";
   if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
@@ -145,7 +166,8 @@ export async function exportBackup() {
 
   const entries = collectEntries();
   const keys = Object.keys(entries);
-  const payload = { exportedAt: new Date().toISOString(), entries };
+  const deviceTag = getDeviceTag();
+  const payload = { exportedAt: new Date().toISOString(), device: deviceTag, entries };
   const json = JSON.stringify(payload);
 
   const versionTag = (window.APP_VERSION || "unbekannt").replace(/[\\/:*?"<>|]/g, "_");
@@ -156,14 +178,14 @@ export async function exportBackup() {
     if (typeof CompressionStream !== "undefined") {
       const gzStream = new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"));
       blob = await new Response(gzStream).blob();
-      filename = `budgetprojektion-backup-${versionTag}-${dateStamp}.json.gz`;
+      filename = `budgetprojektion-backup-${versionTag}${deviceTag ? "-" + deviceTag : ""}-${dateStamp}.json.gz`;
     }
   } catch (e) {
     console.error("Backup: gzip-Kompression fehlgeschlagen, weiche auf reines JSON aus:", e);
   }
   if (!blob) {
     blob = new Blob([json], { type: "application/json" });
-    filename = `budgetprojektion-backup-${versionTag}-${dateStamp}.json`;
+    filename = `budgetprojektion-backup-${versionTag}${deviceTag ? "-" + deviceTag : ""}-${dateStamp}.json`;
   }
 
   await saveOpfsCopy(blob, filename);
