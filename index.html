@@ -495,7 +495,7 @@
       <ul>
         <li><strong>Neue Buchung</strong>: Bezeichnung, Unterkategorie, Betrag (Vorzeichen = Einnahme/Ausgabe) und Währung. Beim Tippen der Bezeichnung schlägt die App frühere Buchungen vor; die Auswahl übernimmt Unterkategorie, Betrag, Vorzeichen und Währung.</li>
         <li><strong>Drei Daten pro Buchung</strong>: <em>Buchungsdatum</em> (zählt für den Budgetvergleich), <em>Valutadatum</em> (zählt für die Rendite-Analyse) und der automatisch gesetzte Erfassungszeitpunkt.</li>
-        <li><strong>Fremdwährung</strong>: Der Kurs wird automatisch vorgeschlagen (Tageskurs zum Valutadatum, bei Zukunftsdatum der aktuelle Kurs) und bleibt manuell überschreibbar. Das ist der einzige Netzwerkaufruf der App.</li>
+        <li><strong>Fremdwährung</strong>: Der Kurs wird automatisch vorgeschlagen (Tageskurs zum Valutadatum, bei Zukunftsdatum der aktuelle Kurs) und bleibt manuell überschreibbar. Das ist der einzige Aufruf an einen externen Server; übermittelt werden nur Währung und Datum.</li>
         <li><strong>Jahr, Suche, Filter</strong>: Standard ist das laufende Jahr. Die Suche durchsucht Bezeichnung, Kategorie und Betrag über alle Jahre; der Filter grenzt nach Kategorie, Art, Monat und Datum ein.</li>
         <li><strong>Wiederkehrend…</strong>: Regeln für Miete, Abos usw. (wöchentlich bis jährlich). Beim Öffnen der App werden fällige Termine als normale, unabhängige Buchungen erzeugt – auch rückwirkend. Termine auf Wochenenden oder Schweizer Feiertagen werden je Regel auf den nächsten oder vorherigen Werktag verschoben oder exakt gebucht. Änderungen an einer Regel wirken nur auf künftige Buchungen.</li>
         <li><strong>⚡ Strom Auto…</strong>: Pro Quartal Stromrechnung (kWh + Betrag) und die je Monat ans Elektroauto gelieferten kWh erfassen. Mit „Weiter“ siehst du die entstehenden Buchungen, erst „Buchen“ legt sie an. Ein Klick auf eine ⚡-Buchung öffnet das Quartal statt des normalen Dialogs.</li>
@@ -561,7 +561,7 @@
     <section id="hilfe-daten">
       <h3>🔒 Datenschutz &amp; Offline</h3>
       <ul>
-        <li>Alle Daten liegen nur im <code>localStorage</code> dieses Browsers auf diesem Gerät. Wer Browserdaten löscht, verliert sie – daher regelmässig sichern. Zwischen Geräten gelangen Daten nur per Backup.</li>
+        <li>Alle Daten liegen im <code>localStorage</code> dieses Browsers auf diesem Gerät (dazu kommen nur die Backup-Dateien, die du selbst erzeugst – im App-Speicher oder im gewählten Backup-Ordner). Wer Browserdaten löscht, verliert die App-Daten – daher regelmässig sichern. Zwischen Geräten gelangen Daten nur per Backup.</li>
         <li>Nach dem ersten Online-Aufruf funktioniert die App offline. Nur die Wechselkursabfrage braucht Netz.</li>
         <li>Als App installierbar: Android/Chrome „Zum Startbildschirm hinzufügen“, iOS/Safari „Zum Home-Bildschirm“.</li>
       </ul>
