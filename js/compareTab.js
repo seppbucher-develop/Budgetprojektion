@@ -1,9 +1,9 @@
-import { getState, updateState } from "./store.js?v=44";
-import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=44";
-import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=44";
-import { openBuchungenDialog } from "./buchungenDialog.js?v=44";
-import { isoYear } from "./dateUtils.js?v=44";
-import { kategorieName, unterkategorieName } from "./kategorien.js?v=44";
+import { getState, updateState } from "./store.js?v=46";
+import { berechneAbweichungen, berechneSparpotenzial, berechneSparpotenzialUnterkategorien, berechneVerzichtsanalyse, VERZICHT_STUFEN } from "./compare.js?v=46";
+import { drawGroupedBarChart, currencyFormatter } from "./charts.js?v=46";
+import { openBuchungenDialog } from "./buchungenDialog.js?v=46";
+import { isoYear } from "./dateUtils.js?v=46";
+import { kategorieName, unterkategorieName } from "./kategorien.js?v=46";
 
 const emptyHint = document.getElementById("vergleich-empty-hint");
 const inhalt = document.getElementById("vergleich-inhalt");
@@ -119,7 +119,7 @@ function renderSparpotenzial(sp) {
     items.forEach(function (item) {
       const li = document.createElement("li");
       const betrag = currencyFormatter.format(Math.abs(item.durchschnittAbweichung));
-      const name = kategorieName(state, item.kategorieId);
+      const name = escapeHtml(kategorieName(state, item.kategorieId));
       if (art === "ueberschreitung") {
         li.innerHTML = "<strong>" + name + "</strong>: im Schnitt " + betrag +
           "/Jahr über Budget (" + item.anzahlJahre + " Jahr(e) betrachtet) – Reduktion auf Budgetniveau spart ca. " + betrag + "/Jahr.";

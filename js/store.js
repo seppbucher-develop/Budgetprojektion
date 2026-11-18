@@ -1,17 +1,21 @@
 // Zentraler Zustand der App: wird komplett im localStorage gehalten,
 // es gibt kein Backend. Andere Module lesen/ändern den Zustand nur über
 // diese Funktionen, damit Persistenz und Änderungs-Events an einer Stelle bleiben.
-import { migriereKategorien } from "./kategorien.js?v=44";
-import { migriereTransaktionen } from "./transaktionen.js?v=44";
-import { defaultStromAuto } from "./stromAuto.js?v=44";
-import { migriereVermoegenKonten } from "./vermoegen.js?v=44";
+import { migriereKategorien } from "./kategorien.js?v=46";
+import { migriereTransaktionen } from "./transaktionen.js?v=46";
+import { defaultStromAuto } from "./stromAuto.js?v=46";
+import { migriereVermoegenKonten } from "./vermoegen.js?v=46";
 
 // Gemeinsames Präfix aller localStorage-Schlüssel dieser App. Das Backup
 // (siehe backup.js) sichert generisch JEDEN Schlüssel mit diesem Präfix,
 // statt einzelne Schlüssel hart zu verdrahten — neue Schlüssel, die künftig
 // dazukommen, werden dadurch automatisch mitgesichert.
 export const STORAGE_PREFIX = "budgetprojektion.";
-const STORAGE_KEY = STORAGE_PREFIX + "state.v2";
+export const STORAGE_KEY = STORAGE_PREFIX + "state.v2";
+// Rohkopie eines beim Laden nicht lesbaren Zustands (bewusst OHNE Präfix, damit
+// sie weder ins Backup wandert noch vom nächsten Speichern überschrieben wird).
+const DEFEKT_KEY = "budgetprojektion-defekt-sicherung";
+let ladeFehler = false;
 const BACKUP_META_KEY = STORAGE_PREFIX + "backupmeta.v1";
 
 function defaultState() {
@@ -54,8 +58,9 @@ function defaultState() {
 let state = load();
 
 function load() {
+  let raw = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
     // fehlende Felder aus Default ergänzen (z. B. nach App-Update)
@@ -68,8 +73,20 @@ function load() {
     }
     return s;
   } catch (e) {
+    // Nicht lesbarer Zustand (z. B. abgeschnittenes JSON): NICHT stillschweigend
+    // durch einen leeren ersetzen -- der nächste persist() würde die Rohdaten
+    // sonst unwiederbringlich überschreiben. Erst eine Rohkopie ablegen.
+    if (raw) {
+      ladeFehler = true;
+      try { localStorage.setItem(DEFEKT_KEY, raw); } catch (e2) { /* nichts mehr zu retten */ }
+    }
     return defaultState();
   }
+}
+
+/** true, wenn der gespeicherte Zustand beim Laden nicht lesbar war (Rohkopie unter DEFEKT_KEY). */
+export function hatLadeFehler() {
+  return ladeFehler;
 }
 
 function loadBackupMeta() {
@@ -90,11 +107,20 @@ function saveBackupMeta(meta) {
   }
 }
 
+let speichernFehlgeschlagen = false;
+
 function persist() {
+  let ok = true;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
-    // Speichern ist optional; App funktioniert auch ohne Persistenz weiter
+    // Die App läuft im Speicher weiter, aber die Änderung ist NICHT
+    // gesichert (z. B. Speicher voll): der Nutzer muss es erfahren, siehe app.js.
+    ok = false;
+  }
+  if (ok !== !speichernFehlgeschlagen) {
+    speichernFehlgeschlagen = !ok;
+    document.dispatchEvent(new CustomEvent("speicherstatus", { detail: { ok: ok } }));
   }
   const meta = loadBackupMeta();
   if (!meta.dirty) {

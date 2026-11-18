@@ -1,5 +1,5 @@
-import { isoYear } from "./dateUtils.js?v=44";
-import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=44";
+import { isoYear } from "./dateUtils.js?v=46";
+import { budgetwertFuerJahr, alleBudgetKategorieIds } from "./projection.js?v=46";
 
 const SCHWELLE_CHF = 100; // Abweichungen darunter werden nicht als Einsparpotenzial gewertet
 
@@ -217,9 +217,16 @@ export const VERZICHT_STUFEN = {
 // Stichwörter (Kleinbuchstaben) auf Unter- und Kategoriename; Reihenfolge
 // = Priorität: zuerst verzichtbar, dann notwendig, sonst flexibel.
 const VERZICHT_STICHWOERTER = [
-  ["verzichtbar", ["restaurant", "essen gehen", "café", "cafe", "take", "ausgang", "bar", "kino", "konzert", "streaming", "netflix", "spotify", "abo", "zeitschrift", "zeitung", "ferien", "urlaub", "reise", "flug", "hotel", "unterhaltung", "spiel", "game", "gadget", "elektronik", "alkohol", "tabak", "kiosk", "lotto", "luxus", "hobby", "freizeit", "schmuck", "wellness", "genuss"]],
+  ["verzichtbar", ["restaurant", "essen gehen", "café", "cafe", "take", "ausgang", "=bar", "kino", "konzert", "streaming", "netflix", "spotify", "abo", "zeitschrift", "zeitung", "ferien", "urlaub", "reise", "flug", "hotel", "unterhaltung", "spiel", "game", "gadget", "elektronik", "alkohol", "tabak", "kiosk", "lotto", "luxus", "hobby", "freizeit", "schmuck", "wellness", "genuss"]],
   ["notwendig", ["miete", "betriebskosten", "amortisation", "medizin", "bahn", "hypothek", "zins", "nebenkosten", "strom", "heizung", "wasser", "energie", "krankenkasse", "krankenversicherung", "arzt", "zahn", "medikament", "apotheke", "gesundheit", "versicherung", "steuer", "abgabe", "gebühr", "serafe", "lebensmittel", "supermarkt", "grundbedarf", "telefon", "internet", "handy", "kinder", "betreuung", "schule", "ausbildung", "alimente", "unterhalt", "reparatur", "öv", "ga "]]
 ];
+
+// "=wort" verlangt ein ganzes Wort (sonst träfe "bar" auch "Barbezug"),
+// alle anderen Stichwörter dürfen irgendwo im Namen vorkommen.
+function passtStichwort(text, wort) {
+  if (wort.charAt(0) !== "=") return text.indexOf(wort) !== -1;
+  return text.split(/[^a-zäöüéèà]+/).indexOf(wort.slice(1)) !== -1;
+}
 
 export function standardVerzichtStufe(state, unterkategorieId) {
   const u = state.unterkategorien.find(function (u) { return u.id === unterkategorieId; });
@@ -229,7 +236,7 @@ export function standardVerzichtStufe(state, unterkategorieId) {
   // grob, z. B. "Kleider" unter "Freizeit").
   const text = (u.name || "").toLowerCase();
   for (const eintrag of VERZICHT_STICHWOERTER) {
-    if (eintrag[1].some(function (w) { return text.indexOf(w) !== -1; })) return eintrag[0];
+    if (eintrag[1].some(function (w) { return passtStichwort(text, w); })) return eintrag[0];
   }
   return "flexibel";
 }

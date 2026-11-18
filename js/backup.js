@@ -2,8 +2,8 @@
 // generisch JEDEN localStorage-Schlüssel mit unserem App-Präfix, statt
 // einzelne Felder hart zu verdrahten. Neue Daten, die künftig dazukommen,
 // werden dadurch automatisch mitgesichert.
-import { STORAGE_PREFIX, markBackupSaved, markBackupRestored, reloadStateFromStorage } from "./store.js?v=44";
-import { fsapiHandle } from "./fsapiHandle.js?v=44";
+import { STORAGE_PREFIX, STORAGE_KEY, markBackupSaved, markBackupRestored, reloadStateFromStorage } from "./store.js?v=46";
+import { fsapiHandle } from "./fsapiHandle.js?v=46";
 
 const BACKUP_FILE_REGEX = /^budgetprojektion-backup-.*\.(json|json\.gz)$/i;
 
@@ -253,21 +253,59 @@ export async function importBackupFile(file) {
     text = new TextDecoder("utf-8").decode(bytes);
   }
 
-  const data = JSON.parse(text);
-  if (!data.entries || typeof data.entries !== "object") {
-    throw new Error("Ungültiges Backup-Format.");
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error("Die Datei ist kein gültiges Backup (kein lesbares JSON).");
   }
+  const eintraege = pruefeBackupDaten(data);
 
-  let count = 0;
-  for (const [key, value] of Object.entries(data.entries)) {
-    if (key.indexOf(STORAGE_PREFIX) !== 0) continue; // nur eigene Schlüssel übernehmen
-    localStorage.setItem(key, value);
-    count++;
+  // Alles-oder-nichts: schlägt ein Schreibvorgang fehl (z. B. Speicher voll),
+  // werden die bisher überschriebenen Schlüssel auf ihren alten Stand
+  // zurückgesetzt, statt einen halb wiederhergestellten Zustand zu hinterlassen.
+  const alt = {};
+  try {
+    for (const [key, value] of eintraege) {
+      alt[key] = localStorage.getItem(key);
+      localStorage.setItem(key, value);
+    }
+  } catch (e) {
+    Object.keys(alt).forEach(function (key) {
+      try {
+        if (alt[key] === null) localStorage.removeItem(key); else localStorage.setItem(key, alt[key]);
+      } catch (e2) { /* Rückabwicklung best effort */ }
+    });
+    throw new Error("Wiederherstellen fehlgeschlagen (Speicher voll?) – die bisherigen Daten wurden beibehalten.");
   }
 
   reloadStateFromStorage();
   markBackupRestored();
-  return { count };
+  return { count: eintraege.length };
+}
+
+/**
+ * Prüft den Inhalt einer Backup-Datei, BEVOR irgendetwas geschrieben wird:
+ * `entries` muss ein Objekt mit Text-Werten sein, mindestens einen Schlüssel
+ * der App enthalten, und der App-Zustand muss lesbares JSON (Objekt) sein.
+ * Liefert die zu schreibenden [Schlüssel, Wert]-Paare (nur Schlüssel mit
+ * App-Präfix).
+ */
+export function pruefeBackupDaten(data) {
+  if (!data || typeof data !== "object" || !data.entries || typeof data.entries !== "object" || Array.isArray(data.entries)) {
+    throw new Error("Ungültiges Backup-Format.");
+  }
+  const eintraege = Object.entries(data.entries).filter(function (e) { return e[0].indexOf(STORAGE_PREFIX) === 0; });
+  if (eintraege.length === 0) throw new Error("Das Backup enthält keine Daten dieser App.");
+  eintraege.forEach(function (e) {
+    if (typeof e[1] !== "string") throw new Error("Ungültiges Backup-Format (Wert von „" + e[0] + "“ ist kein Text).");
+    if (e[0] === STORAGE_KEY) {
+      let zustand;
+      try { zustand = JSON.parse(e[1]); } catch (err) { throw new Error("Das Backup enthält beschädigte App-Daten."); }
+      if (!zustand || typeof zustand !== "object" || Array.isArray(zustand)) throw new Error("Das Backup enthält beschädigte App-Daten.");
+    }
+  });
+  return eintraege;
 }
 
 export { formatBytes };

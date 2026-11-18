@@ -1,10 +1,10 @@
-import { getState, updateState, uid } from "./store.js?v=44";
-import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=44";
-import { betragFormatter } from "./charts.js?v=44";
-import { unterkategorieName, kategorieName } from "./kategorien.js?v=44";
-import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=44";
-import { holeWechselkurs } from "./fx.js?v=44";
-import { openStromAutoQuartal } from "./stromAutoDialog.js?v=44";
+import { getState, updateState, uid } from "./store.js?v=46";
+import { isoYear, formatIsoDate, todayIso } from "./dateUtils.js?v=46";
+import { betragFormatter } from "./charts.js?v=46";
+import { unterkategorieName, kategorieName } from "./kategorien.js?v=46";
+import { vorlagenFuerBezeichnung } from "./transaktionen.js?v=46";
+import { holeWechselkurs } from "./fx.js?v=46";
+import { openStromAutoQuartal } from "./stromAutoDialog.js?v=46";
 
 const emptyHint = document.getElementById("buchungen-empty-hint");
 const table = document.getElementById("buchungen-liste-table");
@@ -513,11 +513,12 @@ form.addEventListener("submit", function (e) {
     datum: form.datum.value,
     valutadatum: form.valutadatum.value
   };
-  if (!data.name || isNaN(betrag) || isNaN(kurs) || !data.unterkategorieId || !data.datum || !data.valutadatum) return;
+  if (!data.name || isNaN(betrag) || isNaN(kurs) || !(kurs > 0) || !data.unterkategorieId || !data.datum || !data.valutadatum) return;
 
   updateState(function (s) {
     if (editId) {
       const row = s.realTransaktionen.find(function (t) { return t.id === editId; });
+      if (!row) return; // inzwischen gelöscht (z. B. in einem anderen Tab)
       Object.assign(row, data);
     } else {
       s.realTransaktionen.push(Object.assign({ id: uid(), erfasstAm: new Date().toISOString() }, data));

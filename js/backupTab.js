@@ -1,12 +1,12 @@
-import { getState, updateState, getBackupMeta } from "./store.js?v=44";
-import { formatTimestamp } from "./dateUtils.js?v=44";
+import { getState, updateState, getBackupMeta } from "./store.js?v=46";
+import { formatTimestamp } from "./dateUtils.js?v=46";
 import {
   exportBackup, importBackupFile, formatBytes,
   fsapiSupported, initFolder, getCachedDirHandle, queryDirPermission,
   chooseBackupDirectory, clearBackupDirectory, listFolderBackups,
   opfsSupported, getOpfsDir,
   getCustomDeviceName, setCustomDeviceName
-} from "./backup.js?v=44";
+} from "./backup.js?v=46";
 
 const deviceNameInput = document.getElementById("backup-device-name");
 if (deviceNameInput) {
@@ -87,12 +87,18 @@ fileInput.addEventListener("change", function () {
   restoreFromFile(file);
 });
 
+function escapeHtml(s) {
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML;
+}
+
 function buildFileRow(f, handle, refresh) {
   const row = document.createElement("div");
   row.className = "folder-file-row";
   row.innerHTML =
     '<div class="folder-file-info">' +
-      '<div class="folder-file-name">' + f.name + '</div>' +
+      '<div class="folder-file-name">' + escapeHtml(f.name) + '</div>' +
       '<div class="folder-file-meta">' + formatTimestamp(f.lastModified) + ' · ' + formatBytes(f.size) + '</div>' +
     '</div>' +
     '<div class="folder-file-actions">' +

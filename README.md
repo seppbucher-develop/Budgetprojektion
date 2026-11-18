@@ -25,8 +25,11 @@ unter „Service“:
   geworden ist (wöchentlich/monatlich/quartalsweise/halbjährlich/jährlich),
   und legt dafür je eine normale, unabhängige Buchung an — auch rückwirkend
   für mehrere verpasste Termine, falls die App länger nicht geöffnet war.
+  Jeder Termin wird aus dem Startdatum berechnet (ab 31. Januar monatlich:
+  28. Februar, dann wieder 31. März – kein Abdriften auf den 28.).
   Bearbeiten oder Löschen einer Regel wirkt sich nur auf künftige
-  Erzeugungen aus, nie auf bereits erzeugte Buchungen. Fällt ein Termin auf
+  Erzeugungen aus, nie auf bereits erzeugte Buchungen; ein während der
+  (asynchronen) Kursabfrage geänderter Stand führt nicht zu Doppelbuchungen. Fällt ein Termin auf
   ein Wochenende oder einen gesamtschweizerischen Feiertag (Neujahr,
   Karfreitag, Ostermontag, Auffahrt, Pfingstmontag, 1. August, Weihnachten,
   Stephanstag), wird er je Regel auf den nächsten Werktag (Standard), den
@@ -53,6 +56,10 @@ unter „Service“:
 - **Vermögen** – Kontostände zu einem oder mehreren Stichtagen.
 - **Projektion** – 30-Jahres-Hochrechnung des Vermögens auf Basis von
   budgetierten Erträgen und Kosten sowie Rendite- und Inflationsannahmen.
+  Die Rechnung startet am jüngsten Vermögens-Stichtag: im Stichtag-Jahr
+  zählen Budget und Rendite nur anteilig für den Rest des Jahres (Stichtag
+  15.11. → 46/365, 31.12. → ab Folgejahr); liegt der Stichtag vor dem
+  laufenden Jahr, werden die Zwischenjahre mitprojiziert.
 - **Realvergleich** – reale Buchungen mit dem Budget vergleichen (Tabelle +
   Diagramm) und automatisch erkannte Einsparungsmöglichkeiten bzw.
   Budgetreserven anzeigen.
@@ -61,6 +68,9 @@ unter „Service“:
   Zwischenzeit). Der Cashflow kommt aus dem Valutadatum jeder Buchung, nicht
   aus dem Buchungsdatum (das für den Budgetvergleich massgeblich ist, aber
   vom tatsächlichen Zahlungszeitpunkt abweichen kann).
+
+Der Button „?“ oben rechts im Bereich „Service“ öffnet eine
+Hilfe/Dokumentation (Dialog, `js/hilfeDialog.js`; Text statisch in `index.html`).
 
 Unter „Service“ gibt es zudem einen Notizen-Editor (Textzeilen, wahlweise
 als Todo mit Checkbox), der mit dem Backup gesichert wird.
@@ -151,7 +161,15 @@ gzip-Unterstützung unkomprimiert als `.json`). Ein roter Punkt am Tab zeigt
 ungesicherte Änderungen seit dem letzten Backup an.
 
 Ein Restore ersetzt alle aktuellen Daten vollständig durch den Inhalt der
-Backup-Datei (nach Bestätigung).
+Backup-Datei (nach Bestätigung). Die Datei wird vorher geprüft (lesbares
+JSON, Textwerte, lesbarer App-Zustand) und alles-oder-nichts eingespielt:
+schlägt ein Schreibvorgang fehl, werden die alten Werte wiederhergestellt.
+
+**Speicherwarnung:** Scheitert das Schreiben in den `localStorage` (voll/
+blockiert), zeigt ein rotes Banner oben eine Warnung. Ist der gespeicherte
+Zustand beim Laden nicht lesbar, wird eine Rohkopie unter dem Schlüssel
+`budgetprojektion-defekt-sicherung` abgelegt (statt sie beim nächsten
+Speichern zu überschreiben) und ebenfalls gewarnt.
 
 **Backup-Ordner (automatisch, nur Chrome/Edge Desktop):** Über die File
 System Access API lässt sich einmalig ein lokaler Ordner festlegen (z. B.
@@ -192,9 +210,19 @@ Der Workflow braucht Schreibrechte für den `GITHUB_TOKEN` (Repo-Einstellung
 permissions"**) sowie einen `master`, der direkte Pushes von GitHub Actions
 zulässt (keine Branch-Protection-Regel, die das verhindert).
 
+## Tests
+
+Die reine Rechenlogik (wiederkehrende Termine, Projektion, Backup-Prüfung,
+Verzichtsanalyse) ist mit Node-Bordmitteln getestet, ohne Build/Abhängigkeiten:
+
+```bash
+node --test tests/rechnen.test.mjs
+```
+
 ## Struktur
 
 - `index.html` – Tabs, Formulare, Dialoge
+- `tests/rechnen.test.mjs` – Node-Tests der Rechenlogik (siehe „Tests“)
 - `sw.js` – Service Worker für Offline-Nutzung (siehe „Offline-Nutzung“ oben)
 - `css/style.css` – Styling (hell/dunkel via `prefers-color-scheme`)
 - `js/store.js` – zentraler Zustand inkl. `localStorage`-Persistenz
@@ -226,6 +254,7 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/backup.js`, `js/backupTab.js` – Backup & Restore
 - `js/fsapiHandle.js` – IndexedDB-Ablage für den gewählten Backup-Ordner (File System Access API)
 - `js/version.js` – lädt `version.json` und zeigt sie im Footer an
+- `js/hilfeDialog.js` – Hilfe-Dialog („?“-Button im Service-Bereich)
 - `js/collapsibleHints.js` – macht Erklärungstexte (`.hint.collapsible`)
   standardmässig eingeklappt und über ein Symbol aufklappbar
 - `js/app.js` – Kartenübersicht/Tab-Navigation und Bootstrap

@@ -1,19 +1,20 @@
-import { getState, updateState, onStateChanged } from "./store.js?v=44";
-import "./kategorienDialog.js?v=44";
-import "./wiederkehrendDialog.js?v=44";
-import "./stromAutoDialog.js?v=44";
-import "./collapsibleHints.js?v=44";
-import "./notizen.js?v=44";
-import { renderBudgetTab } from "./budgetTab.js?v=44";
-import { renderVermoegenTab } from "./vermoegenTab.js?v=44";
-import { renderProjectionTab } from "./projectionTab.js?v=44";
-import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=44";
-import { renderCompareTab } from "./compareTab.js?v=44";
-import { renderIstkostenTab } from "./istkostenTab.js?v=44";
-import { renderRenditeTab } from "./renditeTab.js?v=44";
-import { renderBackupTab } from "./backupTab.js?v=44";
-import { ladeAppVersion } from "./version.js?v=44";
-import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=44";
+import { getState, updateState, onStateChanged, hatLadeFehler } from "./store.js?v=46";
+import "./kategorienDialog.js?v=46";
+import "./wiederkehrendDialog.js?v=46";
+import "./stromAutoDialog.js?v=46";
+import "./collapsibleHints.js?v=46";
+import "./notizen.js?v=46";
+import "./hilfeDialog.js?v=46";
+import { renderBudgetTab } from "./budgetTab.js?v=46";
+import { renderVermoegenTab } from "./vermoegenTab.js?v=46";
+import { renderProjectionTab } from "./projectionTab.js?v=46";
+import { renderEinnahmenAusgabenTab } from "./einnahmenAusgabenTab.js?v=46";
+import { renderCompareTab } from "./compareTab.js?v=46";
+import { renderIstkostenTab } from "./istkostenTab.js?v=46";
+import { renderRenditeTab } from "./renditeTab.js?v=46";
+import { renderBackupTab } from "./backupTab.js?v=46";
+import { ladeAppVersion } from "./version.js?v=46";
+import { ermittleFaelligeBuchungen, wendeFaelligeBuchungenAn } from "./wiederkehrendeBuchungen.js?v=46";
 
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 
@@ -39,6 +40,20 @@ function renderAll() {
   renderIstkostenTab();
   renderRenditeTab();
   renderBackupTab();
+}
+
+// Warnbanner: Speichern im Browser-Speicher kann scheitern (voll/blockiert),
+// ohne dass sich die App sonst anders verhält -- das muss sichtbar sein.
+const warnungEl = document.getElementById("speicher-warnung");
+function zeigeWarnung(text) {
+  warnungEl.textContent = text;
+  warnungEl.hidden = !text;
+}
+document.addEventListener("speicherstatus", function (e) {
+  zeigeWarnung(e.detail.ok ? "" : "⚠ Die letzte Änderung konnte nicht im Browser gespeichert werden (Speicher voll oder blockiert). Bitte jetzt unter „Service“ ein Backup sichern und Platz schaffen.");
+});
+if (hatLadeFehler()) {
+  zeigeWarnung("⚠ Die gespeicherten Daten waren nicht lesbar. Eine Rohkopie liegt im Browser-Speicher (Schlüssel „budgetprojektion-defekt-sicherung“). Bitte ein Backup importieren, bevor du weiterarbeitest.");
 }
 
 onStateChanged(renderAll);
