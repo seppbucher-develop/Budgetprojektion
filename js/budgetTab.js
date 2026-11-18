@@ -1,7 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=45";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=45";
-import { currencyFormatter } from "./charts.js?v=45";
-import { kategorieName } from "./kategorien.js?v=45";
+import { getState, updateState, uid } from "./store.js?v=46";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=46";
+import { currencyFormatter } from "./charts.js?v=46";
+import { kategorieName } from "./kategorien.js?v=46";
 
 const rowsContainer = document.getElementById("budget-rows");
 const emptyHint = document.getElementById("budget-empty-hint");
@@ -98,6 +98,7 @@ form.addEventListener("submit", function (e) {
   updateState(function (s) {
     if (editId) {
       const row = s.budgetPosten.find(function (r) { return r.id === editId; });
+      if (!row) return; // inzwischen gelöscht (z. B. in einem anderen Tab)
       Object.assign(row, data);
     } else {
       s.budgetPosten.push(Object.assign({ id: uid() }, data));

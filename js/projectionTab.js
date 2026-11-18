@@ -1,12 +1,13 @@
-import { getState, updateState } from "./store.js?v=45";
-import { berechneProjektion } from "./projection.js?v=45";
-import { drawLineChart, currencyFormatter } from "./charts.js?v=45";
+import { getState, updateState } from "./store.js?v=46";
+import { berechneProjektion } from "./projection.js?v=46";
+import { drawLineChart, currencyFormatter } from "./charts.js?v=46";
 
 const form = document.getElementById("form-projektion-einstellungen");
 const rowsContainer = document.getElementById("projektion-rows");
 const summaryEl = document.getElementById("projektion-summary");
 const canvas = document.getElementById("projektion-chart");
 const emptyHint = document.getElementById("projektion-empty-hint");
+const teiljahrHint = document.getElementById("projektion-teiljahr-hint");
 
 function fillSettingsForm() {
   const s = getState().einstellungen;
@@ -38,15 +39,16 @@ export function renderProjectionTab() {
   const aufgebraucht = proj.jahre.find(function (j) { return j.vermoegenEnde <= 0; });
   summaryEl.innerHTML =
     statBlock("Startvermögen" + (proj.startDatum ? " (" + proj.startDatum + ")" : ""), currencyFormatter.format(proj.startVermoegen)) +
-    statBlock("Vermögen Ende " + (proj.startJahr + proj.jahre.length - 1), currencyFormatter.format(endWert)) +
+    statBlock("Vermögen Ende " + proj.jahre[proj.jahre.length - 1].jahr, currencyFormatter.format(endWert)) +
     statBlock("Reicht bis", aufgebraucht ? String(aufgebraucht.jahr) : "über gesamten Horizont hinaus");
 
+  teiljahrHint.hidden = !proj.jahre.some(function (j) { return j.anteil < 1; });
   rowsContainer.innerHTML = "";
   proj.jahre.forEach(function (j) {
     const rowEl = document.createElement("div");
     rowEl.className = "projektion-row";
     rowEl.innerHTML =
-      "<div>" + j.jahr + "</div>" +
+      "<div>" + j.jahr + (j.anteil < 1 ? "*" : "") + "</div>" +
       '<div class="positive">' + currencyFormatter.format(j.ertrag) + "</div>" +
       '<div class="negative">' + currencyFormatter.format(j.kosten) + "</div>" +
       '<div class="' + (j.netto >= 0 ? "positive" : "negative") + '">' + currencyFormatter.format(j.netto) + "</div>" +

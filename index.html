@@ -23,9 +23,10 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=30">
+<link rel="stylesheet" href="css/style.css?v=31">
 </head>
 <body>
+<div id="speicher-warnung" class="speicher-warnung" role="alert" hidden></div>
 <div class="app">
   <header class="app-header">
     <h1>Budgetprojektion</h1>
@@ -240,6 +241,7 @@
         <div class="chart-wrap"><canvas id="projektion-chart"></canvas></div>
       </div>
       <div class="panel">
+        <p class="hint" id="projektion-teiljahr-hint" hidden>* Erstes Jahr nur anteilig: Der Vermögens-Stichtag enthält bereits alles bis zu diesem Tag, gerechnet wird nur der Rest des Jahres.</p>
         <div class="table-scroll" id="projektion-table">
           <div class="projektion-row grid-headrow">
             <div>Jahr</div><div>Ertrag</div><div>Kosten<br><span class="th-sub">budgetiert</span></div><div>Netto</div><div>Rendite<br><span class="th-sub">in CHF</span></div><div>Inflation<br><span class="th-sub">in CHF</span></div><div>Vermögen<br><span class="th-sub">Ende</span></div>
@@ -497,7 +499,7 @@
         <li><strong>Drei Daten pro Buchung</strong>: <em>Buchungsdatum</em> (zählt für den Budgetvergleich), <em>Valutadatum</em> (zählt für die Rendite-Analyse) und der automatisch gesetzte Erfassungszeitpunkt.</li>
         <li><strong>Fremdwährung</strong>: Der Kurs wird automatisch vorgeschlagen (Tageskurs zum Valutadatum, bei Zukunftsdatum der aktuelle Kurs) und bleibt manuell überschreibbar. Das ist der einzige Aufruf an einen externen Server; übermittelt werden nur Währung und Datum.</li>
         <li><strong>Jahr, Suche, Filter</strong>: Standard ist das laufende Jahr. Die Suche durchsucht Bezeichnung, Kategorie und Betrag über alle Jahre; der Filter grenzt nach Kategorie, Art, Monat und Datum ein.</li>
-        <li><strong>Wiederkehrend…</strong>: Regeln für Miete, Abos usw. (wöchentlich bis jährlich). Beim Öffnen der App werden fällige Termine als normale, unabhängige Buchungen erzeugt – auch rückwirkend. Termine auf Wochenenden oder Schweizer Feiertagen werden je Regel auf den nächsten oder vorherigen Werktag verschoben oder exakt gebucht. Änderungen an einer Regel wirken nur auf künftige Buchungen.</li>
+        <li><strong>Wiederkehrend…</strong>: Regeln für Miete, Abos usw. (wöchentlich bis jährlich). Beim Öffnen der App werden fällige Termine als normale, unabhängige Buchungen erzeugt – auch rückwirkend. Termine auf Wochenenden oder Schweizer Feiertagen werden je Regel auf den nächsten oder vorherigen Werktag verschoben oder exakt gebucht. Termine bleiben am Ursprungstag verankert (ab 31. Januar: 28. Februar, dann wieder 31. März). Änderungen an einer Regel wirken nur auf künftige Buchungen.</li>
         <li><strong>⚡ Strom Auto…</strong>: Pro Quartal Stromrechnung (kWh + Betrag) und die je Monat ans Elektroauto gelieferten kWh erfassen. Mit „Weiter“ siehst du die entstehenden Buchungen, erst „Buchen“ legt sie an. Ein Klick auf eine ⚡-Buchung öffnet das Quartal statt des normalen Dialogs.</li>
       </ul>
     </section>
@@ -522,6 +524,7 @@
       <ul>
         <li>Einstellbar: Horizont (Jahre), Rendite p.a. auf das Vermögen und Inflation p.a. auf die Kosten. Mit „Übernehmen“ speichern.</li>
         <li>Pro Jahr: Vermögen Anfang + Rendite + budgetierter Ertrag + budgetierte Kosten (inkl. Inflation ab heute) = Vermögen Ende.</li>
+        <li><strong>Start am Stichtag:</strong> Der jüngste Vermögens-Stichtag enthält alles bis zu diesem Tag. Im ersten Jahr (mit * markiert) zählen darum nur Budget und Rendite für den Rest des Jahres (Stichtag 15.11. → 46/365). Liegt der Stichtag vor dem laufenden Jahr, werden die Zwischenjahre mitgerechnet.</li>
         <li>Es fliessen bewusst nur <strong>budgetierte</strong> Werte ein, keine realen Buchungen.</li>
         <li>Ohne Budgetposten ist keine Projektion möglich.</li>
       </ul>
@@ -550,7 +553,7 @@
       <h3>🛠️ Service &amp; Backup</h3>
       <ul>
         <li><strong>Notizen</strong>: freie Zeilen, wahlweise als Todo mit Checkbox. Werden mit dem Backup gesichert.</li>
-        <li><strong>Backup sichern / importieren</strong>: sichert alle App-Daten als Datei (komprimiert, sonst .json). Der Dateiname enthält App-Version, optionalen Gerätenamen und Datum. Ein <strong>Restore ersetzt alle aktuellen Daten</strong> vollständig.</li>
+        <li><strong>Backup sichern / importieren</strong>: sichert alle App-Daten als Datei (komprimiert, sonst .json). Der Dateiname enthält App-Version, optionalen Gerätenamen und Datum. Ein <strong>Restore ersetzt alle aktuellen Daten</strong> vollständig. Die Datei wird vorher geprüft; ist sie unlesbar oder schlägt das Einspielen fehl, bleiben die bisherigen Daten unverändert.</li>
         <li><strong>Roter Punkt</strong> auf der Karte „Service“: es gibt Änderungen seit dem letzten Backup.</li>
         <li><strong>Backup-Ordner</strong> (nur Chrome/Edge am Desktop): einmal einen Ordner wählen, danach landen Backups automatisch dort.</li>
         <li><strong>Backups im App-Speicher</strong>: wo verfügbar, wird jedes Backup zusätzlich im App-Speicher abgelegt und kann von dort wiederhergestellt werden.</li>
@@ -562,6 +565,7 @@
       <h3>🔒 Datenschutz &amp; Offline</h3>
       <ul>
         <li>Alle Daten liegen im <code>localStorage</code> dieses Browsers auf diesem Gerät (dazu kommen nur die Backup-Dateien, die du selbst erzeugst – im App-Speicher oder im gewählten Backup-Ordner). Wer Browserdaten löscht, verliert die App-Daten – daher regelmässig sichern. Zwischen Geräten gelangen Daten nur per Backup.</li>
+        <li>Kann die App nicht speichern (Speicher voll oder blockiert), erscheint oben ein <strong>rotes Warnbanner</strong>: dann sofort ein Backup sichern. Sind gespeicherte Daten nicht lesbar, legt die App eine Rohkopie an und weist darauf hin, statt sie zu überschreiben.</li>
         <li>Nach dem ersten Online-Aufruf funktioniert die App offline. Nur die Wechselkursabfrage braucht Netz.</li>
         <li>Als App installierbar: Android/Chrome „Zum Startbildschirm hinzufügen“, iOS/Safari „Zum Home-Bildschirm“.</li>
       </ul>
@@ -938,7 +942,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=45"></script>
+<script type="module" src="js/app.js?v=46"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die

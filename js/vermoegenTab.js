@@ -1,7 +1,7 @@
-import { getState, updateState, uid } from "./store.js?v=45";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=45";
-import { currencyFormatter } from "./charts.js?v=45";
-import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege, vermoegenSpalten, anlageSpaltenName } from "./vermoegen.js?v=45";
+import { getState, updateState, uid } from "./store.js?v=46";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=46";
+import { currencyFormatter } from "./charts.js?v=46";
+import { berechneFremdwaehrungBetraege, berechneFremdwaehrungEintragNeu, hatFremdwaehrungsBetraege, vermoegenSpalten, anlageSpaltenName } from "./vermoegen.js?v=46";
 
 const tbody = document.querySelector("#vermoegen-table tbody");
 const thead = document.querySelector("#vermoegen-table thead tr");
@@ -70,11 +70,12 @@ function fieldHtml(id, label, konto, rolle, wert) {
 function buildKontenFields(werte, fremdbetraege) {
   const konten = getState().vermoegenKonten;
   kontenFieldsEl.innerHTML = "";
-  konten.forEach(function (k) {
+  konten.forEach(function (k, kontoIndex) {
     // Bei Fremdwährungskonten wird der native Betrag erfasst (nicht der
     // CHF-Gegenwert) -- der wird aus diesem Betrag beim Speichern bzw.
     // Öffnen der App mit dem aktuellen Kurs neu berechnet, siehe vermoegen.js.
-    const safeId = "konto-" + k.name.replace(/[^a-zA-Z0-9]/g, "_");
+    // Index statt Name: "Konto A" und "Konto-A" ergäben sonst dieselbe ID.
+    const safeId = "konto-" + kontoIndex;
     const box = document.createElement("div");
     box.className = "konto-gruppe";
     const einzel = nativBetrag(k, werte, fremdbetraege);
@@ -199,9 +200,26 @@ document.getElementById("btn-add-konto").addEventListener("click", function () {
   neuesKontoAnlageCheckbox.checked = false;
 });
 
+let speichertGerade = false;
+
 form.addEventListener("submit", async function (e) {
   e.preventDefault();
   if (!form.datum.value) return;
+  // Die Kursabfrage unten kann bis zu einigen Sekunden dauern: ein zweiter
+  // Klick in der Zwischenzeit würde den Stichtag doppelt anlegen.
+  if (speichertGerade) return;
+  speichertGerade = true;
+  const speichernBtn = form.querySelector('button[type="submit"]');
+  if (speichernBtn) speichernBtn.disabled = true;
+  try {
+    await speichereStichtag();
+  } finally {
+    speichertGerade = false;
+    if (speichernBtn) speichernBtn.disabled = false;
+  }
+});
+
+async function speichereStichtag() {
   const bestehendeWerte = editId
     ? (getState().vermoegenEintraege.find(function (r) { return r.id === editId; }) || {}).werte || {}
     : {};
@@ -225,6 +243,7 @@ form.addEventListener("submit", async function (e) {
   updateState(function (s) {
     if (editId) {
       const row = s.vermoegenEintraege.find(function (r) { return r.id === editId; });
+      if (!row) return; // inzwischen gelöscht (z. B. in einem anderen Tab)
       row.datum = form.datum.value;
       row.werte = werte;
       row.fremdbetraege = fremdbetraege;
@@ -233,4 +252,4 @@ form.addEventListener("submit", async function (e) {
     }
   });
   dialog.close();
-});
+}

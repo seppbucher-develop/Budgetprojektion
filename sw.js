@@ -9,7 +9,7 @@
 // hinzugefügt): CACHE_VERSION hochzählen, sonst verwenden bereits
 // installierte Service-Worker weiter ihren alten Cache unverändert.
 // scripts/bump-js-version.sh erledigt das automatisch mit.
-const CACHE_VERSION = "v45";
+const CACHE_VERSION = "v46";
 const CACHE_NAME = "budgetprojektion-cache-" + CACHE_VERSION;
 
 const CORE_ASSETS = [
@@ -116,7 +116,7 @@ self.addEventListener("install", (event) => {
         CORE_ASSETS.map((relUrl) => {
           const absUrl = new URL(relUrl, self.location.href).href;
           return fetch(absUrl)
-            .then((resp) => cache.put(absUrl, resp))
+            .then((resp) => { if (resp.ok) return cache.put(absUrl, resp); })
             .catch((err) => console.warn("SW: Konnte nicht cachen:", relUrl, err));
         })
       )
@@ -154,8 +154,12 @@ self.addEventListener("fetch", (event) => {
     caches.match(cacheKey).then((cached) => {
       const networkUpdate = fetch(req)
         .then((networkResponse) => {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, clone));
+          // Nur erfolgreiche Antworten cachen: eine 404/500 würde sonst die
+          // gute zwischengespeicherte Datei überschreiben.
+          if (networkResponse.ok) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, clone));
+          }
           return networkResponse;
         })
         .catch(() => null);
@@ -176,6 +180,7 @@ self.addEventListener("fetch", (event) => {
   const respondNetworkFirst = () =>
     fetch(req)
       .then((networkResponse) => {
+        if (!networkResponse.ok) throw new Error("HTTP " + networkResponse.status);
         const clone = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, clone));
         return networkResponse;
@@ -183,6 +188,13 @@ self.addEventListener("fetch", (event) => {
       .catch(() =>
         caches.match(cacheKey).then((cached) => cached || caches.match(INDEX_URL))
       );
+
+  // version.json immer zuerst übers Netz: sonst zeigt der Footer (und der
+  // Backup-Dateiname) nach einem Update noch einen Ladevorgang lang die alte Version.
+  if (url.pathname.endsWith("/version.json")) {
+    event.respondWith(respondNetworkFirst());
+    return;
+  }
 
   event.respondWith(
     getStrategyOverride().then((strategy) =>

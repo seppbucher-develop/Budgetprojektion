@@ -1548,3 +1548,19 @@ dialog h2 {
   color: var(--color-primary);
   text-decoration: none;
 }
+
+/* Warnbanner (Speichern fehlgeschlagen / Daten nicht lesbar) */
+.speicher-warnung {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 10px 16px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.speicher-warnung[hidden] {
+  display: none;
+}

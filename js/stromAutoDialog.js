@@ -3,14 +3,14 @@
 // Auto gelieferten kWh. Beim Speichern eines Quartals werden dessen
 // Buchungen (Kraftstoff je Monat + Betriebskosten) neu erzeugt, siehe
 // stromAuto.js für die Berechnung.
-import { getState, updateState, uid } from "./store.js?v=45";
-import { unterkategorieName } from "./kategorien.js?v=45";
-import { formatIsoDate, todayIso } from "./dateUtils.js?v=45";
-import { betragFormatter } from "./charts.js?v=45";
+import { getState, updateState, uid } from "./store.js?v=46";
+import { unterkategorieName } from "./kategorien.js?v=46";
+import { formatIsoDate, todayIso } from "./dateUtils.js?v=46";
+import { betragFormatter } from "./charts.js?v=46";
 import {
   berechneQuartal, buchungenFuerQuartal, ersetzeBuchungenFuerQuartal, monateVonQuartal, quartalLabel,
   quartalVonDatum, vorherigesQuartal, findeUnterkategorieNachName
-} from "./stromAuto.js?v=45";
+} from "./stromAuto.js?v=46";
 
 const dialog = document.getElementById("dialog-strom-auto");
 const liste = document.getElementById("strom-auto-liste");

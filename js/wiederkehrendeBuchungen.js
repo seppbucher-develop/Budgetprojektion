@@ -4,10 +4,10 @@
 // beim Start. Einmal erzeugte Buchungen sind danach normale, unabhängige
 // Buchungen — Bearbeiten/Löschen einer Regel wirkt sich nur auf künftige
 // Erzeugungen aus, nie auf bereits erzeugte Buchungen.
-import { todayIso } from "./dateUtils.js?v=45";
-import { holeWechselkurs } from "./fx.js?v=45";
-import { uid } from "./store.js?v=45";
-import { werktagAnpassen } from "./feiertage.js?v=45";
+import { todayIso } from "./dateUtils.js?v=46";
+import { holeWechselkurs } from "./fx.js?v=46";
+import { uid } from "./store.js?v=46";
+import { werktagAnpassen } from "./feiertage.js?v=46";
 
 export const RHYTHMEN = ["woechentlich", "monatlich", "quartalsweise", "halbjaehrlich", "jaehrlich"];
 
@@ -25,29 +25,53 @@ export function buchungsdatumFuerTermin(regel, termin) {
   return werktagAnpassen(termin, regel.werktagModus || STANDARD_WERKTAG_MODUS);
 }
 
+const MONATE_PRO_SCHRITT = { monatlich: 1, quartalsweise: 3, halbjaehrlich: 6, jaehrlich: 12 };
+
 /**
- * Nächster Termin nach `datum` im gegebenen Rhythmus. Bei monatsbasierten
- * Rhythmen (alles ausser wöchentlich) wird der Tag auf das Monatsende
- * gekappt, falls der Zielmonat kürzer ist (z. B. 31. Januar + monatlich ->
- * 28./29. Februar statt eines Überlaufs in den März).
+ * `monate` Monate nach `datum`; der Tag wird auf das Monatsende gekappt, falls
+ * der Zielmonat kürzer ist (z. B. 31. Januar + 1 Monat -> 28./29. Februar
+ * statt eines Überlaufs in den März).
  */
-export function naechsterTermin(datum, rhythmus) {
+function plusMonate(datum, monate) {
   const teile = datum.split("-").map(Number);
   const jahr = teile[0], monat = teile[1], tag = teile[2];
-
-  if (rhythmus === "woechentlich") {
-    const d = new Date(Date.UTC(jahr, monat - 1, tag));
-    d.setUTCDate(d.getUTCDate() + 7);
-    return d.toISOString().slice(0, 10);
-  }
-
-  const monateProSchritt = { monatlich: 1, quartalsweise: 3, halbjaehrlich: 6, jaehrlich: 12 }[rhythmus];
-  const monatIndexGesamt = (monat - 1) + monateProSchritt;
+  const monatIndexGesamt = (monat - 1) + monate;
   const zielJahr = jahr + Math.floor(monatIndexGesamt / 12);
   const zielMonat0 = ((monatIndexGesamt % 12) + 12) % 12; // 0-basiert
   const letzterTagZielmonat = new Date(Date.UTC(zielJahr, zielMonat0 + 1, 0)).getUTCDate();
   const zielTag = Math.min(tag, letzterTagZielmonat);
   return zielJahr + "-" + String(zielMonat0 + 1).padStart(2, "0") + "-" + String(zielTag).padStart(2, "0");
+}
+
+/**
+ * Der n-te Termin (0 = Startdatum `ab`) im gegebenen Rhythmus. Jeder Termin
+ * wird direkt aus `ab` berechnet, nicht aus dem vorherigen: sonst würde ein
+ * auf den 28. Februar gekappter Termin dauerhaft auf dem 28. hängen bleiben
+ * (31. Januar -> 28. Februar -> 28. März ...) statt im März wieder auf den
+ * 31. zu fallen.
+ */
+export function terminNr(ab, rhythmus, n) {
+  if (rhythmus === "woechentlich") {
+    const teile = ab.split("-").map(Number);
+    const d = new Date(Date.UTC(teile[0], teile[1] - 1, teile[2]));
+    d.setUTCDate(d.getUTCDate() + 7 * n);
+    return d.toISOString().slice(0, 10);
+  }
+  return plusMonate(ab, MONATE_PRO_SCHRITT[rhythmus] * n);
+}
+
+// Index des letzten Termins, der noch zur letzten Erzeugung gehört (-1, falls
+// keiner). Bei
+// Rhythmen in Monaten zählt der Kalendermonat (Regeln aus früheren Versionen
+// tragen als letzte Erzeugung evtl. ein auf den 28. gedriftetes Datum, das
+// kein exakter Termin mehr ist -- sie dürfen den Monat nicht doppelt buchen).
+function indexAbTermin(ab, rhythmus, letzteErzeugung) {
+  const vergleich = rhythmus === "woechentlich"
+    ? function (t) { return t > letzteErzeugung; }
+    : function (t) { return t.slice(0, 7) > letzteErzeugung.slice(0, 7); };
+  let n = 0;
+  while (n < 100000 && !vergleich(terminNr(ab, rhythmus, n))) n++;
+  return n - 1; // Index des letzten Termins bis einschliesslich letzte Erzeugung
 }
 
 /**
@@ -64,16 +88,17 @@ export function naechsterTermin(datum, rhythmus) {
  */
 export function faelligeTermine(regel, bisDatum, limit) {
   const termine = [];
-  let naechster = regel.letzteErzeugung ? naechsterTermin(regel.letzteErzeugung, regel.rhythmus) : regel.ab;
+  if (!regel.ab) return { termine: termine, weitereVorhanden: false };
+  let n = regel.letzteErzeugung ? indexAbTermin(regel.ab, regel.rhythmus, regel.letzteErzeugung) + 1 : 0;
   // Optionales Enddatum ("bis", inklusive): Termine danach entfallen.
   const istFaellig = function (termin) {
     return (!regel.bis || termin <= regel.bis) && buchungsdatumFuerTermin(regel, termin) <= bisDatum;
   };
-  while (istFaellig(naechster) && termine.length < limit) {
-    termine.push(naechster);
-    naechster = naechsterTermin(naechster, regel.rhythmus);
+  while (istFaellig(terminNr(regel.ab, regel.rhythmus, n)) && termine.length < limit) {
+    termine.push(terminNr(regel.ab, regel.rhythmus, n));
+    n++;
   }
-  return { termine: termine, weitereVorhanden: istFaellig(naechster) };
+  return { termine: termine, weitereVorhanden: istFaellig(terminNr(regel.ab, regel.rhythmus, n)) };
 }
 
 /**
@@ -122,7 +147,7 @@ export async function ermittleFaelligeBuchungen(state, optionen) {
       });
     }
 
-    regelUpdates.push({ regelId: regel.id, letzteErzeugung: ergebnis.termine[ergebnis.termine.length - 1] });
+    regelUpdates.push({ regelId: regel.id, vorherLetzte: regel.letzteErzeugung || null, letzteErzeugung: ergebnis.termine[ergebnis.termine.length - 1] });
     if (ergebnis.weitereVorhanden) unvollstaendig.push({ regelId: regel.id, name: regel.name });
   }
 
@@ -131,12 +156,29 @@ export async function ermittleFaelligeBuchungen(state, optionen) {
 
 /**
  * Wendet ein zuvor per ermittleFaelligeBuchungen berechnetes Ergebnis
- * synchron auf den State an (für updateState()).
+ * synchron auf den State an (für updateState()). Weil die Ermittlung async
+ * ist (Kursabfragen), kann sich der State dazwischen geändert haben (Regel
+ * gelöscht/bearbeitet, andere Registerkarte, früherer Durchgang): Buchungen
+ * einer Regel werden nur übernommen, wenn die Regel noch existiert und ihre
+ * letzte Erzeugung noch dem Stand der Ermittlung entspricht; bereits
+ * vorhandene Buchungen (gleiche Regel + Datum) werden nie doppelt angelegt.
  */
 export function wendeFaelligeBuchungenAn(state, ergebnis) {
-  state.realTransaktionen.push.apply(state.realTransaktionen, ergebnis.neueBuchungen);
+  const gueltigeRegelIds = new Set();
   ergebnis.regelUpdates.forEach(function (u) {
     const regel = state.wiederkehrendeBuchungen.find(function (r) { return r.id === u.regelId; });
-    if (regel) regel.letzteErzeugung = u.letzteErzeugung;
+    if (!regel || (regel.letzteErzeugung || null) !== u.vorherLetzte) return;
+    regel.letzteErzeugung = u.letzteErzeugung;
+    gueltigeRegelIds.add(u.regelId);
+  });
+  const vorhanden = new Set(state.realTransaktionen
+    .filter(function (t) { return t.wiederkehrendId; })
+    .map(function (t) { return t.wiederkehrendId + "|" + t.datum; }));
+  ergebnis.neueBuchungen.forEach(function (b) {
+    if (!gueltigeRegelIds.has(b.wiederkehrendId)) return;
+    const schluessel = b.wiederkehrendId + "|" + b.datum;
+    if (vorhanden.has(schluessel)) return;
+    vorhanden.add(schluessel);
+    state.realTransaktionen.push(b);
   });
 }
