@@ -62,6 +62,9 @@ unter „Service“:
   aus dem Buchungsdatum (das für den Budgetvergleich massgeblich ist, aber
   vom tatsächlichen Zahlungszeitpunkt abweichen kann).
 
+Der Button „?“ oben rechts im Bereich „Service“ öffnet eine
+Hilfe/Dokumentation (Dialog, `js/hilfeDialog.js`; Text statisch in `index.html`).
+
 Unter „Service“ gibt es zudem einen Notizen-Editor (Textzeilen, wahlweise
 als Todo mit Checkbox), der mit dem Backup gesichert wird.
 
@@ -226,6 +229,7 @@ zulässt (keine Branch-Protection-Regel, die das verhindert).
 - `js/backup.js`, `js/backupTab.js` – Backup & Restore
 - `js/fsapiHandle.js` – IndexedDB-Ablage für den gewählten Backup-Ordner (File System Access API)
 - `js/version.js` – lädt `version.json` und zeigt sie im Footer an
+- `js/hilfeDialog.js` – Hilfe-Dialog („?“-Button im Service-Bereich)
 - `js/collapsibleHints.js` – macht Erklärungstexte (`.hint.collapsible`)
   standardmässig eingeklappt und über ein Symbol aufklappbar
 - `js/app.js` – Kartenübersicht/Tab-Navigation und Bootstrap

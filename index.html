@@ -23,7 +23,7 @@
 <!-- ?v= hochzählen, wenn sich style.css ändert: als installierte
      "Zum Home-Bildschirm"-App wird die Datei sonst teils hartnäckig
      zwischengespeichert und Änderungen kommen nicht an. -->
-<link rel="stylesheet" href="css/style.css?v=29">
+<link rel="stylesheet" href="css/style.css?v=30">
 </head>
 <body>
 <div class="app">
@@ -382,6 +382,7 @@
     <div class="page-topbar">
       <button type="button" class="btn-back-home" data-tab="home" aria-label="Zurück zur Übersicht">‹</button>
       <h1 class="page-title">🛠️ Service</h1>
+      <button type="button" id="btn-open-hilfe" class="btn-help" title="Hilfe &amp; Dokumentation" aria-label="Hilfe und Dokumentation öffnen" aria-haspopup="dialog">?</button>
     </div>
     <div class="panel">
       <h2>📝 Notizen</h2>
@@ -455,6 +456,119 @@
     <div class="version-tag" id="version-tag"></div>
   </footer>
 </div>
+
+<!-- Dialog: Hilfe & Dokumentation (Button "?" oben rechts im Service-Bereich) -->
+<dialog id="dialog-hilfe" class="dialog-wide" aria-labelledby="dialog-hilfe-title">
+  <div class="buchungen-head">
+    <h2 id="dialog-hilfe-title">Hilfe &amp; Dokumentation</h2>
+    <button type="button" id="dialog-hilfe-close" class="btn-close-icon" aria-label="Schliessen">✕</button>
+  </div>
+  <div class="hilfe-body">
+    <nav class="hilfe-toc" aria-label="Inhalt">
+      <a href="#hilfe-start">Erste Schritte</a>
+      <a href="#hilfe-buchungen">Einnahmen/Ausgaben</a>
+      <a href="#hilfe-budget">Budget</a>
+      <a href="#hilfe-vermoegen">Vermögen</a>
+      <a href="#hilfe-projektion">Projektion</a>
+      <a href="#hilfe-vergleich">Realvergleich</a>
+      <a href="#hilfe-istkosten">Istkosten</a>
+      <a href="#hilfe-analyse">Analyse</a>
+      <a href="#hilfe-service">Service &amp; Backup</a>
+      <a href="#hilfe-daten">Datenschutz &amp; Offline</a>
+    </nav>
+
+    <section id="hilfe-start">
+      <h3>Erste Schritte</h3>
+      <p>Budgetprojektion läuft komplett lokal im Browser – es gibt kein Konto und keinen Server. Eine sinnvolle Reihenfolge für den Start:</p>
+      <ol>
+        <li><strong>Budget</strong>: Kategorien anlegen („Kategorien…“) und Budgetposten erfassen.</li>
+        <li><strong>Vermögen</strong>: mindestens einen Stichtag mit den aktuellen Kontoständen erfassen.</li>
+        <li><strong>Projektion</strong>: Rendite und Inflation einstellen – die Hochrechnung erscheint automatisch.</li>
+        <li><strong>Einnahmen/Ausgaben</strong>: laufend echte Buchungen erfassen; damit werden Realvergleich, Istkosten und Analyse befüllt.</li>
+        <li><strong>Service</strong>: regelmässig ein Backup sichern.</li>
+      </ol>
+      <p>Die Startseite zeigt alle Bereiche als Karten, mit „‹“ oben links geht es zurück. Erklärungstexte mit „▸ Erklärung“ lassen sich bei Bedarf aufklappen.</p>
+    </section>
+
+    <section id="hilfe-buchungen">
+      <h3>📒 Einnahmen/Ausgaben</h3>
+      <ul>
+        <li><strong>Neue Buchung</strong>: Bezeichnung, Unterkategorie, Betrag (Vorzeichen = Einnahme/Ausgabe) und Währung. Beim Tippen der Bezeichnung schlägt die App frühere Buchungen vor; die Auswahl übernimmt Unterkategorie, Betrag, Vorzeichen und Währung.</li>
+        <li><strong>Drei Daten pro Buchung</strong>: <em>Buchungsdatum</em> (zählt für den Budgetvergleich), <em>Valutadatum</em> (zählt für die Rendite-Analyse) und der automatisch gesetzte Erfassungszeitpunkt.</li>
+        <li><strong>Fremdwährung</strong>: Der Kurs wird automatisch vorgeschlagen (Tageskurs zum Valutadatum, bei Zukunftsdatum der aktuelle Kurs) und bleibt manuell überschreibbar. Das ist der einzige Netzwerkaufruf der App.</li>
+        <li><strong>Jahr, Suche, Filter</strong>: Standard ist das laufende Jahr. Die Suche durchsucht Bezeichnung, Kategorie und Betrag über alle Jahre; der Filter grenzt nach Kategorie, Art, Monat und Datum ein.</li>
+        <li><strong>Wiederkehrend…</strong>: Regeln für Miete, Abos usw. (wöchentlich bis jährlich). Beim Öffnen der App werden fällige Termine als normale, unabhängige Buchungen erzeugt – auch rückwirkend. Termine auf Wochenenden oder Schweizer Feiertagen werden je Regel auf den nächsten oder vorherigen Werktag verschoben oder exakt gebucht. Änderungen an einer Regel wirken nur auf künftige Buchungen.</li>
+        <li><strong>⚡ Strom Auto…</strong>: Pro Quartal Stromrechnung (kWh + Betrag) und die je Monat ans Elektroauto gelieferten kWh erfassen. Mit „Weiter“ siehst du die entstehenden Buchungen, erst „Buchen“ legt sie an. Ein Klick auf eine ⚡-Buchung öffnet das Quartal statt des normalen Dialogs.</li>
+      </ul>
+    </section>
+
+    <section id="hilfe-budget">
+      <h3>💰 Budget</h3>
+      <ul>
+        <li>Ein Budgetposten gehört zu einer Kategorie und hat einen Jahresbetrag in CHF (Erträge positiv, Kosten negativ).</li>
+        <li><strong>Wiederkehrend</strong>: gilt ab einem Datum, bis zur nächsten Änderung derselben Kategorie. Der Jahreswert wird monatsgenau berechnet – ein Wechsel mitten im Jahr wird anteilig berücksichtigt.</li>
+        <li><strong>Einmalig</strong>: gilt nur im Jahr des Datums (z. B. eine Anschaffung).</li>
+        <li><strong>Kategorien…</strong>: Kategorien und Unterkategorien anlegen, umbenennen oder löschen. Löschen ist gesperrt, solange sie von Budgetposten oder Buchungen verwendet werden.</li>
+      </ul>
+    </section>
+
+    <section id="hilfe-vermoegen">
+      <h3>🏦 Vermögen</h3>
+      <p>Kontostände zu einem oder mehreren Stichtagen. Der jüngste Stichtag ist der Startwert der Projektion; mit mindestens zwei Stichtagen ist die Rendite-Analyse möglich.</p>
+    </section>
+
+    <section id="hilfe-projektion">
+      <h3>📈 Projektion</h3>
+      <ul>
+        <li>Einstellbar: Horizont (Jahre), Rendite p.a. auf das Vermögen und Inflation p.a. auf die Kosten. Mit „Übernehmen“ speichern.</li>
+        <li>Pro Jahr: Vermögen Anfang + Rendite + budgetierter Ertrag + budgetierte Kosten (inkl. Inflation ab heute) = Vermögen Ende.</li>
+        <li>Es fliessen bewusst nur <strong>budgetierte</strong> Werte ein, keine realen Buchungen.</li>
+        <li>Ohne Budgetposten ist keine Projektion möglich.</li>
+      </ul>
+    </section>
+
+    <section id="hilfe-vergleich">
+      <h3>⚖️ Realvergleich</h3>
+      <ul>
+        <li><strong>A) Abweichung</strong>: reale Buchungen je Kategorie gegenüber dem Budget (Tabelle + Diagramm), dazu der Trend über alle Jahre. Das Symbol 🗂️ gruppiert nach Unterkategorien. Laufende Jahre sind unvollständig und mit * markiert.</li>
+        <li><strong>B) Einsparungsmöglichkeiten</strong>: Kategorien, die häufig über Budget liegen, Budgetreserven sowie das Potenzial je Unterkategorie im Vergleich zu den Vorjahren. Abweichungen unter 100 CHF werden nicht gewertet.</li>
+        <li><strong>C) Verzichtsanalyse</strong>: Jede Unterkategorie ist <em>Notwendig</em> (0 %), <em>Flexibel</em> (ca. 15 %) oder <em>Verzichtbar</em> (ca. 50 %). Die Einstufung ist ein Vorschlag und pro Zeile änderbar; daraus ergibt sich die mögliche Einsparung.</li>
+      </ul>
+    </section>
+
+    <section id="hilfe-istkosten">
+      <h3>📊 Istkostenvergleich</h3>
+      <p>Reale Kosten pro Kategorie über drei Jahre nebeneinander, ohne Bezug zum Budget. Mit 🗂️ nach Unterkategorien gruppierbar.</p>
+    </section>
+
+    <section id="hilfe-analyse">
+      <h3>📐 Analyse</h3>
+      <p>Tatsächliche Vermögensrendite zwischen zwei Stichtagen: <em>Vermögen Ende − Vermögen Anfang − Netto-Cashflow</em>. Der Cashflow stammt aus dem <strong>Valutadatum</strong> der Buchungen im Zeitraum (Von, Bis] – der Start-Stichtag zählt zur Vorperiode. Zusätzlich wird die Rendite auf ein Jahr hochgerechnet (bei sehr kurzen Zeiträumen entsprechend ungenau).</p>
+    </section>
+
+    <section id="hilfe-service">
+      <h3>🛠️ Service &amp; Backup</h3>
+      <ul>
+        <li><strong>Notizen</strong>: freie Zeilen, wahlweise als Todo mit Checkbox. Werden mit dem Backup gesichert.</li>
+        <li><strong>Backup sichern / importieren</strong>: sichert alle App-Daten als Datei (komprimiert, sonst .json). Der Dateiname enthält App-Version, optionalen Gerätenamen und Datum. Ein <strong>Restore ersetzt alle aktuellen Daten</strong> vollständig.</li>
+        <li><strong>Roter Punkt</strong> auf der Karte „Service“: es gibt Änderungen seit dem letzten Backup.</li>
+        <li><strong>Backup-Ordner</strong> (nur Chrome/Edge am Desktop): einmal einen Ordner wählen, danach landen Backups automatisch dort.</li>
+        <li><strong>Backups im App-Speicher</strong>: wo verfügbar, wird jedes Backup zusätzlich im App-Speicher abgelegt und kann von dort wiederhergestellt werden.</li>
+        <li><strong>Updates &amp; Offline-Cache</strong>: „Network-First“ lädt bei jedem Öffnen zuerst die neueste Version – nützlich, wenn ein Update nicht ankommt.</li>
+      </ul>
+    </section>
+
+    <section id="hilfe-daten">
+      <h3>🔒 Datenschutz &amp; Offline</h3>
+      <ul>
+        <li>Alle Daten liegen nur im <code>localStorage</code> dieses Browsers auf diesem Gerät. Wer Browserdaten löscht, verliert sie – daher regelmässig sichern. Zwischen Geräten gelangen Daten nur per Backup.</li>
+        <li>Nach dem ersten Online-Aufruf funktioniert die App offline. Nur die Wechselkursabfrage braucht Netz.</li>
+        <li>Als App installierbar: Android/Chrome „Zum Startbildschirm hinzufügen“, iOS/Safari „Zum Home-Bildschirm“.</li>
+      </ul>
+      <p class="hint">Aktuelle Version: <span id="hilfe-version">–</span></p>
+    </section>
+  </div>
+</dialog>
 
 <!-- Dialog: Budgetposten anlegen/bearbeiten -->
 <dialog id="dialog-budget-row">
@@ -824,7 +938,7 @@
      "from './...'"-Import in js/*.js, siehe scripts/bump-js-version.sh):
      als installierte "Zum Home-Bildschirm"-App werden Module sonst
      hartnäckig zwischengespeichert und Fixes kommen nicht an. -->
-<script type="module" src="js/app.js?v=44"></script>
+<script type="module" src="js/app.js?v=45"></script>
 
 <!-- Service Worker: ermöglicht Offline-Nutzung ab dem zweiten Online-Start,
      analog zum Schwesterprojekt "Flugbuch". Siehe sw.js für die
